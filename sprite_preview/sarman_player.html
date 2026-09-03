@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>🐾 Sarman Kedi Animasyon Oynatıcı & İnceleyici</title>
+<style>
+    :root {
+        --bg: #0f0f17;
+        --card: #181824;
+        --card-border: #28283d;
+        --accent: #ff6b9d;
+        --accent-hover: #ff85b0;
+        --text: #f0f0f8;
+        --text-dim: #8888a4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .badge { background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    
+    .grid-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; }
+    .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; }
+    
+    /* File Selector */
+    .file-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .file-tab { background: #222233; color: var(--text-dim); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .file-tab:hover { background: #2c2c44; color: white; }
+    .file-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    
+    /* Mode Toggle */
+    .mode-toggle { display: flex; background: #12121c; padding: 4px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--card-border); }
+    .mode-btn { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 700; border-radius: 7px; cursor: pointer; color: var(--text-dim); transition: all 0.2s; }
+    .mode-btn.active { background: #2a2a40; color: white; }
+    
+    /* Player Controls */
+    .control-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+    input[type="range"] { accent-color: var(--accent); width: 140px; }
+    .val-badge { font-family: monospace; font-size: 12px; color: var(--accent); min-width: 45px; text-align: right; }
+    
+    .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+    button.action-btn { flex: 1; background: #2a2a40; color: white; border: 1px solid var(--card-border); padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
+    button.action-btn:hover { background: #383854; }
+    button.action-btn.primary { background: var(--accent); border-color: var(--accent); }
+    button.action-btn.primary:hover { background: var(--accent-hover); }
+
+    /* Canvas Display */
+    .main-view { display: flex; flex-direction: column; gap: 20px; }
+    .preview-box { background: #12121c; border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px; position: relative; }
+    
+    #animCanvas { background: transparent; image-rendering: pixelated; }
+    .trans-bg { background-image: linear-gradient(45deg, #1e1e2d 25%, transparent 25%), linear-gradient(-45deg, #1e1e2d 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1e1e2d 75%), linear-gradient(-45deg, transparent 75%, #1e1e2d 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px; }
+    
+    /* Walk Stage */
+    .stage-box { background: linear-gradient(180deg, #1d172e 0%, #110d1c 100%); border: 1px solid var(--card-border); border-radius: 16px; height: 160px; position: relative; overflow: hidden; }
+    .stage-floor { position: absolute; bottom: 0; left: 0; right: 0; height: 35px; background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.1); }
+    #stageCat { position: absolute; bottom: 10px; left: 50px; transition: left 0.1s linear; }
+
+    /* Strip Timeline */
+    .strip-container { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; }
+    .frame-thumb { background: #12121c; border: 2px solid var(--card-border); border-radius: 8px; padding: 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.2s; min-width: 90px; }
+    .frame-thumb:hover { border-color: var(--text-dim); }
+    .frame-thumb.current { border-color: var(--accent); background: rgba(255,107,157,0.1); }
+    .frame-thumb canvas { width: 80px; height: 80px; }
+    .frame-thumb span { font-size: 10px; font-weight: 700; color: var(--text-dim); }
+
+    /* Raw Image View */
+    .raw-view { margin-top: 16px; }
+    .raw-view img { max-width: 100%; border-radius: 8px; border: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🐾 Sarman Kedi Animasyon İnceleyici <span class="badge">10 Dosya Yüklü</span></h1>
+    <div style="font-size: 12px; color: var(--text-dim);">Dizin: <code>/Users/nazmi/B!Pop/sarman/</code></div>
+</header>
+
+<div class="grid-layout">
+    <!-- SOL PANEL: KONTROLLER -->
+    <div class="card">
+        <label style="margin-bottom: 8px; display: block;">📂 DOSYA SEÇ (1.jpg - 10.jpg):</label>
+        <div class="file-tabs" id="fileTabs"></div>
+
+        <label style="margin-bottom: 8px; display: block;">⚙️ ÇALIŞMA MODU:</label>
+        <div class="mode-toggle">
+            <div class="mode-btn active" id="modeStripBtn" onclick="setMode('strip')">🎞️ Şerit Dilimle (1 Resim = 6 Kare)</div>
+            <div class="mode-btn" id="modeSeqBtn" onclick="setMode('sequence')">🔢 1-10 Sıralı Oynat</div>
+        </div>
+
+        <div id="stripControls">
+            <div class="control-row">
+                <label>Sütun (Frame) Sayısı:</label>
+                <input type="range" id="colCount" min="2" max="10" value="6" oninput="updateSettings()">
+                <span class="val-badge" id="colVal">6 Kare</span>
+            </div>
+        </div>
+
+        <div class="control-row">
+            <label>Animasyon Hızı (FPS):</label>
+            <input type="range" id="fpsSlider" min="1" max="30" value="8" oninput="updateSettings()">
+            <span class="val-badge" id="fpsVal">8 FPS</span>
+        </div>
+
+        <div class="control-row">
+            <label>Önizleme Boyutu:</label>
+            <input type="range" id="sizeSlider" min="100" max="400" value="220" oninput="updateSettings()">
+            <span class="val-badge" id="sizeVal">220px</span>
+        </div>
+
+        <div class="btn-row">
+            <button class="action-btn primary" id="playBtn" onclick="togglePlay()">⏸️ Durdur</button>
+            <button class="action-btn" onclick="stepFrame(-1)">⏮️ Geri</button>
+            <button class="action-btn" onclick="stepFrame(1)">⏭️ İleri</button>
+        </div>
+
+        <div class="raw-view">
+            <label style="display:block; margin-bottom: 6px;">Orijinal Dosya:</label>
+            <img id="rawPreview" src="" alt="Raw">
+        </div>
+    </div>
+
+    <!-- SAĞ PANEL: CANLI GÖRÜNÜM -->
+    <div class="main-view">
+        <!-- Canlı Kedi Oynatıcı -->
+        <div class="preview-box">
+            <canvas id="animCanvas" width="300" height="300" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"></canvas>
+            <div style="position: absolute; top: 12px; left: 16px; font-size: 11px; font-weight: 700; color: var(--text-dim);" id="infoLabel">
+                Frame: 1 / 6
+            </div>
+        </div>
+
+        <!-- Odada Yürüme Sahnesi -->
+        <div class="card" style="padding: 14px;">
+            <label style="margin-bottom: 8px; display: block;">🏃 Sahne İçinde Yürüme / Hareket Testi:</label>
+            <div class="stage-box" id="stageBox">
+                <div class="stage-floor"></div>
+                <canvas id="stageCat" width="120" height="120"></canvas>
+            </div>
+        </div>
+
+        <!-- Frame Zaman Çizelgesi -->
+        <div class="card" style="padding: 14px;">
+            <label style="margin-bottom: 8px; display: block;">🎞️ Tüm Kareler (Frame Listesi):</label>
+            <div class="strip-container" id="timelineContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const FILES = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg', '10.jpg'];
+let currentFileIdx = 0;
+let mode = 'strip'; // 'strip' veya 'sequence'
+let loadedImages = {};
+let isPlaying = true;
+let animTimer = null;
+let currentFrame = 0;
+let stageX = 0, stageDir = 1;
+
+// Initialize
+function init(){
+    const tabsContainer = document.getElementById('fileTabs');
+    FILES.forEach((f, idx) => {
+        const tab = document.createElement('div');
+        tab.className = 'file-tab' + (idx === 0 ? ' active' : '');
+        tab.textContent = f;
+        tab.onclick = () => selectFile(idx);
+        tabsContainer.appendChild(tab);
+    });
+
+    loadAllImages(() => {
+        selectFile(0);
+        startLoop();
+    });
+}
+
+function loadAllImages(callback){
+    let loaded = 0;
+    FILES.forEach(f => {
+        const img = new Image();
+        img.src = `sarman/${f}`;
+        img.onload = () => {
+            loadedImages[f] = img;
+            loaded++;
+            if(loaded === FILES.length && callback) callback();
+        };
+    });
+}
+
+function selectFile(idx){
+    currentFileIdx = idx;
+    document.querySelectorAll('.file-tab').forEach((t, i) => {
+        t.classList.toggle('active', i === idx);
+    });
+    document.getElementById('rawPreview').src = `sarman/${FILES[idx]}`;
+    currentFrame = 0;
+    renderTimeline();
+}
+
+function setMode(newMode){
+    mode = newMode;
+    document.getElementById('modeStripBtn').classList.toggle('active', mode === 'strip');
+    document.getElementById('modeSeqBtn').classList.toggle('active', mode === 'sequence');
+    document.getElementById('stripControls').style.display = mode === 'strip' ? 'block' : 'none';
+    currentFrame = 0;
+    renderTimeline();
+}
+
+function updateSettings(){
+    document.getElementById('colVal').textContent = document.getElementById('colCount').value + ' Kare';
+    document.getElementById('fpsVal').textContent = document.getElementById('fpsSlider').value + ' FPS';
+    const size = document.getElementById('sizeSlider').value;
+    document.getElementById('sizeVal').textContent = size + 'px';
+    
+    const cv = document.getElementById('animCanvas');
+    cv.width = size; cv.height = size;
+    renderTimeline();
+    restartLoop();
+}
+
+function getFrameCount(){
+    if(mode === 'sequence') return FILES.length;
+    return parseInt(document.getElementById('colCount').value);
+}
+
+function drawExtractedFrame(ctx, targetW, targetH, frameIdx, imgOverride){
+    if(mode === 'sequence'){
+        const img = imgOverride || loadedImages[FILES[frameIdx]];
+        if(!img) return;
+        ctx.clearRect(0, 0, targetW, targetH);
+        
+        // Draw centered and scale to fit
+        const scale = Math.min(targetW / img.width, targetH / img.height);
+        const dw = img.width * scale, dh = img.height * scale;
+        const dx = (targetW - dw) / 2, dy = (targetH - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+    } else {
+        const img = imgOverride || loadedImages[FILES[currentFileIdx]];
+        if(!img) return;
+        const cols = parseInt(document.getElementById('colCount').value);
+        const fw = img.width / cols;
+        const fh = img.height;
+        const sx = frameIdx * fw;
+        
+        ctx.clearRect(0, 0, targetW, targetH);
+        
+        // Draw frame with aspect ratio preserved
+        const scale = Math.min(targetW / fw, targetH / fh);
+        const dw = fw * scale, dh = fh * scale;
+        const dx = (targetW - dw) / 2, dy = (targetH - dh) / 2;
+        ctx.drawImage(img, sx, 0, fw, fh, dx, dy, dw, dh);
+    }
+}
+
+function renderMain(){
+    const cv = document.getElementById('animCanvas');
+    const ctx = cv.getContext('2d');
+    drawExtractedFrame(ctx, cv.width, cv.height, currentFrame);
+
+    document.getElementById('infoLabel').textContent = `Frame: ${currentFrame + 1} / ${getFrameCount()} • ${FILES[currentFileIdx]}`;
+
+    // Update timeline highlight
+    document.querySelectorAll('.frame-thumb').forEach((t, i) => {
+        t.classList.toggle('current', i === currentFrame);
+    });
+
+    // Stage walking preview
+    const sCat = document.getElementById('stageCat');
+    const sCtx = sCat.getContext('2d');
+    drawExtractedFrame(sCtx, 120, 120, currentFrame);
+    
+    stageX += 3 * stageDir;
+    const maxW = document.getElementById('stageBox').clientWidth - 130;
+    if(stageX > maxW) { stageDir = -1; sCat.style.transform = 'scaleX(-1)'; }
+    if(stageX < 10) { stageDir = 1; sCat.style.transform = 'scaleX(1)'; }
+    sCat.style.left = stageX + 'px';
+}
+
+function renderTimeline(){
+    const container = document.getElementById('timelineContainer');
+    container.innerHTML = '';
+    const total = getFrameCount();
+
+    for(let i = 0; i < total; i++){
+        const thumb = document.createElement('div');
+        thumb.className = 'frame-thumb' + (i === currentFrame ? ' current' : '');
+        thumb.onclick = () => { currentFrame = i; renderMain(); };
+
+        const c = document.createElement('canvas');
+        c.width = 80; c.height = 80;
+        const ctx = c.getContext('2d');
+        drawExtractedFrame(ctx, 80, 80, i);
+
+        const lbl = document.createElement('span');
+        lbl.textContent = `Kare ${i + 1}`;
+
+        thumb.appendChild(c);
+        thumb.appendChild(lbl);
+        container.appendChild(thumb);
+    }
+}
+
+function startLoop(){
+    const fps = parseInt(document.getElementById('fpsSlider').value);
+    animTimer = setInterval(() => {
+        if(isPlaying){
+            currentFrame = (currentFrame + 1) % getFrameCount();
+            renderMain();
+        }
+    }, 1000 / fps);
+}
+
+function restartLoop(){
+    clearInterval(animTimer);
+    startLoop();
+}
+
+function togglePlay(){
+    isPlaying = !isPlaying;
+    document.getElementById('playBtn').textContent = isPlaying ? '⏸️ Durdur' : '▶️ Oynat';
+    document.getElementById('playBtn').classList.toggle('primary', isPlaying);
+}
+
+function stepFrame(dir){
+    if(isPlaying) togglePlay();
+    const count = getFrameCount();
+    currentFrame = (currentFrame + dir + count) % count;
+    renderMain();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

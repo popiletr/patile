@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐱 Sprite Sheet Düzenleyici</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Outfit',sans-serif; background:#0f0f17; color:#fff; min-height:100vh; }
+.header { text-align:center; padding:20px 20px 8px; }
+.header h1 { font-size:1.4rem; font-weight:900; background:linear-gradient(135deg,#7928CA,#FF0080); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header p { color:rgba(255,255,255,0.35); font-size:0.7rem; margin-top:2px; }
+
+.toolbar { display:flex; justify-content:center; align-items:center; gap:10px; padding:10px 16px; flex-wrap:wrap; background:rgba(255,255,255,0.02); border-bottom:1px solid rgba(255,255,255,0.06); }
+.toolbar label { padding:7px 14px; border-radius:10px; cursor:pointer; background:linear-gradient(135deg,#7928CA,#FF0080); color:#fff; font-size:0.75rem; font-weight:700; }
+.toolbar input[type=file] { display:none; }
+.toolbar button { padding:7px 14px; border-radius:10px; cursor:pointer; border:1.5px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7); font-family:'Outfit'; font-size:0.75rem; font-weight:600; }
+.toolbar button:hover { border-color:#7928CA; color:#fff; }
+.toolbar button.primary { border:none; background:linear-gradient(135deg,#00C851,#00E676); color:#000; font-weight:800; }
+.toolbar button.eraser-active { border-color:#FF5252; background:rgba(255,82,82,0.15); color:#FF5252; }
+.toolbar .info { font-size:0.65rem; color:rgba(255,255,255,0.3); }
+
+.main { display:flex; gap:16px; padding:16px; justify-content:center; align-items:flex-start; flex-wrap:wrap; }
+.panel { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:10px; }
+.panel h3 { font-size:0.75rem; font-weight:700; color:rgba(255,255,255,0.5); margin-bottom:6px; text-align:center; }
+
+.cell-controls { min-width:220px; max-width:220px; }
+.selected-cell { text-align:center; font-size:1rem; font-weight:900; color:#FF0080; margin-bottom:4px; }
+.cell-preview { width:180px; height:180px; margin:0 auto 8px; border:2px solid rgba(255,255,255,0.1); border-radius:12px; overflow:hidden; background:#1a1a2a; position:relative; }
+.cell-preview canvas { width:100%; height:100%; cursor:crosshair; }
+
+.ctrl-row { display:flex; align-items:center; gap:4px; margin-bottom:4px; justify-content:center; }
+.ctrl-row label { font-size:0.6rem; color:rgba(255,255,255,0.4); min-width:40px; text-align:right; }
+.ctrl-row input[type=range] { width:70px; -webkit-appearance:none; height:4px; border-radius:2px; background:rgba(255,255,255,0.1); }
+.ctrl-row input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#7928CA; cursor:pointer; }
+.ctrl-val { font-size:0.6rem; color:#7928CA; font-weight:700; min-width:28px; text-align:left; }
+.pm { width:20px; height:20px; border-radius:5px; cursor:pointer; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); color:#fff; font-size:0.7rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; font-family:'Outfit'; }
+.pm:hover { background:rgba(121,40,202,0.3); border-color:#7928CA; }
+
+.section-title { font-size:0.65rem; font-weight:700; color:rgba(255,255,255,0.35); text-align:center; margin:6px 0 4px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); }
+
+.eraser-controls { text-align:center; margin:6px 0; }
+.eraser-controls .ctrl-row { justify-content:center; }
+
+.nudge-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; max-width:120px; margin:4px auto; }
+.nudge-btn { padding:4px; border-radius:5px; cursor:pointer; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#fff; font-size:0.6rem; font-weight:600; text-align:center; font-family:'Outfit'; }
+.nudge-btn:hover { background:rgba(121,40,202,0.2); border-color:#7928CA; }
+
+.apply-btn { padding:4px 10px; border-radius:6px; cursor:pointer; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6); font-family:'Outfit'; font-size:0.6rem; font-weight:600; margin:2px; }
+.apply-btn:hover { border-color:#7928CA; color:#fff; }
+
+.anim-preview { margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); text-align:center; }
+.anim-preview h4 { font-size:0.65rem; font-weight:700; color:rgba(255,255,255,0.35); margin-bottom:4px; }
+.anim-box { width:100px; height:100px; margin:0 auto 4px; border-radius:12px; overflow:hidden; background:#1a1a2a; border:2px solid rgba(255,255,255,0.08); }
+.anim-box canvas { width:100%; height:100%; }
+.anim-info { font-size:0.55rem; color:rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🐱 Sprite Sheet Düzenleyici</h1>
+    <p>Yükle → Ayarla → Silgiyle temizle → PNG indir</p>
+</div>
+
+<div class="toolbar">
+    <label>📂 Yükle <input type="file" id="fileInput" accept="image/*"></label>
+    <button id="autoFitBtn">🔄 Otomatik</button>
+    <button id="eraserBtn">🧽 Silgi</button>
+    <button id="undoBtn">↩️ Geri Al</button>
+    <button id="clearCellBtn">🗑️ Hücre</button>
+    <button id="clearAllBtn">🗑️ Tümü</button>
+    <button class="primary" id="exportBtn">💾 PNG İndir</button>
+    <span class="info" id="statusText">Görsel yükleyin</span>
+</div>
+
+<div class="main">
+    <!-- Kaynak -->
+    <div class="panel" style="min-width:300px">
+        <h3>📷 Kaynak (Orijinal)</h3>
+        <canvas id="sourceCanvas" width="500" height="500" style="display:block;border-radius:8px;border:1px solid rgba(255,255,255,0.08);cursor:crosshair"></canvas>
+    </div>
+
+    <!-- Kontroller -->
+    <div class="panel cell-controls">
+        <h3>⚙️ Seçili Hücre</h3>
+        <div class="selected-cell" id="selLabel">—</div>
+        <div class="cell-preview"><canvas id="prevCanvas" width="333" height="333"></canvas></div>
+
+        <div class="ctrl-row"><label>Ölçek:</label><button class="pm" onclick="adj('scale',-1)">−</button><input type="range" id="sScale" min="50" max="150" value="100"><button class="pm" onclick="adj('scale',1)">+</button><span class="ctrl-val" id="vScale">100%</span></div>
+        <div class="ctrl-row"><label>X:</label><button class="pm" onclick="adj('ox',-1)">−</button><input type="range" id="sOx" min="-100" max="100" value="0"><button class="pm" onclick="adj('ox',1)">+</button><span class="ctrl-val" id="vOx">0</span></div>
+        <div class="ctrl-row"><label>Y:</label><button class="pm" onclick="adj('oy',-1)">−</button><input type="range" id="sOy" min="-100" max="100" value="0"><button class="pm" onclick="adj('oy',1)">+</button><span class="ctrl-val" id="vOy">0</span></div>
+
+        <div class="section-title">✂️ Kenar Kırpma</div>
+        <div class="ctrl-row"><label>Sol:</label><input type="range" id="cL" min="0" max="50" value="0"><span class="ctrl-val" id="vcL">0</span></div>
+        <div class="ctrl-row"><label>Sağ:</label><input type="range" id="cR" min="0" max="50" value="0"><span class="ctrl-val" id="vcR">0</span></div>
+        <div class="ctrl-row"><label>Üst:</label><input type="range" id="cT" min="0" max="50" value="0"><span class="ctrl-val" id="vcT">0</span></div>
+        <div class="ctrl-row"><label>Alt:</label><input type="range" id="cB" min="0" max="50" value="0"><span class="ctrl-val" id="vcB">0</span></div>
+
+        <div class="section-title">🧽 Silgi Boyutu</div>
+        <div class="ctrl-row"><label>Çap:</label><input type="range" id="eraserSize" min="5" max="60" value="20"><span class="ctrl-val" id="vEraserSize">20</span></div>
+
+        <div class="section-title">Nudge</div>
+        <div class="nudge-grid">
+            <div class="nudge-btn" onclick="nudge(-3,-3)">↖</div><div class="nudge-btn" onclick="nudge(0,-3)">↑</div><div class="nudge-btn" onclick="nudge(3,-3)">↗</div>
+            <div class="nudge-btn" onclick="nudge(-3,0)">←</div><div class="nudge-btn" onclick="nudge(0,0)">⊙</div><div class="nudge-btn" onclick="nudge(3,0)">→</div>
+            <div class="nudge-btn" onclick="nudge(-3,3)">↙</div><div class="nudge-btn" onclick="nudge(0,3)">↓</div><div class="nudge-btn" onclick="nudge(3,3)">↘</div>
+        </div>
+        <div style="text-align:center;margin-top:4px">
+            <button class="apply-btn" onclick="applyToRow()">📋 Tüm satıra uygula</button>
+        </div>
+
+        <div class="anim-preview">
+            <h4>▶️ Satır Animasyonu</h4>
+            <div class="anim-box"><canvas id="animCanvas" width="333" height="333"></canvas></div>
+            <div class="anim-info" id="animInfo">—</div>
+            <div class="ctrl-row"><label>Hız:</label><input type="range" id="animSpd" min="80" max="500" value="200" step="10"><span class="ctrl-val" id="vAnimSpd">200ms</span></div>
+        </div>
+    </div>
+
+    <!-- Çıktı Grid -->
+    <div class="panel" style="min-width:300px">
+        <h3>🎯 Çıktı Grid (6×6 maskelenmiş)</h3>
+        <canvas id="targetCanvas" width="500" height="500" style="display:block;border-radius:8px;border:1px solid rgba(255,255,255,0.08);cursor:pointer"></canvas>
+    </div>
+</div>
+
+<script>
+const G=6, OUT=2000, CELL=Math.floor(OUT/G);
+const AN=['IDLE','WALK','SLEEP','EAT','CRY','HAPPY'];
+let srcImg=null, sel=null, eraserOn=false;
+let mouseOnPreview=false, mouseX=0, mouseY=0;
+
+// Her hücre: ayarlar + baked canvas (silgi destekli)
+function mkCell(){return{ox:0,oy:0,scale:100,cL:0,cR:0,cT:0,cB:0,baked:null,history:[]};}
+let cells=[];
+for(let r=0;r<G;r++){cells[r]=[];for(let c=0;c<G;c++)cells[r][c]=mkCell();}
+
+const srcC=document.getElementById('sourceCanvas'), srcCtx=srcC.getContext('2d');
+const tgtC=document.getElementById('targetCanvas'), tgtCtx=tgtC.getContext('2d');
+const prevC=document.getElementById('prevCanvas'), prevCtx=prevC.getContext('2d');
+const animC=document.getElementById('animCanvas'), animCtx=animC.getContext('2d');
+
+// === BAKE: Kaynak frame'i hücre canvas'ına çiz ===
+function bakeCell(r,c){
+    const cell=cells[r][c];
+    if(!srcImg)return;
+    const cv=document.createElement('canvas');
+    cv.width=CELL; cv.height=CELL;
+    const ctx=cv.getContext('2d');
+    const fw=srcImg.naturalWidth/G, fh=srcImg.naturalHeight/G;
+    const scale=cell.scale/100;
+    const cropW=fw/scale, cropH=fh/scale;
+    const sx=c*fw+(fw-cropW)/2 - cell.ox*(fw/CELL);
+    const sy=r*fh+(fh-cropH)/2 - cell.oy*(fh/CELL);
+    ctx.drawImage(srcImg, sx,sy,cropW,cropH, 0,0,CELL,CELL);
+    // Crop kenarlarını temizle
+    if(cell.cL>0) ctx.clearRect(0,0,CELL*cell.cL/100,CELL);
+    if(cell.cR>0) ctx.clearRect(CELL-CELL*cell.cR/100,0,CELL*cell.cR/100,CELL);
+    if(cell.cT>0) ctx.clearRect(0,0,CELL,CELL*cell.cT/100);
+    if(cell.cB>0) ctx.clearRect(0,CELL-CELL*cell.cB/100,CELL,CELL*cell.cB/100);
+    cell.baked=cv;
+    cell.history=[];
+}
+function bakeAll(){
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++)bakeCell(r,c);
+}
+
+// === ERASER: Baked canvas üzerinde silme ===
+function eraseAt(cell, x, y, radius){
+    if(!cell.baked)return;
+    // Undo için snapshot kaydet (max 20)
+    if(cell.history.length===0 || cell.history.length<20){
+        const snap=document.createElement('canvas');
+        snap.width=CELL; snap.height=CELL;
+        snap.getContext('2d').drawImage(cell.baked,0,0);
+        cell.history.push(snap);
+    }
+    const ctx=cell.baked.getContext('2d');
+    ctx.save();
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath();
+    ctx.arc(x,y,radius,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+}
+function undoErase(){
+    if(!sel)return;
+    const cell=cells[sel.r][sel.c];
+    if(cell.history.length>0){
+        const snap=cell.history.pop();
+        cell.baked.getContext('2d').clearRect(0,0,CELL,CELL);
+        cell.baked.getContext('2d').drawImage(snap,0,0);
+        drawAll();
+    }
+}
+
+// === DRAW ===
+function drawSource(){
+    if(!srcImg)return;
+    srcCtx.clearRect(0,0,500,500);
+    srcCtx.drawImage(srcImg,0,0,500,500);
+    srcCtx.strokeStyle='rgba(255,0,0,0.4)'; srcCtx.lineWidth=1;
+    const cw=500/G;
+    for(let i=1;i<G;i++){
+        srcCtx.beginPath();srcCtx.moveTo(i*cw,0);srcCtx.lineTo(i*cw,500);srcCtx.stroke();
+        srcCtx.beginPath();srcCtx.moveTo(0,i*cw);srcCtx.lineTo(500,i*cw);srcCtx.stroke();
+    }
+    if(sel){
+        srcCtx.strokeStyle='#FF0080';srcCtx.lineWidth=3;
+        srcCtx.strokeRect(sel.c*cw+1,sel.r*cw+1,cw-2,cw-2);
+    }
+}
+
+function drawTarget(){
+    const s=500, cp=s/G;
+    tgtCtx.clearRect(0,0,s,s);
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++){
+        tgtCtx.fillStyle=(r+c)%2===0?'#1a1a2a':'#15152a';
+        tgtCtx.fillRect(c*cp,r*cp,cp,cp);
+        const cell=cells[r][c];
+        if(cell.baked){
+            tgtCtx.drawImage(cell.baked,0,0,CELL,CELL,c*cp,r*cp,cp,cp);
+        }
+    }
+    tgtCtx.strokeStyle='rgba(100,100,255,0.25)';tgtCtx.lineWidth=1;
+    for(let i=1;i<G;i++){
+        tgtCtx.beginPath();tgtCtx.moveTo(i*cp,0);tgtCtx.lineTo(i*cp,s);tgtCtx.stroke();
+        tgtCtx.beginPath();tgtCtx.moveTo(0,i*cp);tgtCtx.lineTo(s,i*cp);tgtCtx.stroke();
+    }
+    if(sel){
+        tgtCtx.strokeStyle='#FF0080';tgtCtx.lineWidth=2;
+        tgtCtx.strokeRect(sel.c*cp+1,sel.r*cp+1,cp-2,cp-2);
+    }
+    tgtCtx.font='8px Outfit';tgtCtx.fillStyle='rgba(255,255,255,0.2)';
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++)
+        tgtCtx.fillText(`${AN[r]} F${c+1}`,c*cp+2,r*cp+10);
+}
+
+function drawPreview(){
+    prevCtx.clearRect(0,0,333,333);
+    if(!sel)return;
+    const cell=cells[sel.r][sel.c];
+    if(cell.baked){
+        prevCtx.drawImage(cell.baked,0,0,CELL,CELL,0,0,333,333);
+    }
+    // Silgi aktifken cursor dairesi çiz
+    if(eraserOn && mouseOnPreview){
+        const r=parseInt(document.getElementById('eraserSize').value);
+        prevCtx.strokeStyle='rgba(255,82,82,0.9)';
+        prevCtx.lineWidth=2;
+        prevCtx.beginPath();
+        prevCtx.arc(mouseX, mouseY, r, 0, Math.PI*2);
+        prevCtx.stroke();
+        // İç kısım yarı saydam
+        prevCtx.fillStyle='rgba(255,82,82,0.15)';
+        prevCtx.fill();
+    }
+    // Silgi modu border
+    if(eraserOn){
+        prevCtx.strokeStyle='rgba(255,82,82,0.5)';
+        prevCtx.lineWidth=2;
+        prevCtx.setLineDash([4,4]);
+        prevCtx.strokeRect(1,1,331,331);
+        prevCtx.setLineDash([]);
+    }
+}
+
+function drawAll(){ drawSource(); drawTarget(); drawPreview(); }
+
+// === SELECT ===
+function selectCell(r,c){
+    sel={r,c};
+    const cell=cells[r][c];
+    document.getElementById('selLabel').textContent=`${AN[r]} F${c+1} (${r},${c})`;
+    document.getElementById('sScale').value=cell.scale; document.getElementById('vScale').textContent=cell.scale+'%';
+    document.getElementById('sOx').value=cell.ox; document.getElementById('vOx').textContent=cell.ox;
+    document.getElementById('sOy').value=cell.oy; document.getElementById('vOy').textContent=cell.oy;
+    document.getElementById('cL').value=cell.cL; document.getElementById('vcL').textContent=cell.cL;
+    document.getElementById('cR').value=cell.cR; document.getElementById('vcR').textContent=cell.cR;
+    document.getElementById('cT').value=cell.cT; document.getElementById('vcT').textContent=cell.cT;
+    document.getElementById('cB').value=cell.cB; document.getElementById('vcB').textContent=cell.cB;
+    drawAll(); startAnim();
+}
+
+// === CONTROLS ===
+function adj(prop,d){
+    if(!sel)return;
+    const cell=cells[sel.r][sel.c];
+    if(prop==='scale') cell.scale=Math.max(50,Math.min(150,cell.scale+d));
+    else if(prop==='ox') cell.ox=Math.max(-100,Math.min(100,cell.ox+d));
+    else if(prop==='oy') cell.oy=Math.max(-100,Math.min(100,cell.oy+d));
+    bakeCell(sel.r,sel.c); syncUI(); drawAll();
+}
+function nudge(dx,dy){
+    if(!sel)return;
+    cells[sel.r][sel.c].ox+=dx; cells[sel.r][sel.c].oy+=dy;
+    bakeCell(sel.r,sel.c); syncUI(); drawAll(); startAnim();
+}
+function syncUI(){
+    if(!sel)return;
+    const cell=cells[sel.r][sel.c];
+    document.getElementById('sScale').value=cell.scale; document.getElementById('vScale').textContent=cell.scale+'%';
+    document.getElementById('sOx').value=cell.ox; document.getElementById('vOx').textContent=cell.ox;
+    document.getElementById('sOy').value=cell.oy; document.getElementById('vOy').textContent=cell.oy;
+}
+
+// Slider events
+['sScale','sOx','sOy'].forEach(id=>{
+    document.getElementById(id).oninput=e=>{
+        if(!sel)return;
+        const v=parseInt(e.target.value), cell=cells[sel.r][sel.c];
+        if(id==='sScale'){cell.scale=v;document.getElementById('vScale').textContent=v+'%';}
+        else if(id==='sOx'){cell.ox=v;document.getElementById('vOx').textContent=v;}
+        else{cell.oy=v;document.getElementById('vOy').textContent=v;}
+        bakeCell(sel.r,sel.c); drawAll(); startAnim();
+    };
+});
+['cL','cR','cT','cB'].forEach(id=>{
+    document.getElementById(id).oninput=e=>{
+        if(!sel)return;
+        const v=parseInt(e.target.value);
+        cells[sel.r][sel.c][id]=v;
+        document.getElementById('v'+id).textContent=v;
+        bakeCell(sel.r,sel.c); drawAll(); startAnim();
+    };
+});
+document.getElementById('eraserSize').oninput=e=>{
+    document.getElementById('vEraserSize').textContent=e.target.value;
+};
+
+// Canvas clicks
+tgtC.addEventListener('click',e=>{
+    const r=Math.floor((e.clientY-tgtC.getBoundingClientRect().top)/(500/G));
+    const c=Math.floor((e.clientX-tgtC.getBoundingClientRect().left)/(500/G));
+    if(r>=0&&r<G&&c>=0&&c<G)selectCell(r,c);
+});
+srcC.addEventListener('click',e=>{
+    const r=Math.floor((e.clientY-srcC.getBoundingClientRect().top)/(500/G));
+    const c=Math.floor((e.clientX-srcC.getBoundingClientRect().left)/(500/G));
+    if(r>=0&&r<G&&c>=0&&c<G)selectCell(r,c);
+});
+
+// === ERASER on preview canvas ===
+document.getElementById('eraserBtn').onclick=()=>{
+    eraserOn=!eraserOn;
+    document.getElementById('eraserBtn').classList.toggle('eraser-active',eraserOn);
+    document.getElementById('eraserBtn').textContent=eraserOn?'🧽 Silgi AÇIK':'🧽 Silgi';
+    prevC.style.cursor=eraserOn?'none':'crosshair';
+    drawPreview();
+};
+
+let isErasing=false;
+prevC.addEventListener('mousedown',e=>{ if(eraserOn&&sel){isErasing=true; doErase(e);} });
+prevC.addEventListener('mousemove',e=>{
+    if(eraserOn){
+        const rect=prevC.getBoundingClientRect();
+        mouseX=(e.clientX-rect.left)*(333/rect.width);
+        mouseY=(e.clientY-rect.top)*(333/rect.height);
+        mouseOnPreview=true;
+        if(isErasing) doErase(e); else drawPreview();
+    }
+});
+prevC.addEventListener('mouseleave',()=>{ mouseOnPreview=false; drawPreview(); });
+prevC.addEventListener('mouseenter',()=>{ mouseOnPreview=true; });
+window.addEventListener('mouseup',()=>{ isErasing=false; });
+
+function doErase(e){
+    if(!sel)return;
+    const rect=prevC.getBoundingClientRect();
+    // Preview canvas 180x180 CSS → 333x333 actual
+    const scaleX=333/rect.width, scaleY=333/rect.height;
+    const px=(e.clientX-rect.left)*scaleX;
+    const py=(e.clientY-rect.top)*scaleY;
+    // Baked canvas CELL×CELL üzerindeki koordinat
+    const bx=px*(CELL/333), by=py*(CELL/333);
+    const radius=parseInt(document.getElementById('eraserSize').value)*(CELL/333);
+    eraseAt(cells[sel.r][sel.c], bx, by, radius);
+    drawPreview(); drawTarget();
+}
+
+// === BUTTONS ===
+document.getElementById('undoBtn').onclick=()=>{ undoErase(); };
+document.getElementById('autoFitBtn').onclick=()=>{
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++)cells[r][c]=mkCell();
+    bakeAll(); if(sel)selectCell(sel.r,sel.c); else selectCell(0,0);
+    document.getElementById('statusText').textContent='Otomatik yerleştirildi';
+};
+document.getElementById('clearCellBtn').onclick=()=>{
+    if(!sel)return;
+    cells[sel.r][sel.c]=mkCell(); bakeCell(sel.r,sel.c);
+    selectCell(sel.r,sel.c);
+};
+document.getElementById('clearAllBtn').onclick=()=>{
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++){cells[r][c]=mkCell();}
+    bakeAll(); if(sel)selectCell(sel.r,sel.c);
+};
+
+function applyToRow(){
+    if(!sel)return;
+    const src=cells[sel.r][sel.c];
+    for(let c=0;c<G;c++){
+        cells[sel.r][c]={...src,baked:null,history:[]};
+        bakeCell(sel.r,c);
+    }
+    drawAll(); startAnim();
+    document.getElementById('statusText').textContent=`${AN[sel.r]} satırına uygulandı!`;
+}
+
+// === EXPORT ===
+document.getElementById('exportBtn').onclick=()=>{
+    if(!srcImg){alert('Önce görsel yükleyin!');return;}
+    const ec=document.createElement('canvas');
+    ec.width=OUT; ec.height=OUT;
+    const ectx=ec.getContext('2d');
+    for(let r=0;r<G;r++)for(let c=0;c<G;c++){
+        const cell=cells[r][c];
+        if(cell.baked) ectx.drawImage(cell.baked,0,0,CELL,CELL,c*CELL,r*CELL,CELL,CELL);
+    }
+    const link=document.createElement('a');
+    link.download='sprite_sheet_2000x2000.png';
+    link.href=ec.toDataURL('image/png');
+    link.click();
+    document.getElementById('statusText').textContent='✅ PNG indirildi!';
+};
+
+// === FILE INPUT ===
+document.getElementById('fileInput').onchange=e=>{
+    const f=e.target.files[0]; if(!f)return;
+    const img=new Image();
+    img.onload=()=>{
+        srcImg=img;
+        bakeAll();
+        selectCell(0,0);
+        document.getElementById('statusText').textContent=`${img.naturalWidth}×${img.naturalHeight}px yüklendi`;
+    };
+    img.src=URL.createObjectURL(f);
+};
+
+// === KEYBOARD ===
+document.addEventListener('keydown',e=>{
+    if(!sel)return;
+    const s=e.shiftKey?1:3;
+    if(e.key==='ArrowLeft'){nudge(-s,0);e.preventDefault();}
+    if(e.key==='ArrowRight'){nudge(s,0);e.preventDefault();}
+    if(e.key==='ArrowUp'){nudge(0,-s);e.preventDefault();}
+    if(e.key==='ArrowDown'){nudge(0,s);e.preventDefault();}
+});
+
+// === ANIMATION ===
+let animTimer=null, animF=0, animSpd=200;
+function drawAnimF(col){
+    if(!sel)return;
+    animCtx.clearRect(0,0,333,333);
+    const cell=cells[sel.r][col];
+    if(cell.baked) animCtx.drawImage(cell.baked,0,0,CELL,CELL,0,0,333,333);
+}
+function startAnim(){
+    if(animTimer)clearInterval(animTimer);
+    animF=0; if(!sel)return;
+    drawAnimF(0);
+    document.getElementById('animInfo').textContent=`${AN[sel.r]} — F1/6`;
+    animTimer=setInterval(()=>{
+        animF=(animF+1)%G;
+        drawAnimF(animF);
+        document.getElementById('animInfo').textContent=`${AN[sel.r]} — F${animF+1}/6`;
+    },animSpd);
+}
+document.getElementById('animSpd').oninput=e=>{
+    animSpd=parseInt(e.target.value);
+    document.getElementById('vAnimSpd').textContent=animSpd+'ms';
+    startAnim();
+};
+</script>
+</body>
+</html>

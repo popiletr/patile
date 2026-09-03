@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milo - Bağımsız Odalar & Çokgen Alan Kalibratörü</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0c0f17;
+            --bg-panel: #141923;
+            --bg-subpanel: #1b2230;
+            --border: #263044;
+            --border-highlight: #3b82f6;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --color-floor: #38bdf8;
+            --color-platform: #facc15;
+            --color-tree: #4ade80;
+            --color-prop: #fb923c;
+            --color-hunt: #f43f5e;
+            --color-bed: #c084fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-main);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ÜST BAŞLIK & ARAÇ ÇUBUĞU */
+        .top-navbar {
+            height: 60px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        .navbar-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-ver {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 2px 8px;
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border-radius: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        /* ODA SEÇİCİ TAVLARI */
+        .room-tabs-nav {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-main);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            background: var(--bg-subpanel);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .room-count-badge {
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* ZOOM KONTROLLERİ */
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-main);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .zoom-btn {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+        }
+
+        .zoom-btn:hover {
+            background: #2a3449;
+        }
+
+        .zoom-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #2a3449;
+            border-color: #475569;
+        }
+
+        .btn-action.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #f87171;
+        }
+
+        .btn-action.primary {
+            background: var(--accent);
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-action.primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ANA GÖVDE DÜZENİ */
+        .main-workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* SOL ARAÇ PALETİ */
+        .left-toolbar {
+            width: 290px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .tool-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tool-btn:hover {
+            background: #242e42;
+            border-color: #4b5563;
+        }
+
+        .tool-btn.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--accent);
+            color: #60a5fa;
+        }
+
+        .category-select {
+            width: 100%;
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .category-select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ÇOKGEN EYLEMLERİ */
+        .poly-btn-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .poly-btn {
+            flex: 1;
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .poly-btn:hover {
+            background: #2a3449;
+            border-color: #475569;
+        }
+
+        .poly-btn.success {
+            background: #059669;
+            border-color: #10b981;
+            color: #fff;
+        }
+
+        /* EŞYA YÖNETİM GRUBU */
+        .props-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .prop-toggle-btn {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .prop-toggle-btn:hover {
+            border-color: #475569;
+            background: #222d3f;
+        }
+
+        .prop-toggle-btn.active {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .info-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .info-card strong {
+            color: #fff;
+        }
+
+        /* ORTA ÇİZİM KANVASI ALANI */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #080a0f;
+            overflow: auto;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 24px;
+        }
+
+        .stage-wrapper {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border: 2px solid #334155;
+            background: #000;
+            width: 2200px;
+            height: 768px;
+            min-width: 2200px;
+            min-height: 768px;
+            transform-origin: top left;
+            transition: transform 0.15s ease;
+        }
+
+        #bgImageEl {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2200px;
+            height: 768px;
+            object-fit: fill;
+            display: block;
+            pointer-events: none;
+        }
+
+        #drawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2200px;
+            height: 768px;
+            cursor: crosshair;
+            z-index: 10;
+        }
+
+        /* TUVAL İÇİ AKTİF ODA BİLGİ ROZETİ */
+        .room-watermark-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 40;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        /* SÜRÜKLENEBİLİR VE BOYUTLANDIRILABİLİR ODA EŞYALARI */
+        .interactive-prop {
+            position: absolute;
+            z-index: 25;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed transparent;
+            transition: border-color 0.15s;
+        }
+
+        .interactive-prop.selected {
+            border-color: #f59e0b;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .interactive-prop img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
+        }
+
+        /* BOYUTLANDIRMA TUTAMAÇLARI */
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #f59e0b;
+            border: 2px solid #fff;
+            border-radius: 2px;
+            display: none;
+            z-index: 30;
+        }
+
+        .interactive-prop.selected .resize-handle {
+            display: block;
+        }
+
+        .handle-tl { top: -6px; left: -6px; cursor: nwse-resize; }
+        .handle-tr { top: -6px; right: -6px; cursor: nesw-resize; }
+        .handle-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .handle-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+        .prop-badge {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            display: none;
+        }
+
+        .interactive-prop.selected .prop-badge {
+            display: block;
+        }
+
+        /* KEDİ KUKLASI (CANLI TEST) */
+        #catPuppet {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            pointer-events: auto;
+            cursor: grab;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center bottom;
+        }
+
+        #catPuppet:active {
+            cursor: grabbing;
+        }
+
+        #catPuppet img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
+        }
+
+        .puppet-tag {
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        /* SAĞ BİLGİ & LİSTE PANELİ */
+        .right-inspector {
+            width: 360px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .inspector-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .prop-edit-box {
+            padding: 12px 16px;
+            background: var(--bg-main);
+            border-bottom: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .prop-edit-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fbbf24;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prop-inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .input-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .input-row label {
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .input-row input {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .items-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-card {
+            background: var(--bg-subpanel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .item-card:hover {
+            border-color: #475569;
+            background: #222c3d;
+        }
+
+        .item-card.active {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.15);
+        }
+
+        .item-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .item-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .item-coords {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .btn-del {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-del:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* CANLI KOD AKTARIM BÖLÜMÜ */
+        .code-export-section {
+            height: 220px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-header {
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dim);
+        }
+
+        .code-box {
+            flex: 1;
+            padding: 12px;
+            background: #090c13;
+            color: #38bdf8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            overflow: auto;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+        }
+
+        /* ALT DURUM ÇUBUĞU */
+        .status-bar {
+            height: 32px;
+            background: #090c13;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            z-index: 100;
+        }
+
+        .status-coords {
+            display: flex;
+            gap: 16px;
+        }
+
+        .status-coords span strong {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST NAVİGASYON -->
+    <header class="top-navbar">
+        <div class="navbar-title">
+            <span>Milo Oda & Çokgen Alan Kalibrasyon Editörü</span>
+            <span class="badge-ver">Bölümlere Özel İzolasyon</span>
+        </div>
+
+        <div class="room-tabs-nav">
+            <button class="tab-btn active" id="tab_living" onclick="switchMapperRoom('living')">
+                <span>Salon</span>
+                <span class="room-count-badge" id="cnt_living">0</span>
+            </button>
+            <button class="tab-btn" id="tab_kitchen" onclick="switchMapperRoom('kitchen')">
+                <span>Mutfak</span>
+                <span class="room-count-badge" id="cnt_kitchen">0</span>
+            </button>
+            <button class="tab-btn" id="tab_bedroom" onclick="switchMapperRoom('bedroom')">
+                <span>Yatak Odası</span>
+                <span class="room-count-badge" id="cnt_bedroom">0</span>
+            </button>
+            <button class="tab-btn" id="tab_bathroom" onclick="switchMapperRoom('bathroom')">
+                <span>Banyo</span>
+                <span class="room-count-badge" id="cnt_bathroom">0</span>
+            </button>
+            <button class="tab-btn" id="tab_garden" onclick="switchMapperRoom('garden')">
+                <span>Bahçe</span>
+                <span class="room-count-badge" id="cnt_garden">0</span>
+            </button>
+        </div>
+
+        <!-- ZOOM -->
+        <div class="zoom-controls">
+            <span style="font-size:11px; color:var(--text-dim); margin-right:4px;">Görünüm:</span>
+            <button class="zoom-btn" onclick="setZoom(0.5)">50%</button>
+            <button class="zoom-btn" onclick="setZoom(0.75)">75%</button>
+            <button class="zoom-btn active" id="btnZoom100" onclick="setZoom(1.0)">100%</button>
+            <button class="zoom-btn" onclick="setZoom('fit')">Ekrana Sığdır</button>
+        </div>
+
+        <div class="top-actions">
+            <button class="btn-action" onclick="undoLast()">Geri Al</button>
+            <button class="btn-action danger" onclick="clearActiveRoom()">Bu Odayı Temizle</button>
+            <button class="btn-action danger" onclick="resetAllRooms()">Tüm Odaları Sıfırla</button>
+            <button class="btn-action" onclick="downloadJSON()">JSON İndir</button>
+            <button class="btn-action primary" onclick="saveAllMapping()">Kaydet</button>
+        </div>
+    </header>
+
+    <!-- ANA ÇALIŞMA ALANI -->
+    <main class="main-workspace">
+
+        <!-- SOL ARAÇ KUTUSU -->
+        <aside class="left-toolbar">
+            <div>
+                <div class="section-label">Alan Çizim Modu</div>
+                <div class="tool-group">
+                    <button class="tool-btn active" id="toolPolygon" onclick="setTool('polygon')">
+                        <span>Çokgen Alan (Maps)</span>
+                    </button>
+                    <button class="tool-btn" id="toolBox" onclick="setTool('box')">
+                        <span>Dikdörtgen Alan</span>
+                    </button>
+                    <button class="tool-btn" id="toolSelect" onclick="setTool('select')">
+                        <span>Nokta Taşı / Düzenle</span>
+                    </button>
+                    <button class="tool-btn" id="toolPoint" onclick="setTool('point')">
+                        <span>Tek Nokta</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ÇOKGEN EYLEMLERİ -->
+            <div id="polygonActionBox" style="display:flex; flex-direction:column; gap:6px;">
+                <div class="section-label">Aktif Çokgen Çizimi</div>
+                <div class="poly-btn-row">
+                    <button class="poly-btn success" onclick="finishCurrentPolygon()">Alanı Kapat (Bitir)</button>
+                    <button class="poly-btn" onclick="cancelCurrentPolygon()">İptal Et</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-label">Öğe Türü / Kategori</div>
+                <select class="category-select" id="categorySelect" onchange="onCategoryChange()">
+                    <option value="floor" style="color:#38bdf8">Zemin / Yürüme Alanı</option>
+                    <option value="sofa_seat" style="color:#facc15">Kanepe Oturma Alanı</option>
+                    <option value="sofa_back" style="color:#facc15">Kanepe Sırtlık Üstü</option>
+                    <option value="kitchen_counter" style="color:#facc15">Mutfak Tezgah Alanı</option>
+                    <option value="bed_surface" style="color:#c084fc">Yatak Üstü (Yorgan Alanı)</option>
+                    <option value="cat_tree" style="color:#4ade80">Tırmalama Kulesi / Direk</option>
+                    <option value="hunt_fly" style="color:#f43f5e">Av Alanı: Sinek</option>
+                    <option value="hunt_mouse" style="color:#f43f5e">Av Alanı: Fare</option>
+                    <option value="hunt_bug" style="color:#f43f5e">Av Alanı: Böcek</option>
+                    <option value="custom" style="color:#fff">Özel Platform</option>
+                </select>
+            </div>
+
+            <!-- ODA EŞYALARI (PROPS) -->
+            <div>
+                <div class="section-label">Oda Eşyaları (Sürükle & Boyutlandır)</div>
+                <div class="props-btn-group">
+                    <button class="prop-toggle-btn" id="btnPropBowl" onclick="toggleProp('food_bowl')">
+                        <span>Mama Kabı</span>
+                        <span id="badgePropBowl">Aktif</span>
+                    </button>
+                    <button class="prop-toggle-btn" id="btnPropWater" onclick="toggleProp('water_fountain')">
+                        <span>Su Sebili</span>
+                        <span id="badgePropWater">Aktif</span>
+                    </button>
+                    <button class="prop-toggle-btn" id="btnPropBed" onclick="toggleProp('cat_bed')">
+                        <span>Kedi Minderi / Yatak</span>
+                        <span id="badgePropBed">Aktif</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <strong>Oda Bağımsızlığı:</strong><br>
+                Her odanın çizimleri tamamen o odaya aittir. Salon'da çizdiğiniz alanlar yalnızca Salon'da kalır, Mutfak'ta çizdikleriniz Mutfak'ta kalır.<br><br>
+                • <strong>Çokgen Çizme:</strong> Köşelere sırayla tıklayın, ilk noktaya tıklayarak kapatın.<br>
+                • <strong>Nokta Düzeltme:</strong> Beyaz daire noktaları farenizle tutup sürükleyin.
+            </div>
+        </aside>
+
+        <!-- ORTA ÇİZİM TUVALİ -->
+        <section class="canvas-container" id="canvasViewport">
+            <div class="stage-wrapper" id="stageWrapper">
+                <img id="bgImageEl" src="sahneler/salon.jpg" alt="Room Background">
+                <div class="room-watermark-badge" id="roomWatermark">SALON (0 ALAN)</div>
+                <canvas id="drawCanvas" width="2200" height="768"></canvas>
+
+                <!-- SÜRÜKLENEBİLİR VE BOYUTLANDIRILABİLİR EŞYALAR -->
+                <!-- 1. Mama Kabı -->
+                <div class="interactive-prop" id="propFoodBowl" style="left: 740px; bottom: 110px; width: 86px; height: 86px;" data-prop="food_bowl">
+                    <div class="prop-badge">Mama Kabı</div>
+                    <img src="sahneler/mamakabı.jpg" alt="Mama Kabı">
+                    <div class="resize-handle handle-tl" data-handle="tl"></div>
+                    <div class="resize-handle handle-tr" data-handle="tr"></div>
+                    <div class="resize-handle handle-bl" data-handle="bl"></div>
+                    <div class="resize-handle handle-br" data-handle="br"></div>
+                </div>
+
+                <!-- 2. Su Sebili -->
+                <div class="interactive-prop" id="propWaterFountain" style="left: 1720px; bottom: 125px; width: 135px; height: 135px;" data-prop="water_fountain">
+                    <div class="prop-badge">Su Sebili</div>
+                    <img src="sahneler/susebili sprite.png" alt="Su Sebili">
+                    <div class="resize-handle handle-tl" data-handle="tl"></div>
+                    <div class="resize-handle handle-tr" data-handle="tr"></div>
+                    <div class="resize-handle handle-bl" data-handle="bl"></div>
+                    <div class="resize-handle handle-br" data-handle="br"></div>
+                </div>
+
+                <!-- 3. Kedi Minderi -->
+                <div class="interactive-prop" id="propCatBed" style="left: 350px; bottom: 35px; width: 140px; height: 72px;" data-prop="cat_bed">
+                    <div class="prop-badge">Kedi Minderi</div>
+                    <img src="sahneler/yatak.png" alt="Kedi Yatağı">
+                    <div class="resize-handle handle-tl" data-handle="tl"></div>
+                    <div class="resize-handle handle-tr" data-handle="tr"></div>
+                    <div class="resize-handle handle-bl" data-handle="bl"></div>
+                    <div class="resize-handle handle-br" data-handle="br"></div>
+                </div>
+
+                <!-- TEST KEDİ KUKLASI -->
+                <div id="catPuppet" style="left: 1000px; bottom: 38px;">
+                    <div class="puppet-tag" id="puppetTag">X: 1000 | B: 38 | 1.00x</div>
+                    <img src="sahneler/sarman_banyo.png" alt="Cat Dummy">
+                </div>
+            </div>
+        </section>
+
+        <!-- SAĞ BİLGİ & LİSTE PANELİ -->
+        <aside class="right-inspector">
+            <div class="inspector-header">
+                <span id="roomItemsTitle">Salon Alanları (0)</span>
+            </div>
+
+            <!-- SEÇİLİ EŞYA DÜZENLEME PANELİ -->
+            <div class="prop-edit-box" id="propEditBox">
+                <div class="prop-edit-title">
+                    <span id="propEditName">Eşya Ayarları</span>
+                    <button class="btn-del" onclick="deselectProp()">Kapat</button>
+                </div>
+                <div class="prop-inputs-grid">
+                    <div class="input-row">
+                        <label>Sol (X):</label>
+                        <input type="number" id="inpPropX" oninput="onPropInputManual()">
+                    </div>
+                    <div class="input-row">
+                        <label>Taban (Bottom):</label>
+                        <input type="number" id="inpPropBottom" oninput="onPropInputManual()">
+                    </div>
+                    <div class="input-row">
+                        <label>Genişlik (W):</label>
+                        <input type="number" id="inpPropW" oninput="onPropInputManual()">
+                    </div>
+                    <div class="input-row">
+                        <label>Yükseklik (H):</label>
+                        <input type="number" id="inpPropH" oninput="onPropInputManual()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="items-list" id="itemsListEl">
+                <!-- Çizilen çokgenler buraya kart olarak eklenecek -->
+            </div>
+
+            <div class="code-export-section">
+                <div class="code-header">
+                    <span>Oyun Kod Yapılandırması</span>
+                    <button class="btn-action" style="padding:4px 8px; font-size:11px;" onclick="copyCode()">Kopyala</button>
+                </div>
+                <textarea class="code-box" id="codeBox" readonly></textarea>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ALT DURUM ÇUBUĞU -->
+    <footer class="status-bar">
+        <div class="status-coords">
+            <span>İmleç X: <strong id="curX">0 px</strong></span>
+            <span>İmleç Y: <strong id="curY">0 px</strong></span>
+            <span>Tabandan Yükseklik (Bottom): <strong id="curBottom">0 px</strong></span>
+            <span>Kedi Durumu: <strong id="catStatusInfo" style="color:#60a5fa;">Zeminde Serbest</strong></span>
+        </div>
+        <div>
+            <span>Aktif Odadaki Alan: <strong id="totalPointsCount">0</strong></span>
+        </div>
+    </footer>
+
+    <script>
+        const STAGE_W = 2200;
+        const STAGE_H = 768;
+
+        const ROOM_IMAGES = {
+            living: 'sahneler/salon.jpg',
+            kitchen: 'sahneler/mutfak.jpg',
+            bedroom: 'sahneler/yatakodası.jpg',
+            bathroom: 'sahneler/banyo.jpg',
+            garden: 'sahneler/veranda.jpg'
+        };
+
+        const ROOM_NAMES = {
+            living: 'SALON',
+            kitchen: 'MUTFAK',
+            bedroom: 'YATAK ODASI',
+            bathroom: 'BANYO',
+            garden: 'BAHÇE'
+        };
+
+        const CATEGORY_COLORS = {
+            floor: '#38bdf8',
+            sofa_seat: '#facc15',
+            sofa_back: '#eab308',
+            kitchen_counter: '#f59e0b',
+            bed_surface: '#c084fc',
+            cat_tree: '#4ade80',
+            hunt_fly: '#f43f5e',
+            hunt_mouse: '#f43f5e',
+            hunt_bug: '#f43f5e',
+            custom: '#e2e8f0'
+        };
+
+        const CATEGORY_NAMES = {
+            floor: 'Zemin / Yürüme Alanı',
+            sofa_seat: 'Kanepe Oturma Alanı',
+            sofa_back: 'Kanepe Sırtlığı',
+            kitchen_counter: 'Mutfak Tezgah Alanı',
+            bed_surface: 'Yatak Üstü (Yorgan)',
+            cat_tree: 'Tırmalama Kulesi / Direk',
+            hunt_fly: 'Av Alanı: Sinek',
+            hunt_mouse: 'Av Alanı: Fare',
+            hunt_bug: 'Av Alanı: Böcek',
+            custom: 'Özel Platform'
+        };
+
+        // TAMAMEN AYRIK ODA VERİ HAVUZU
+        let AllMappings = {
+            living: [],
+            kitchen: [],
+            bedroom: [],
+            bathroom: [],
+            garden: [],
+            props: {
+                food_bowl: { room: 'kitchen', x: 740, bottom: 110, w: 86, h: 86, visible: true },
+                water_fountain: { room: 'garden', x: 1720, bottom: 125, w: 135, h: 135, visible: true },
+                cat_bed: { room: 'bedroom', x: 350, bottom: 35, w: 140, h: 72, visible: true }
+            }
+        };
+
+        let currentRoom = 'living';
+        let currentTool = 'polygon';
+        let currentCategory = 'floor';
+        let selectedPolyIndex = -1;
+        let selectedPointIndex = -1;
+        let selectedPropKey = null;
+        let currentZoom = 1.0;
+
+        let activePolygonPoints = [];
+        let mouseHoverPos = { x: 0, y: 0 };
+        let isDraggingVertex = false;
+        let dragPolyIdx = -1;
+        let dragPointIdx = -1;
+
+        let isDrawingBox = false;
+        let boxStartX = 0;
+        let boxStartY = 0;
+
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgImg = document.getElementById('bgImageEl');
+        const stageWrapper = document.getElementById('stageWrapper');
+        const canvasViewport = document.getElementById('canvasViewport');
+
+        function setZoom(val) {
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+            if (val === 'fit') {
+                const vpW = canvasViewport.clientWidth - 48;
+                currentZoom = Math.min(1.0, vpW / STAGE_W);
+            } else {
+                currentZoom = parseFloat(val);
+                const btn = Array.from(document.querySelectorAll('.zoom-btn')).find(b => b.textContent.includes(Math.round(currentZoom * 100) + '%'));
+                if (btn) btn.classList.add('active');
+            }
+            stageWrapper.style.transform = `scale(${currentZoom})`;
+        }
+
+        // YEREL HAFIZA YÜKLE
+        function loadSavedMapping() {
+            const saved = localStorage.getItem('milo_room_mapping_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    AllMappings.living = Array.isArray(parsed.living) ? parsed.living : [];
+                    AllMappings.kitchen = Array.isArray(parsed.kitchen) ? parsed.kitchen : [];
+                    AllMappings.bedroom = Array.isArray(parsed.bedroom) ? parsed.bedroom : [];
+                    AllMappings.bathroom = Array.isArray(parsed.bathroom) ? parsed.bathroom : [];
+                    AllMappings.garden = Array.isArray(parsed.garden) ? parsed.garden : [];
+                    if (parsed.props) AllMappings.props = parsed.props;
+                } catch(e) {
+                    console.error('Yükleme hatası:', e);
+                }
+            }
+            updateRoomBadges();
+            switchMapperRoom(currentRoom);
+        }
+
+        function updateRoomBadges() {
+            ['living', 'kitchen', 'bedroom', 'bathroom', 'garden'].forEach(rk => {
+                const count = (AllMappings[rk] && Array.isArray(AllMappings[rk])) ? AllMappings[rk].length : 0;
+                const el = document.getElementById(`cnt_${rk}`);
+                if (el) el.textContent = count;
+            });
+        }
+
+        // ODA DEĞİŞTİRME FONKSİYONU (KESİN İZOLASYON)
+        function switchMapperRoom(roomKey) {
+            // Çizim durumunu sıfırla
+            activePolygonPoints = [];
+            isDrawingBox = false;
+            isDraggingVertex = false;
+            selectedPolyIndex = -1;
+            selectedPointIndex = -1;
+            selectedPropKey = null;
+
+            currentRoom = roomKey;
+            bgImg.src = ROOM_IMAGES[roomKey];
+
+            // Tab butonlarını güncelle
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `tab_${roomKey}`);
+            });
+
+            // Rozet ve başlıkları güncelle
+            const roomItemCount = (AllMappings[currentRoom] && Array.isArray(AllMappings[currentRoom])) ? AllMappings[currentRoom].length : 0;
+            document.getElementById('roomWatermark').textContent = `${ROOM_NAMES[roomKey]} (${roomItemCount} ALAN)`;
+            document.getElementById('roomItemsTitle').textContent = `${ROOM_NAMES[roomKey]} Alanları (${roomItemCount})`;
+            document.getElementById('propEditBox').style.display = 'none';
+
+            updateRoomBadges();
+            syncPropsUI();
+            renderCanvas();
+            renderItemsList();
+            updateExportCode();
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            const map = { polygon: 'toolPolygon', box: 'toolBox', select: 'toolSelect', point: 'toolPoint' };
+            if (map[tool]) document.getElementById(map[tool]).classList.add('active');
+            
+            document.getElementById('polygonActionBox').style.display = (tool === 'polygon' || activePolygonPoints.length > 0) ? 'flex' : 'none';
+            renderCanvas();
+        }
+
+        function onCategoryChange() {
+            currentCategory = document.getElementById('categorySelect').value;
+        }
+
+        function getCanvasCoords(e) {
+            const rect = stageWrapper.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / currentZoom;
+            const y = (e.clientY - rect.top) / currentZoom;
+            return {
+                x: Math.max(0, Math.min(STAGE_W, x)),
+                y: Math.max(0, Math.min(STAGE_H, y))
+            };
+        }
+
+        function finishCurrentPolygon() {
+            if (activePolygonPoints.length >= 3) {
+                let sumB = 0;
+                let minB = 9999, maxB = 0;
+                activePolygonPoints.forEach(p => {
+                    sumB += p.bottom;
+                    minB = Math.min(minB, p.bottom);
+                    maxB = Math.max(maxB, p.bottom);
+                });
+                const avgBottom = Math.round(sumB / activePolygonPoints.length);
+
+                if (!AllMappings[currentRoom]) AllMappings[currentRoom] = [];
+
+                AllMappings[currentRoom].push({
+                    type: 'polygon',
+                    category: currentCategory,
+                    name: CATEGORY_NAMES[currentCategory] || 'Özel Alan',
+                    points: JSON.parse(JSON.stringify(activePolygonPoints)),
+                    avgBottom: avgBottom,
+                    minBottom: minB,
+                    maxBottom: maxB
+                });
+
+                activePolygonPoints = [];
+                selectedPolyIndex = AllMappings[currentRoom].length - 1;
+                
+                autoSave();
+                updateRoomBadges();
+                renderCanvas();
+                renderItemsList();
+                updateExportCode();
+            } else if (activePolygonPoints.length > 0) {
+                alert('Bir alan oluşturmak için en az 3 nokta eklemelisiniz!');
+            }
+        }
+
+        function cancelCurrentPolygon() {
+            activePolygonPoints = [];
+            renderCanvas();
+        }
+
+        // FARE ETKİLEŞİMİ
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getCanvasCoords(e);
+            const clickBottom = Math.round(STAGE_H - pos.y);
+
+            const polys = AllMappings[currentRoom] || [];
+            for (let i = polys.length - 1; i >= 0; i--) {
+                const poly = polys[i];
+                if (poly.points) {
+                    for (let j = 0; j < poly.points.length; j++) {
+                        const pt = poly.points[j];
+                        if (Math.hypot(pt.x - pos.x, pt.y - pos.y) < 14) {
+                            isDraggingVertex = true;
+                            dragPolyIdx = i;
+                            dragPointIdx = j;
+                            selectedPolyIndex = i;
+                            selectedPointIndex = j;
+                            renderCanvas();
+                            renderItemsList();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (currentTool === 'polygon') {
+                if (activePolygonPoints.length >= 3) {
+                    const firstPt = activePolygonPoints[0];
+                    if (Math.hypot(firstPt.x - pos.x, firstPt.y - pos.y) < 16) {
+                        finishCurrentPolygon();
+                        return;
+                    }
+                }
+
+                activePolygonPoints.push({
+                    x: Math.round(pos.x),
+                    y: Math.round(pos.y),
+                    bottom: clickBottom
+                });
+                renderCanvas();
+                return;
+            }
+
+            if (currentTool === 'box') {
+                isDrawingBox = true;
+                boxStartX = pos.x;
+                boxStartY = pos.y;
+                return;
+            }
+
+            if (currentTool === 'point') {
+                if (!AllMappings[currentRoom]) AllMappings[currentRoom] = [];
+                AllMappings[currentRoom].push({
+                    type: 'point',
+                    category: currentCategory,
+                    name: CATEGORY_NAMES[currentCategory] || 'Nokta',
+                    x: Math.round(pos.x),
+                    y: Math.round(pos.y),
+                    bottom: clickBottom
+                });
+                autoSave();
+                updateRoomBadges();
+                renderCanvas();
+                renderItemsList();
+                updateExportCode();
+                return;
+            }
+
+            if (currentTool === 'select') {
+                selectedPolyIndex = -1;
+                for (let i = polys.length - 1; i >= 0; i--) {
+                    const poly = polys[i];
+                    if (poly.points && isPointInPolygon(pos.x, pos.y, poly.points)) {
+                        selectedPolyIndex = i;
+                        break;
+                    }
+                }
+                renderCanvas();
+                renderItemsList();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getCanvasCoords(e);
+            mouseHoverPos = pos;
+            const mb = Math.round(STAGE_H - pos.y);
+
+            document.getElementById('curX').textContent = Math.round(pos.x) + ' px';
+            document.getElementById('curY').textContent = Math.round(pos.y) + ' px';
+            document.getElementById('curBottom').textContent = mb + ' px';
+
+            if (isDraggingVertex && dragPolyIdx >= 0 && dragPointIdx >= 0) {
+                const pt = AllMappings[currentRoom][dragPolyIdx].points[dragPointIdx];
+                pt.x = Math.round(pos.x);
+                pt.y = Math.round(pos.y);
+                pt.bottom = mb;
+                renderCanvas();
+                renderItemsList();
+                updateExportCode();
+                return;
+            }
+
+            if (isDrawingBox) {
+                renderCanvas();
+                ctx.save();
+                const col = CATEGORY_COLORS[currentCategory] || '#fff';
+                ctx.strokeStyle = col;
+                ctx.fillStyle = col;
+                ctx.lineWidth = 2;
+                const w = pos.x - boxStartX;
+                const h = pos.y - boxStartY;
+                ctx.strokeRect(boxStartX, boxStartY, w, h);
+                ctx.globalAlpha = 0.25;
+                ctx.fillRect(boxStartX, boxStartY, w, h);
+                ctx.restore();
+                return;
+            }
+
+            if (activePolygonPoints.length > 0) {
+                renderCanvas();
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (isDraggingVertex) {
+                isDraggingVertex = false;
+                dragPolyIdx = -1;
+                dragPointIdx = -1;
+                autoSave();
+                return;
+            }
+
+            if (isDrawingBox) {
+                isDrawingBox = false;
+                const pos = getCanvasCoords(e);
+                const minX = Math.min(boxStartX, pos.x);
+                const maxX = Math.max(boxStartX, pos.x);
+                const minY = Math.min(boxStartY, pos.y);
+                const maxY = Math.max(boxStartY, pos.y);
+
+                if (Math.abs(maxX - minX) > 15 && Math.abs(maxY - minY) > 15) {
+                    const pts = [
+                        { x: Math.round(minX), y: Math.round(minY), bottom: Math.round(STAGE_H - minY) },
+                        { x: Math.round(maxX), y: Math.round(minY), bottom: Math.round(STAGE_H - minY) },
+                        { x: Math.round(maxX), y: Math.round(maxY), bottom: Math.round(STAGE_H - maxY) },
+                        { x: Math.round(minX), y: Math.round(maxY), bottom: Math.round(STAGE_H - maxY) }
+                    ];
+                    const avgBottom = Math.round((Math.round(STAGE_H - minY) + Math.round(STAGE_H - maxY)) / 2);
+
+                    if (!AllMappings[currentRoom]) AllMappings[currentRoom] = [];
+                    AllMappings[currentRoom].push({
+                        type: 'polygon',
+                        category: currentCategory,
+                        name: CATEGORY_NAMES[currentCategory] || 'Dikdörtgen Alan',
+                        points: pts,
+                        avgBottom: avgBottom,
+                        minBottom: Math.round(STAGE_H - maxY),
+                        maxBottom: Math.round(STAGE_H - minY)
+                    });
+
+                    selectedPolyIndex = AllMappings[currentRoom].length - 1;
+                    autoSave();
+                    updateRoomBadges();
+                    renderCanvas();
+                    renderItemsList();
+                    updateExportCode();
+                }
+            }
+        });
+
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            const polys = AllMappings[currentRoom] || [];
+
+            for (let i = 0; i < polys.length; i++) {
+                const poly = polys[i];
+                if (poly.points && poly.points.length > 3) {
+                    for (let j = 0; j < poly.points.length; j++) {
+                        const pt = poly.points[j];
+                        if (Math.hypot(pt.x - pos.x, pt.y - pos.y) < 14) {
+                            poly.points.splice(j, 1);
+                            autoSave();
+                            renderCanvas();
+                            renderItemsList();
+                            updateExportCode();
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+
+        canvas.addEventListener('dblclick', () => {
+            if (activePolygonPoints.length >= 3) {
+                finishCurrentPolygon();
+            }
+        });
+
+        // TUVALİ ÇİZ (SADECE VE SADECE AKTİF ODAYI ÇİZER)
+        function renderCanvas() {
+            ctx.clearRect(0, 0, STAGE_W, STAGE_H);
+
+            const items = (AllMappings[currentRoom] && Array.isArray(AllMappings[currentRoom])) ? AllMappings[currentRoom] : [];
+
+            // 1. AKTİF ODANIN ÇOKGENLERİ
+            items.forEach((it, idx) => {
+                const isSel = (idx === selectedPolyIndex);
+                const col = CATEGORY_COLORS[it.category] || '#fff';
+
+                ctx.save();
+                ctx.strokeStyle = col;
+                ctx.fillStyle = col;
+                ctx.lineWidth = isSel ? 3 : 2;
+
+                if (it.points && it.points.length >= 3) {
+                    ctx.beginPath();
+                    ctx.moveTo(it.points[0].x, it.points[0].y);
+                    for (let i = 1; i < it.points.length; i++) {
+                        ctx.lineTo(it.points[i].x, it.points[i].y);
+                    }
+                    ctx.closePath();
+
+                    ctx.globalAlpha = isSel ? 0.35 : 0.20;
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                    ctx.stroke();
+
+                    // Noktalar
+                    it.points.forEach((pt) => {
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, isSel ? 6 : 4, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+                        ctx.strokeStyle = col;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    });
+
+                    const center = getPolygonCenter(it.points);
+                    drawLabel(CATEGORY_NAMES[it.category] + ` [B:${it.avgBottom}px]`, center.x, center.y, col);
+                } else if (it.type === 'point') {
+                    ctx.beginPath();
+                    ctx.arc(it.x, it.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = col;
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.stroke();
+
+                    drawLabel(CATEGORY_NAMES[it.category] + ` [B:${it.bottom}px]`, it.x, it.y - 14, col);
+                }
+
+                ctx.restore();
+            });
+
+            // 2. ÇİZİLMEKTE OLAN ÇOKGEN
+            if (activePolygonPoints.length > 0) {
+                ctx.save();
+                const activeCol = CATEGORY_COLORS[currentCategory] || '#38bdf8';
+                ctx.strokeStyle = activeCol;
+                ctx.fillStyle = activeCol;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
+
+                ctx.beginPath();
+                ctx.moveTo(activePolygonPoints[0].x, activePolygonPoints[0].y);
+                for (let i = 1; i < activePolygonPoints.length; i++) {
+                    ctx.lineTo(activePolygonPoints[i].x, activePolygonPoints[i].y);
+                }
+                ctx.lineTo(mouseHoverPos.x, mouseHoverPos.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                activePolygonPoints.forEach((pt, i) => {
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, (i === 0) ? 8 : 5, 0, Math.PI * 2);
+                    ctx.fillStyle = (i === 0) ? '#f59e0b' : '#ffffff';
+                    ctx.fill();
+                    ctx.strokeStyle = '#000';
+                    ctx.stroke();
+                });
+
+                ctx.restore();
+            }
+
+            document.getElementById('totalPointsCount').textContent = items.length;
+        }
+
+        function drawLabel(text, x, y, col) {
+            ctx.save();
+            ctx.font = '600 11px Plus Jakarta Sans, sans-serif';
+            const m = ctx.measureText(text);
+            ctx.fillStyle = 'rgba(12, 15, 23, 0.88)';
+            ctx.fillRect(x - m.width / 2 - 6, y - 12, m.width + 12, 18);
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - m.width / 2 - 6, y - 12, m.width + 12, 18);
+            ctx.fillStyle = col;
+            ctx.textAlign = 'center';
+            ctx.fillText(text, x, y + 1);
+            ctx.restore();
+        }
+
+        function getPolygonCenter(points) {
+            let sx = 0, sy = 0;
+            points.forEach(p => { sx += p.x; sy += p.y; });
+            return { x: Math.round(sx / points.length), y: Math.round(sy / points.length) };
+        }
+
+        function isPointInPolygon(px, py, points) {
+            let inside = false;
+            for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+                const xi = points[i].x, yi = points[i].y;
+                const xj = points[j].x, yj = points[j].y;
+                const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        // LİSTE RENDER ET
+        function renderItemsList() {
+            const listEl = document.getElementById('itemsListEl');
+            const items = (AllMappings[currentRoom] && Array.isArray(AllMappings[currentRoom])) ? AllMappings[currentRoom] : [];
+            document.getElementById('roomItemsTitle').textContent = `${ROOM_NAMES[currentRoom]} Alanları (${items.length})`;
+            document.getElementById('roomWatermark').textContent = `${ROOM_NAMES[currentRoom]} (${items.length} ALAN)`;
+
+            listEl.innerHTML = '';
+            items.forEach((it, idx) => {
+                const card = document.createElement('div');
+                card.className = `item-card ${idx === selectedPolyIndex ? 'active' : ''}`;
+                card.onclick = () => { selectedPolyIndex = idx; renderCanvas(); renderItemsList(); };
+
+                const col = CATEGORY_COLORS[it.category] || '#fff';
+                let coordsText = '';
+                if (it.points) {
+                    coordsText = `${it.points.length} Köşe Noktası | Ort. Taban: ${it.avgBottom}px`;
+                } else if (it.type === 'point') {
+                    coordsText = `X: ${it.x} | Bottom: ${it.bottom}px`;
+                }
+
+                card.innerHTML = `
+                    <div class="item-row-top">
+                        <span class="item-badge" style="background:${col}22; color:${col}; border:1px solid ${col}66;">
+                            ${CATEGORY_NAMES[it.category] || it.category}
+                        </span>
+                        <button class="btn-del" onclick="deleteItem(${idx}, event)">Sil</button>
+                    </div>
+                    <div class="item-coords">${coordsText}</div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function deleteItem(idx, e) {
+            if (e) e.stopPropagation();
+            if (AllMappings[currentRoom]) {
+                AllMappings[currentRoom].splice(idx, 1);
+            }
+            selectedPolyIndex = -1;
+            autoSave();
+            updateRoomBadges();
+            renderCanvas();
+            renderItemsList();
+            updateExportCode();
+        }
+
+        function undoLast() {
+            if (activePolygonPoints.length > 0) {
+                activePolygonPoints.pop();
+                renderCanvas();
+                return;
+            }
+            if (AllMappings[currentRoom] && AllMappings[currentRoom].length > 0) {
+                AllMappings[currentRoom].pop();
+                selectedPolyIndex = -1;
+                autoSave();
+                updateRoomBadges();
+                renderCanvas();
+                renderItemsList();
+                updateExportCode();
+            }
+        }
+
+        function clearActiveRoom() {
+            if (confirm(`${ROOM_NAMES[currentRoom]} odasındaki tüm alanları silmek istediğinize emin misiniz?`)) {
+                AllMappings[currentRoom] = [];
+                activePolygonPoints = [];
+                selectedPolyIndex = -1;
+                autoSave();
+                updateRoomBadges();
+                renderCanvas();
+                renderItemsList();
+                updateExportCode();
+            }
+        }
+
+        function resetAllRooms() {
+            if (confirm('DİKKAT: 5 odadaki TÜM çizimleri ve ayarları sıfırlamak istediğinize emin misiniz?')) {
+                AllMappings = {
+                    living: [],
+                    kitchen: [],
+                    bedroom: [],
+                    bathroom: [],
+                    garden: [],
+                    props: {
+                        food_bowl: { room: 'kitchen', x: 740, bottom: 110, w: 86, h: 86, visible: true },
+                        water_fountain: { room: 'garden', x: 1720, bottom: 125, w: 135, h: 135, visible: true },
+                        cat_bed: { room: 'bedroom', x: 350, bottom: 35, w: 140, h: 72, visible: true }
+                    }
+                };
+                localStorage.removeItem('milo_room_mapping_v2');
+                switchMapperRoom('living');
+                alert('Tüm odalar başarıyla sıfırlandı.');
+            }
+        }
+
+        /* EŞYA SİSTEMİ */
+        const propEls = {
+            food_bowl: document.getElementById('propFoodBowl'),
+            water_fountain: document.getElementById('propWaterFountain'),
+            cat_bed: document.getElementById('propCatBed')
+        };
+
+        function syncPropsUI() {
+            for (const key in AllMappings.props) {
+                const data = AllMappings.props[key];
+                const el = propEls[key];
+                if (!el) continue;
+
+                const isThisRoom = (data.room === currentRoom);
+                el.style.display = (isThisRoom && data.visible) ? 'flex' : 'none';
+                el.style.left = data.x + 'px';
+                el.style.bottom = data.bottom + 'px';
+                el.style.width = data.w + 'px';
+                el.style.height = data.h + 'px';
+
+                const badgeMap = { food_bowl: 'badgePropBowl', water_fountain: 'badgePropWater', cat_bed: 'badgePropBed' };
+                const btnMap = { food_bowl: 'btnPropBowl', water_fountain: 'btnPropWater', cat_bed: 'btnPropBed' };
+                const badgeEl = document.getElementById(badgeMap[key]);
+                const btnEl = document.getElementById(btnMap[key]);
+
+                if (badgeEl && btnEl) {
+                    if (data.room === currentRoom && data.visible) {
+                        badgeEl.textContent = 'Bu Odada';
+                        btnEl.classList.add('active');
+                    } else {
+                        badgeEl.textContent = `${ROOM_NAMES[data.room] || data.room}`;
+                        btnEl.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        function toggleProp(key) {
+            const data = AllMappings.props[key];
+            if (data.room === currentRoom) {
+                data.visible = !data.visible;
+            } else {
+                data.room = currentRoom;
+                data.visible = true;
+            }
+            selectProp(key);
+            autoSave();
+            syncPropsUI();
+            updateExportCode();
+        }
+
+        function selectProp(key) {
+            selectedPropKey = key;
+            document.querySelectorAll('.interactive-prop').forEach(el => el.classList.remove('selected'));
+            const el = propEls[key];
+            if (el) el.classList.add('selected');
+
+            const editBox = document.getElementById('propEditBox');
+            if (key && AllMappings.props[key]) {
+                const d = AllMappings.props[key];
+                editBox.style.display = 'flex';
+                document.getElementById('propEditName').textContent = `${key.toUpperCase()} Ayarları`;
+                document.getElementById('inpPropX').value = d.x;
+                document.getElementById('inpPropBottom').value = d.bottom;
+                document.getElementById('inpPropW').value = d.w;
+                document.getElementById('inpPropH').value = d.h;
+            } else {
+                editBox.style.display = 'none';
+            }
+        }
+
+        function deselectProp() {
+            selectedPropKey = null;
+            document.querySelectorAll('.interactive-prop').forEach(el => el.classList.remove('selected'));
+            document.getElementById('propEditBox').style.display = 'none';
+        }
+
+        function onPropInputManual() {
+            if (!selectedPropKey || !AllMappings.props[selectedPropKey]) return;
+            const d = AllMappings.props[selectedPropKey];
+            d.x = parseInt(document.getElementById('inpPropX').value) || 0;
+            d.bottom = parseInt(document.getElementById('inpPropBottom').value) || 0;
+            d.w = Math.max(30, parseInt(document.getElementById('inpPropW').value) || 30);
+            d.h = Math.max(30, parseInt(document.getElementById('inpPropH').value) || 30);
+            autoSave();
+            syncPropsUI();
+            updateExportCode();
+        }
+
+        let isDraggingProp = false;
+        let isResizingProp = false;
+        let activeHandle = null;
+        let propDragStartX = 0;
+        let propDragStartY = 0;
+        let propInitX = 0;
+        let propInitBottom = 0;
+        let propInitW = 0;
+        let propInitH = 0;
+
+        document.querySelectorAll('.interactive-prop').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                const propKey = el.getAttribute('data-prop');
+                selectProp(propKey);
+
+                const stageRect = stageWrapper.getBoundingClientRect();
+                const mouseX = (e.clientX - stageRect.left) / currentZoom;
+                const mouseY = (e.clientY - stageRect.top) / currentZoom;
+
+                const handle = e.target.getAttribute('data-handle');
+                if (handle) {
+                    isResizingProp = true;
+                    activeHandle = handle;
+                } else {
+                    isDraggingProp = true;
+                }
+
+                propDragStartX = mouseX;
+                propDragStartY = mouseY;
+
+                const data = AllMappings.props[propKey];
+                propInitX = data.x;
+                propInitBottom = data.bottom;
+                propInitW = data.w;
+                propInitH = data.h;
+
+                e.stopPropagation();
+            });
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!selectedPropKey || (!isDraggingProp && !isResizingProp)) return;
+
+            const stageRect = stageWrapper.getBoundingClientRect();
+            const mouseWorldX = (e.clientX - stageRect.left) / currentZoom;
+            const mouseWorldY = (e.clientY - stageRect.top) / currentZoom;
+
+            const diffX = mouseWorldX - propDragStartX;
+            const diffY = mouseWorldY - propDragStartY;
+
+            const data = AllMappings.props[selectedPropKey];
+
+            if (isDraggingProp) {
+                data.x = Math.round(Math.max(0, Math.min(STAGE_W - data.w, propInitX + diffX)));
+                data.bottom = Math.round(Math.max(0, Math.min(STAGE_H - data.h, propInitBottom - diffY)));
+            } else if (isResizingProp) {
+                if (activeHandle === 'br') {
+                    data.w = Math.round(Math.max(30, propInitW + diffX));
+                    data.h = Math.round(Math.max(30, propInitH + diffY));
+                    data.bottom = Math.round(Math.max(0, propInitBottom - diffY));
+                } else if (activeHandle === 'tr') {
+                    data.w = Math.round(Math.max(30, propInitW + diffX));
+                    data.h = Math.round(Math.max(30, propInitH - diffY));
+                } else if (activeHandle === 'bl') {
+                    data.w = Math.round(Math.max(30, propInitW - diffX));
+                    data.h = Math.round(Math.max(30, propInitH + diffY));
+                    data.x = Math.round(Math.max(0, propInitX + diffX));
+                    data.bottom = Math.round(Math.max(0, propInitBottom - diffY));
+                } else if (activeHandle === 'tl') {
+                    data.w = Math.round(Math.max(30, propInitW - diffX));
+                    data.h = Math.round(Math.max(30, propInitH - diffY));
+                    data.x = Math.round(Math.max(0, propInitX + diffX));
+                }
+            }
+
+            syncPropsUI();
+            if (document.getElementById('propEditBox').style.display === 'flex') {
+                document.getElementById('inpPropX').value = data.x;
+                document.getElementById('inpPropBottom').value = data.bottom;
+                document.getElementById('inpPropW').value = data.w;
+                document.getElementById('inpPropH').value = data.h;
+            }
+            updateExportCode();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingProp || isResizingProp) {
+                isDraggingProp = false;
+                isResizingProp = false;
+                autoSave();
+            }
+        });
+
+        function autoSave() {
+            localStorage.setItem('milo_room_mapping_v2', JSON.stringify(AllMappings));
+        }
+
+        function saveAllMapping() {
+            autoSave();
+            alert('Tüm odaların verileri başarıyla kaydedildi!');
+            updateExportCode();
+        }
+
+        function downloadJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AllMappings, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "milo_room_mapping.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function updateExportCode() {
+            const codeBox = document.getElementById('codeBox');
+            codeBox.value = `// Milo Google Maps Tarzı Çokgen Zemin & Eşya Mapping Yapılandırması\nconst ROOM_MAPPING = ` + JSON.stringify(AllMappings, null, 2) + `;`;
+        }
+
+        function copyCode() {
+            const codeBox = document.getElementById('codeBox');
+            codeBox.select();
+            document.execCommand('copy');
+            alert('Yapılandırma kodu panoya kopyalandı!');
+        }
+
+        // KEDİ KUKLASI TESTİ
+        const puppet = document.getElementById('catPuppet');
+        const puppetTag = document.getElementById('puppetTag');
+        let isDraggingPuppet = false;
+
+        function getDepthScale(bottom) {
+            const minB = 30;
+            const maxB = 460;
+            const t = Math.max(0, Math.min(1, (bottom - minB) / (maxB - minB)));
+            return +(1.10 - (t * 0.38)).toFixed(3);
+        }
+
+        puppet.addEventListener('mousedown', (e) => {
+            isDraggingPuppet = true;
+            e.stopPropagation();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDraggingPuppet) return;
+            const stageRect = stageWrapper.getBoundingClientRect();
+            const px = Math.max(0, Math.min(STAGE_W, (e.clientX - stageRect.left) / currentZoom));
+            const py = Math.max(0, Math.min(STAGE_H, (e.clientY - stageRect.top) / currentZoom));
+            const pb = Math.round(STAGE_H - py);
+
+            const scale = getDepthScale(pb);
+
+            puppet.style.left = (px - 80) + 'px';
+            puppet.style.bottom = pb + 'px';
+            puppet.style.transform = `scale(${scale})`;
+
+            let activeAreaName = 'Serbest Zemin';
+            const polys = AllMappings[currentRoom] || [];
+            for (let i = 0; i < polys.length; i++) {
+                const poly = polys[i];
+                if (poly.points && isPointInPolygon(px, py, poly.points)) {
+                    activeAreaName = poly.name || poly.category;
+                    break;
+                }
+            }
+
+            puppetTag.textContent = `X: ${Math.round(px)} | B: ${pb}px | ${scale}x | [${activeAreaName}]`;
+            document.getElementById('catStatusInfo').textContent = `${activeAreaName} (X:${Math.round(px)}, B:${pb}px, Ölçek:${scale}x)`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDraggingPuppet = false;
+        });
+
+        loadSavedMapping();
+    </script>
+</body>
+</html>

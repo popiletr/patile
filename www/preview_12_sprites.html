@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐱 Pati Suika - 12 Kademe Sprite Kataloğu</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #15100c;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #FFB834;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        p {
+            color: #A38F7E;
+            font-size: 13px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .catalog-container {
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .section-header {
+            font-size: 16px;
+            font-weight: 900;
+            color: #FFE6CC;
+            border-bottom: 2px solid #3D2B1F;
+            padding-bottom: 8px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-header span {
+            font-size: 12px;
+            color: #2ECC71;
+            background: rgba(46, 204, 113, 0.15);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .card {
+            background: #241A13;
+            border: 1.5px solid #423023;
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card.new-item {
+            border-color: #E67E22;
+            box-shadow: 0 0 12px rgba(230, 126, 34, 0.25);
+        }
+        .img-box {
+            width: 130px;
+            height: 130px;
+            background-image: 
+                linear-gradient(45deg, #18110c 25%, transparent 25%), 
+                linear-gradient(-45deg, #18110c 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #18110c 75%), 
+                linear-gradient(-45deg, transparent 75%, #18110c 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            background-color: #2E2118;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid #5A4231;
+        }
+        .img-box img {
+            max-width: 88%;
+            max-height: 88%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            transition: transform 0.2s;
+        }
+        .img-box:hover img {
+            transform: scale(1.1);
+        }
+        .label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #FFEEDD;
+            margin-bottom: 4px;
+        }
+        .tag {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .tag.normal { background: #10B981; color: #FFF; }
+        .tag.frozen { background: #0EA5E9; color: #FFF; }
+        .tag.new-badge { background: #E67E22; color: #FFF; margin-left: 4px; }
+        
+        .action-bar {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+        }
+        .btn-play {
+            background: linear-gradient(135deg, #FF6B8B 0%, #E83A5D 100%);
+            color: #FFF;
+            text-decoration: none;
+            font-weight: 900;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(232, 58, 93, 0.4);
+            font-size: 14px;
+            transition: transform 0.1s;
+        }
+        .btn-play:active { transform: scale(0.96); }
+    </style>
+</head>
+<body>
+    <h1>🐱 Kedi Suika - 12 Kademe Sprite Kataloğu</h1>
+    <p>Toplam 24 Adet Transparan Sprite (12 Normal + 12 Buzlu Versiyon)</p>
+
+    <div class="catalog-container">
+        <!-- 🆕 YENİ EKLENEN 4 NESNE (KADEME 9-12) -->
+        <div class="section-header">
+            ✨ YENİ EKLENEN 4 NESNE (Kademe 9 - 12)
+            <span>4x2 Grid'den Kesildi</span>
+        </div>
+        <div class="grid">
+            <!-- 9 -->
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/9.png" alt="Tırmalama Ağacı"></div>
+                <div class="label">9. Tırmalama Ağacı</div>
+                <div><span class="tag normal">Normal</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/9_frozen.png" alt="Buzlu Tırmalama Ağacı"></div>
+                <div class="label">9. Tırmalama Ağacı</div>
+                <div><span class="tag frozen">Buzlu</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <!-- 10 -->
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/10.png" alt="Kraliyet Koltuğu"></div>
+                <div class="label">10. Kraliyet Koltuğu</div>
+                <div><span class="tag normal">Normal</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/10_frozen.png" alt="Buzlu Kraliyet Koltuğu"></div>
+                <div class="label">10. Kraliyet Koltuğu</div>
+                <div><span class="tag frozen">Buzlu</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <!-- 11 -->
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/11.png" alt="Prenses Beyaz Kedi"></div>
+                <div class="label">11. Prenses Beyaz Kedi</div>
+                <div><span class="tag normal">Normal</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/11_frozen.png" alt="Buzlu Prenses Beyaz Kedi"></div>
+                <div class="label">11. Prenses Beyaz Kedi</div>
+                <div><span class="tag frozen">Buzlu</span><span class="tag new-badge">Yeni</span></div>
+            </div>
+            <!-- 12 -->
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/12.png" alt="Kozmik İmparator Kedi"></div>
+                <div class="label">12. Kozmik İmparator Kedi</div>
+                <div><span class="tag normal">Normal</span><span class="tag new-badge">👑 Zirve</span></div>
+            </div>
+            <div class="card new-item">
+                <div class="img-box"><img src="suika_game/cat_sprites/12_frozen.png" alt="Buzlu Kozmik İmparator Kedi"></div>
+                <div class="label">12. Kozmik İmparator Kedi</div>
+                <div><span class="tag frozen">Buzlu</span><span class="tag new-badge">👑 Zirve</span></div>
+            </div>
+        </div>
+
+        <!-- 🐾 MEVCUT İLK 8 NESNE (KADEME 1-8) -->
+        <div class="section-header">
+            🐾 MEVCUT İLK 8 NESNE (Kademe 1 - 8)
+            <span>Mevcut Spritelar</span>
+        </div>
+        <div class="grid">
+            <!-- 1 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/1.png" alt="İp Yumağı"></div>
+                <div class="label">1. İp Yumağı</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/1_frozen.png" alt="Buzlu İp Yumağı"></div>
+                <div class="label">1. İp Yumağı</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 2 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/2.png" alt="Kedi Zili"></div>
+                <div class="label">2. Kedi Zili</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/2_frozen.png" alt="Buzlu Kedi Zili"></div>
+                <div class="label">2. Kedi Zili</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 3 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/3.png" alt="Süt Kasesi"></div>
+                <div class="label">3. Süt Kasesi</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/3_frozen.png" alt="Buzlu Süt Kasesi"></div>
+                <div class="label">3. Süt Kasesi</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 4 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/4.png" alt="Mavi Balık"></div>
+                <div class="label">4. Mavi Balık</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/4_frozen.png" alt="Buzlu Mavi Balık"></div>
+                <div class="label">4. Mavi Balık</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 5 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/5.png" alt="Peluş Fare"></div>
+                <div class="label">5. Peluş Fare</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/5_frozen.png" alt="Buzlu Peluş Fare"></div>
+                <div class="label">5. Peluş Fare</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 6 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/6.png" alt="Konserve Mama"></div>
+                <div class="label">6. Konserve Mama</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/6_frozen.png" alt="Buzlu Konserve Mama"></div>
+                <div class="label">6. Konserve Mama</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 7 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/7.png" alt="Kızarmış Tavuk"></div>
+                <div class="label">7. Kızarmış Tavuk</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/7_frozen.png" alt="Buzlu Kızarmış Tavuk"></div>
+                <div class="label">7. Kızarmış Tavuk</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+            <!-- 8 -->
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/8.png" alt="Kral Kedi"></div>
+                <div class="label">8. Kral Kedi</div>
+                <span class="tag normal">Normal</span>
+            </div>
+            <div class="card">
+                <div class="img-box"><img src="suika_game/cat_sprites/8_frozen.png" alt="Buzlu Kral Kedi"></div>
+                <div class="label">8. Kral Kedi</div>
+                <span class="tag frozen">Buzlu</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <a href="/cat_suika.html" class="btn-play">🎮 Oyuna Dön (Pati Suika)</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Grid Debug</title>
+<style>
+body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
+.container { position: relative; display: inline-block; }
+.container img { display: block; width: 800px; height: 800px; }
+.grid-overlay {
+    position: absolute; top: 0; left: 0; width: 800px; height: 800px;
+    pointer-events: none;
+}
+.controls { margin: 20px 0; }
+.controls label { margin-right: 10px; }
+.controls input { width: 80px; }
+canvas.frame-preview {
+    width: 150px; height: 150px; border: 1px solid #333;
+    margin: 5px; background: #222;
+}
+</style>
+</head>
+<body>
+<h2>🔍 Sprite Grid Debug — Görselin üstüne grid çizgilerini koyuyorum</h2>
+
+<div class="controls">
+    <label>Görsel: <select id="imgSelect">
+        <option value="scottish_fold.png">Scottish Fold</option>
+        <option value="tabby.png">Tekir</option>
+    </select></label>
+    <label>Sütun: <input type="number" id="colCount" value="6" min="1" max="10"></label>
+    <label>Satır: <input type="number" id="rowCount" value="6" min="1" max="10"></label>
+    <button onclick="drawGrid()">Güncelle</button>
+</div>
+
+<div class="container">
+    <img id="spriteImg" src="scottish_fold.png">
+    <canvas class="grid-overlay" id="gridCanvas" width="800" height="800"></canvas>
+</div>
+
+<h3 style="margin-top:20px">Kesilen Frame'ler:</h3>
+<div id="frames"></div>
+
+<script>
+const img = document.getElementById('spriteImg');
+const gridCanvas = document.getElementById('gridCanvas');
+const gridCtx = gridCanvas.getContext('2d');
+
+document.getElementById('imgSelect').onchange = (e) => {
+    img.src = e.target.value;
+    img.onload = drawGrid;
+};
+
+img.onload = drawGrid;
+
+function drawGrid() {
+    const cols = parseInt(document.getElementById('colCount').value);
+    const rows = parseInt(document.getElementById('rowCount').value);
+    const w = 800, h = 800;
+    const cw = w / cols, ch = h / rows;
+    
+    gridCtx.clearRect(0, 0, w, h);
+    
+    // Grid çizgileri
+    gridCtx.strokeStyle = 'rgba(255,0,0,0.8)';
+    gridCtx.lineWidth = 1;
+    
+    for (let c = 0; c <= cols; c++) {
+        gridCtx.beginPath();
+        gridCtx.moveTo(c * cw, 0);
+        gridCtx.lineTo(c * cw, h);
+        gridCtx.stroke();
+    }
+    for (let r = 0; r <= rows; r++) {
+        gridCtx.beginPath();
+        gridCtx.moveTo(0, r * ch);
+        gridCtx.lineTo(w, r * ch);
+        gridCtx.stroke();
+    }
+    
+    // Hücre numaraları
+    gridCtx.fillStyle = 'rgba(255,255,0,0.9)';
+    gridCtx.font = '12px monospace';
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            gridCtx.fillText(`${r},${c}`, c * cw + 4, r * ch + 14);
+        }
+    }
+
+    // Frame preview'ları oluştur
+    const framesDiv = document.getElementById('frames');
+    framesDiv.innerHTML = '';
+    
+    // Asıl görseli yükle
+    const srcImg = new Image();
+    srcImg.onload = () => {
+        const fw = srcImg.naturalWidth / cols;
+        const fh = srcImg.naturalHeight / rows;
+        
+        framesDiv.innerHTML += `<p>Görsel: ${srcImg.naturalWidth}x${srcImg.naturalHeight}px — Frame: ${fw.toFixed(1)}x${fh.toFixed(1)}px</p>`;
+        
+        for (let r = 0; r < rows; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.innerHTML = `<strong>Satır ${r+1}:</strong> `;
+            for (let c = 0; c < cols; c++) {
+                const fc = document.createElement('canvas');
+                fc.className = 'frame-preview';
+                fc.width = 200;
+                fc.height = 200;
+                const fctx = fc.getContext('2d');
+                fctx.drawImage(srcImg, 
+                    Math.round(c * fw), Math.round(r * fh), 
+                    Math.round(fw), Math.round(fh), 
+                    0, 0, 200, 200
+                );
+                rowDiv.appendChild(fc);
+            }
+            framesDiv.appendChild(rowDiv);
+        }
+    };
+    srcImg.src = img.src;
+}
+</script>
+</body>
+</html>

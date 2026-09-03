@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐱 B!Pop Kedi Animasyon Önizleme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            background: linear-gradient(180deg, rgba(121,40,202,0.15) 0%, transparent 100%);
+        }
+        .header h1 {
+            font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, #7928CA, #FF0080);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header p { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 6px; }
+
+        .breed-tabs {
+            display: flex; justify-content: center; gap: 10px;
+            padding: 20px; flex-wrap: wrap;
+        }
+        .breed-tab {
+            padding: 10px 20px; border-radius: 14px; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.6);
+            font-family: 'Outfit'; font-size: 0.9rem; font-weight: 700;
+            transition: all 0.3s;
+        }
+        .breed-tab:hover { border-color: rgba(121,40,202,0.4); color: #fff; }
+        .breed-tab.active {
+            border-color: #7928CA;
+            background: linear-gradient(135deg, rgba(121,40,202,0.2), rgba(255,0,128,0.1));
+            color: #fff; box-shadow: 0 4px 20px rgba(121,40,202,0.3);
+        }
+
+        .controls {
+            display: flex; justify-content: center; align-items: center; gap: 20px; padding: 10px 20px;
+        }
+        .controls label { font-size: 0.8rem; color: rgba(255,255,255,0.5); font-weight: 600; }
+        .controls input[type=range] {
+            -webkit-appearance: none; width: 140px; height: 6px;
+            border-radius: 3px; background: rgba(255,255,255,0.1);
+        }
+        .controls input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: #7928CA; cursor: pointer;
+        }
+        .speed-val { font-size: 0.8rem; color: #7928CA; font-weight: 700; }
+
+        .preview-area {
+            display: flex; flex-direction: column; align-items: center; padding: 20px;
+        }
+        .anim-name {
+            font-size: 0.9rem; font-weight: 800; color: rgba(255,255,255,0.7);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+        }
+        .big-box {
+            width: 220px; height: 220px; border-radius: 20px; overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.06);
+            background: radial-gradient(circle at 50% 80%, rgba(121,40,202,0.08), transparent 60%);
+        }
+        .big-box canvas { width: 100%; height: 100%; }
+        .frame-info { font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+        .anim-btns {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 16px 20px;
+        }
+        .anim-btn {
+            padding: 8px 14px; border-radius: 10px; cursor: pointer;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.5);
+            font-family: 'Outfit'; font-size: 0.78rem; font-weight: 600;
+            transition: all 0.25s;
+        }
+        .anim-btn:hover { border-color: rgba(255,0,128,0.4); color: #fff; }
+        .anim-btn.active { border-color: #FF0080; background: rgba(255,0,128,0.12); color: #FF0080; }
+
+        .grid-title {
+            text-align: center; font-size: 1rem; font-weight: 800;
+            color: rgba(255,255,255,0.7); margin: 20px 0 12px;
+        }
+        .anim-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 14px; max-width: 580px; margin: 0 auto; padding: 0 20px 20px;
+        }
+        .anim-card {
+            background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.06);
+            border-radius: 16px; padding: 10px; text-align: center;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .anim-card:hover { border-color: rgba(121,40,202,0.3); transform: translateY(-2px); }
+        .anim-card.active { border-color: #7928CA; background: rgba(121,40,202,0.1); }
+        .anim-card canvas { width: 110px; height: 110px; }
+        .anim-card .lbl { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+        .walk-section { text-align: center; padding: 20px; }
+        .walk-section h2 { font-size: 1rem; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 12px; }
+        .walk-stage {
+            width: 100%; max-width: 600px; height: 140px; margin: 0 auto;
+            background: linear-gradient(0deg, rgba(86,171,47,0.08) 0%, transparent 40%);
+            border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);
+            position: relative; overflow: hidden;
+        }
+        .walk-cat { position: absolute; top: 15px; width: 100px; height: 100px; }
+
+        .widget-section { text-align: center; padding: 30px 20px 60px; }
+        .widget-section h2 { font-size: 1rem; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+        .widget-row { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .widget-sm {
+            width: 155px; height: 155px; border-radius: 22px;
+            background: linear-gradient(135deg, #2D1A3D, #1A1020);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 3px;
+        }
+        .widget-sm .wn { font-size: 0.6rem; font-weight: 800; color: rgba(255,255,255,0.8); }
+        .widget-sm canvas { width: 70px; height: 70px; }
+        .widget-sm .ws {
+            font-size: 0.5rem; font-weight: 700; padding: 2px 7px;
+            border-radius: 8px; background: rgba(0,0,0,0.4); color: #4CAF50;
+        }
+        .ws.alert { color: #FF5252; }
+        .w-bars { display: flex; gap: 3px; margin-top: 2px; }
+        .w-bar { width: 7px; height: 18px; border-radius: 3px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
+        .w-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🐱 B!Pop Kedi Animasyonları</h1>
+    <p>Sprite sheet animasyon önizleme</p>
+</div>
+
+<div class="breed-tabs" id="breedTabs"></div>
+
+<div class="controls">
+    <label>Hız:</label>
+    <input type="range" id="speedSlider" min="80" max="600" value="250" step="10">
+    <span class="speed-val" id="speedVal">250ms</span>
+</div>
+
+<div class="preview-area">
+    <div class="anim-name" id="animName">😺 Oturuyor</div>
+    <div class="big-box"><canvas id="bigC" width="333" height="333"></canvas></div>
+    <div class="frame-info" id="frameInfo">Frame 1 / 6</div>
+</div>
+
+<div class="anim-btns" id="animBtns"></div>
+
+<div class="grid-title">Tüm Animasyonlar</div>
+<div class="anim-grid" id="animGrid"></div>
+
+<div class="walk-section">
+    <h2>🐈 Yürüyüş Sahne Testi</h2>
+    <div class="walk-stage" id="walkStage">
+        <canvas class="walk-cat" id="walkCat" width="333" height="333"></canvas>
+    </div>
+</div>
+
+<div class="widget-section">
+    <h2>📱 Widget Önizleme</h2>
+    <div class="widget-row">
+        <div class="widget-sm">
+            <div class="wn" id="wName">Kedi</div>
+            <canvas id="wCanvas" width="333" height="333"></canvas>
+            <div class="ws" id="wStatus">Mutlu 😻</div>
+            <div class="w-bars">
+                <div class="w-bar"><div class="w-bar-fill" style="height:80%;background:#FF9800"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:90%;background:#2196F3"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:65%;background:#E91E63"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:95%;background:#4CAF50"></div></div>
+            </div>
+        </div>
+        <div class="widget-sm" style="background:linear-gradient(135deg,#4A1A1A,#2D0A0A)">
+            <div class="wn" id="wName2">Kedi</div>
+            <canvas id="wCanvas2" width="333" height="333"></canvas>
+            <div class="ws alert">Acıktım! 😿</div>
+            <div class="w-bars">
+                <div class="w-bar"><div class="w-bar-fill" style="height:15%;background:#FF5252"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:20%;background:#FF5252"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:30%;background:#FFC107"></div></div>
+                <div class="w-bar"><div class="w-bar-fill" style="height:40%;background:#FFC107"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BREEDS = [
+    { id: 'scottish', name: 'Scottish Fold',     file: 'scottish.png' },
+    { id: 'british',  name: 'British Shorthair', file: 'british.png' },
+    { id: 'tekir',    name: 'Tekir',             file: 'tekir.png' },
+    { id: 'siyah',    name: 'Siyah Kedi',        file: 'siyah.png' },
+    { id: 'sarman',   name: 'Sarman',            file: 'sarman.png' },
+    { id: 'iran',     name: 'İran Kedisi',       file: 'iran.png' },
+    { id: 'siyam',    name: 'Siyam',             file: 'siyam.png' },
+];
+
+const ANIMS = [
+    { name: 'Oturuyor', emoji: '😺', row: 0 },
+    { name: 'Yürüyor',  emoji: '🐈', row: 1 },
+    { name: 'Uyuyor',   emoji: '😴', row: 2 },
+    { name: 'Yiyor',    emoji: '🍽️', row: 3 },
+    { name: 'Acıkmış',  emoji: '😿', row: 4 },
+    { name: 'Mutlu',    emoji: '😻', row: 5 },
+];
+
+const COLS = 6, ROWS = 6;
+let curBreed = 0, curAnim = 0, curFrame = 0, speed = 250;
+let images = {};
+let timers = [];
+
+function init() {
+    const tabs = document.getElementById('breedTabs');
+    BREEDS.forEach((b, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'breed-tab' + (i === 0 ? ' active' : '');
+        btn.textContent = '🐱 ' + b.name;
+        btn.onclick = () => { curBreed = i; updateTabs(); restart(); };
+        tabs.appendChild(btn);
+    });
+
+    const btns = document.getElementById('animBtns');
+    ANIMS.forEach((a, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'anim-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = a.emoji + ' ' + a.name;
+        btn.onclick = () => { curAnim = i; updateAnimBtns(); restart(); };
+        btns.appendChild(btn);
+    });
+
+    const grid = document.getElementById('animGrid');
+    ANIMS.forEach((a, i) => {
+        const card = document.createElement('div');
+        card.className = 'anim-card' + (i === 0 ? ' active' : '');
+        card.innerHTML = '<canvas width="333" height="333"></canvas><div class="lbl">' + a.emoji + ' ' + a.name + '</div>';
+        card.onclick = () => { curAnim = i; updateAnimBtns(); restart(); };
+        grid.appendChild(card);
+    });
+
+    document.getElementById('speedSlider').oninput = (e) => {
+        speed = parseInt(e.target.value);
+        document.getElementById('speedVal').textContent = speed + 'ms';
+        restart();
+    };
+
+    loadImages();
+}
+
+function loadImages() {
+    let loaded = 0;
+    BREEDS.forEach(b => {
+        const img = new Image();
+        img.onload = () => {
+            images[b.id] = img;
+            loaded++;
+            if (loaded === BREEDS.length) restart();
+        };
+        img.onerror = () => { loaded++; if (loaded === BREEDS.length) restart(); };
+        img.src = b.file;
+    });
+}
+
+function drawFrame(ctx, canvas, img, row, col) {
+    if (!img || !img.naturalWidth) return;
+    // Her görsel kendi boyutuna göre frame hesapla
+    const fw = Math.floor(img.naturalWidth / COLS);
+    const fh = Math.floor(img.naturalHeight / ROWS);
+    const sx = col * fw;
+    const sy = row * fh;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, sx, sy, fw, fh, 0, 0, canvas.width, canvas.height);
+}
+
+function restart() {
+    timers.forEach(t => clearInterval(t));
+    timers = [];
+
+    const img = images[BREEDS[curBreed].id];
+    if (!img) return;
+
+    // Big preview
+    const bigC = document.getElementById('bigC');
+    const bigCtx = bigC.getContext('2d');
+    curFrame = 0;
+    drawFrame(bigCtx, bigC, img, curAnim, 0);
+    document.getElementById('animName').textContent = ANIMS[curAnim].emoji + ' ' + ANIMS[curAnim].name;
+    document.getElementById('frameInfo').textContent = 'Frame 1 / ' + COLS;
+
+    timers.push(setInterval(() => {
+        curFrame = (curFrame + 1) % COLS;
+        drawFrame(bigCtx, bigC, img, curAnim, curFrame);
+        document.getElementById('frameInfo').textContent = 'Frame ' + (curFrame + 1) + ' / ' + COLS;
+    }, speed));
+
+    // Grid
+    document.querySelectorAll('#animGrid canvas').forEach((c, i) => {
+        const ctx = c.getContext('2d');
+        let f = 0;
+        drawFrame(ctx, c, img, i, 0);
+        timers.push(setInterval(() => {
+            f = (f + 1) % COLS;
+            drawFrame(ctx, c, img, i, f);
+        }, speed));
+    });
+
+    // Walk scene
+    const walkCat = document.getElementById('walkCat');
+    const walkCtx = walkCat.getContext('2d');
+    let wf = 0, wx = -110;
+    const stage = document.getElementById('walkStage');
+    drawFrame(walkCtx, walkCat, img, 1, 0);
+    timers.push(setInterval(() => {
+        wf = (wf + 1) % COLS;
+        wx += 4;
+        if (wx > stage.clientWidth + 50) wx = -110;
+        walkCat.style.left = wx + 'px';
+        drawFrame(walkCtx, walkCat, img, 1, wf);
+    }, speed));
+
+    // Widget — happy
+    const wC = document.getElementById('wCanvas');
+    const wCtx = wC.getContext('2d');
+    let wf2 = 0;
+    drawFrame(wCtx, wC, img, 5, 0);
+    timers.push(setInterval(() => {
+        wf2 = (wf2 + 1) % COLS;
+        drawFrame(wCtx, wC, img, 5, wf2);
+    }, speed));
+
+    // Widget — hungry
+    const wC2 = document.getElementById('wCanvas2');
+    const wCtx2 = wC2.getContext('2d');
+    let wf3 = 0;
+    drawFrame(wCtx2, wC2, img, 4, 0);
+    timers.push(setInterval(() => {
+        wf3 = (wf3 + 1) % COLS;
+        drawFrame(wCtx2, wC2, img, 4, wf3);
+    }, speed));
+
+    // Widget names
+    document.getElementById('wName').textContent = BREEDS[curBreed].name;
+    document.getElementById('wName2').textContent = BREEDS[curBreed].name;
+}
+
+function updateTabs() {
+    document.querySelectorAll('.breed-tab').forEach((t, i) => t.classList.toggle('active', i === curBreed));
+}
+function updateAnimBtns() {
+    document.querySelectorAll('.anim-btn').forEach((b, i) => b.classList.toggle('active', i === curAnim));
+    document.querySelectorAll('.anim-card').forEach((c, i) => c.classList.toggle('active', i === curAnim));
+}
+
+init();
+</script>
+</body>
+</html>

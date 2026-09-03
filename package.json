@@ -1,0 +1,21 @@
+{
+  "name": "patilife-app",
+  "version": "1.0.0",
+  "description": "PatiLife & Patile Oyna Mobile App",
+  "main": "index.js",
+  "scripts": {
+    "build": "python3 scripts/build_mobile.py",
+    "sync": "npx cap sync ios",
+    "open:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.1",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  }
+}

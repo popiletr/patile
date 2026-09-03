@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedi Suika - Kullanıcı Sprite Kataloğu</title>
+    <style>
+        body {
+            background: #18110c;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { margin-bottom: 6px; color: #ffbe0b; font-size: 22px; }
+        p { color: #a89a8c; margin-bottom: 24px; font-size: 13px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 900px;
+            width: 100%;
+        }
+        .card {
+            background: #241a13;
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+            border: 1.5px solid #423023;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .img-box {
+            width: 120px;
+            height: 120px;
+            background-image: linear-gradient(45deg, #18110c 25%, transparent 25%), linear-gradient(-45deg, #18110c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #18110c 75%), linear-gradient(-45deg, transparent 75%, #18110c 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            background-color: #2e2118;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            overflow: hidden;
+            border: 1px solid #5a4231;
+        }
+        .img-box img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffe6cc;
+        }
+        .tag {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            display: inline-block;
+            font-weight: 700;
+        }
+        .tag.normal { background: #10b981; color: #ffffff; }
+        .tag.frozen { background: #0ea5e9; color: #ffffff; }
+    </style>
+</head>
+<body>
+    <h1>🐱 Kedi Suika Sprite Kataloğu (Masaüstünden Alındı)</h1>
+    <p>16 Adet 200x200 Transparan Sprite — Normal (1) & Buzlu (2) versiyonlar</p>
+    <div class="grid">
+        <!-- 1 -->
+        <div class="card"><div class="img-box"><img src="1.png"></div><div class="label">1. İp Yumağı</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="1_frozen.png"></div><div class="label">1. İp Yumağı</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 2 -->
+        <div class="card"><div class="img-box"><img src="2.png"></div><div class="label">2. Kedi Zili</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="2_frozen.png"></div><div class="label">2. Kedi Zili</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 3 -->
+        <div class="card"><div class="img-box"><img src="3.png"></div><div class="label">3. Süt Kasesi</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="3_frozen.png"></div><div class="label">3. Süt Kasesi</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 4 -->
+        <div class="card"><div class="img-box"><img src="4.png"></div><div class="label">4. Mavi Balık</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="4_frozen.png"></div><div class="label">4. Mavi Balık</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 5 -->
+        <div class="card"><div class="img-box"><img src="5.png"></div><div class="label">5. Peluş Fare</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="5_frozen.png"></div><div class="label">5. Peluş Fare</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 6 -->
+        <div class="card"><div class="img-box"><img src="6.png"></div><div class="label">6. Konserve Mama</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="6_frozen.png"></div><div class="label">6. Konserve Mama</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 7 -->
+        <div class="card"><div class="img-box"><img src="7.png"></div><div class="label">7. Kızarmış Tavuk</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="7_frozen.png"></div><div class="label">7. Kızarmış Tavuk</div><span class="tag frozen">2 - Buzlu</span></div>
+        <!-- 8 -->
+        <div class="card"><div class="img-box"><img src="8.png"></div><div class="label">8. Kral Kedi</div><span class="tag normal">1 - Normal</span></div>
+        <div class="card"><div class="img-box"><img src="8_frozen.png"></div><div class="label">8. Kral Kedi</div><span class="tag frozen">2 - Buzlu</span></div>
+    </div>
+</body>
+</html>

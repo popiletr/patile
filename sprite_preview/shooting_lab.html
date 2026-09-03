@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎯 Atış & Av Mekanikleri Test Laboratuvarı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.92);
+            --accent-cyan: #06b6d4;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f8fafc;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ÜST BAŞLIK VE SEKME ÇUBUĞU */
+        .lab-header {
+            width: 100%;
+            max-width: 900px;
+            padding: 10px 16px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .lab-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lab-title {
+            font-size: 16px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #38bdf8, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lab-score-pill {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        /* MEKANİK SEÇİM SEKMELERİ */
+        .mechanic-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .mechanic-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+        }
+
+        /* OYUN ARENASI (ANA SAHNE) */
+        .arena-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: calc(100vh - 170px);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            background: #1e293b;
+        }
+
+        .arena-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('sahneler/salon.png');
+            background-size: cover;
+            background-position: center bottom;
+            filter: brightness(0.92);
+        }
+
+        /* CANLI ÇİZİM VE OYUN CANVASI */
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            touch-action: none;
+        }
+
+        /* KEDİ SPRITE CANVASI */
+        #catCanvas {
+            position: absolute;
+            bottom: 30px;
+            left: 140px;
+            width: 190px;
+            height: 190px;
+            z-index: 15;
+            pointer-events: none;
+            transform-origin: bottom center;
+        }
+
+        /* TARET ÜNİTESİ */
+        .turret-unit {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 76px;
+            height: 60px;
+            z-index: 25;
+            pointer-events: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .turret-base {
+            position: absolute;
+            bottom: 0;
+            width: 70px;
+            height: 28px;
+            background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
+            border-radius: 35px 35px 8px 8px;
+            border: 2px solid #64748b;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+        }
+
+        .turret-barrel {
+            position: absolute;
+            bottom: 16px;
+            left: calc(50% - 7px);
+            width: 14px;
+            height: 38px;
+            background: linear-gradient(90deg, #64748b, #cbd5e1, #475569);
+            border-radius: 7px 7px 4px 4px;
+            transform-origin: bottom center;
+            border: 1.5px solid #334155;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        .turret-lens {
+            position: absolute;
+            top: -4px;
+            left: 1px;
+            width: 10px;
+            height: 6px;
+            background: #38bdf8;
+            border-radius: 4px;
+            box-shadow: 0 0 8px #38bdf8;
+        }
+
+        /* BİLGİ İPUCU KARTI */
+        .info-card {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 10px 14px;
+            z-index: 30;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-desc {
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        /* ALT KONTROL VE AYAR ÇUBUĞU */
+        .controls-bar {
+            width: 100%;
+            max-width: 480px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .ctrl-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ctrl-btn.primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #34d399;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .fire-trigger-btn {
+            position: absolute;
+            bottom: 25px;
+            right: 20px;
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border: 3px solid #fecaca;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+            z-index: 40;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .fire-trigger-btn:active {
+            transform: scale(0.92);
+            background: #991b1b;
+        }
+
+        /* EKRAN SARSINTISI ANİMASYONU */
+        .screen-shake {
+            animation: shake 0.25s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, -1px, 0); }
+            20%, 80% { transform: translate3d(3px, 2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-3px, -2px, 0); }
+            40%, 60% { transform: translate3d(3px, 2px, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST BAŞLIK -->
+    <div class="lab-header">
+        <div class="lab-title-row">
+            <div class="lab-title">
+                <span>🎯</span> Atış & Lazer Test Laboratuvarı
+            </div>
+            <div class="lab-score-pill">
+                Skor: <span id="valScore">0</span>
+            </div>
+        </div>
+
+        <!-- 5 FARKLI MEKANİK SEKMESİ -->
+        <div class="mechanic-tabs">
+            <button class="tab-btn active" onclick="switchMechanic(1)">
+                🔴 1. Fizikli Serbest Lazer
+            </button>
+            <button class="tab-btn" onclick="switchMechanic(2)">
+                🚀 2. Sapan / Mancınık (Slingshot)
+            </button>
+            <button class="tab-btn" onclick="switchMechanic(3)">
+                🎯 3. Dokun-Vur Sniper (Tap Lock)
+            </button>
+            <button class="tab-btn" onclick="switchMechanic(4)">
+                🚒 4. TOMA Su Tabancası (Stream)
+            </button>
+            <button class="tab-btn" onclick="switchMechanic(5)">
+                ⚡ 5. Lazer Blaster (Mermi Sekme)
+            </button>
+        </div>
+    </div>
+
+    <!-- OYUN ARENASI -->
+    <div class="arena-wrapper" id="arenaWrapper">
+        <div class="arena-bg"></div>
+
+        <!-- BİLGİ İPUCU KARTI -->
+        <div class="info-card" id="infoCard">
+            <div class="info-title" id="infoTitle">🔴 1. Gerçekçi Fizikli Serbest Lazer</div>
+            <div class="info-desc" id="infoDesc">
+                Parmağını ekranda sürükle. Kırmızı lazer noktası gerçekçi ivmeyle takip eder. Lazer durduğunda kedi sineğe şimşek gibi atlar!
+            </div>
+        </div>
+
+        <!-- ÇİZİM VE OYUN CANVASI -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- KEDİ SPRITE CANVASI -->
+        <canvas id="catCanvas" width="400" height="400"></canvas>
+
+        <!-- TOMA / PANZER TARETİ -->
+        <div class="turret-unit" id="turretUnit">
+            <div class="turret-barrel" id="turretBarrel">
+                <div class="turret-lens"></div>
+            </div>
+            <div class="turret-base"></div>
+        </div>
+
+        <!-- ATEŞ BUTONU (MOD 5 İÇİN) -->
+        <button class="fire-trigger-btn" id="btnFireTrigger" onpointerdown="triggerBlasterFire(event)">
+            ATEŞ!
+        </button>
+    </div>
+
+    <!-- ALT KONTROL ÇUBUĞU -->
+    <div class="controls-bar">
+        <button class="ctrl-btn" onclick="spawnPrey()">
+            ➕ Av Ekle (Sinek/Fare)
+        </button>
+        <button class="ctrl-btn" onclick="clearPreys()">
+            🧹 Temizle
+        </button>
+        <button class="ctrl-btn primary" onclick="resetLab()">
+            🔄 Yeniden Başlat
+        </button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. SES EFEKTLERİ MOTORU (WEB AUDIO API)
+        // ==========================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (type === 'laser') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'lock') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(650, now);
+                osc.frequency.setValueAtTime(880, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.18);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.18);
+            } else if (type === 'pounce') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(540, now + 0.2);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'hit') {
+                // Güçlü ÇAT / Çarpma sesi
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'slingshot_pull') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(450, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'water_jet') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400 + Math.random() * 200, now);
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.06);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            }
+        }
+
+        // ==========================================
+        // 2. KEDİ SPRİTE SİSTEMİ
+        // ==========================================
+        const catCanvas = document.getElementById('catCanvas');
+        const catCtx = catCanvas.getContext('2d');
+        const SPRITE_DATA = {
+            idle: { src: 'sarman/sarman_transparan_1.png', frames: 4, speed: 200 },
+            walk: { src: 'sarman/sarman_transparan_2.png', frames: 6, speed: 120 },
+            jump: { src: 'sarman/sarman_transparan_3.png', frames: 6, speed: 80 },
+            pounce: { src: 'sarman/sarman_lazer_pounce.png', frames: 6, speed: 70 },
+            happy: { src: 'sarman/sarman_transparan_5.png', frames: 4, speed: 150 }
+        };
+
+        const loadedSprites = {};
+        for (let k in SPRITE_DATA) {
+            const img = new Image();
+            img.src = SPRITE_DATA[k].src;
+            loadedSprites[k] = img;
+        }
+
+        const CatState = {
+            x: 140,
+            bottom: 30,
+            dir: 1,
+            anim: 'idle',
+            frame: 0,
+            lastFrameTime: 0,
+            isPouncing: false,
+            pounceStartX: 140,
+            pounceStartB: 30,
+            pounceTargetX: 140,
+            pounceTargetB: 30,
+            pounceStartTime: 0,
+            pounceDuration: 420
+        };
+
+        function drawCat() {
+            catCtx.clearRect(0, 0, 400, 400);
+            const anim = SPRITE_DATA[CatState.anim] || SPRITE_DATA.idle;
+            const img = loadedSprites[CatState.anim];
+
+            if (img && img.complete && img.naturalWidth > 0) {
+                const fw = img.naturalWidth / anim.frames;
+                const fh = img.naturalHeight;
+                catCtx.drawImage(img, CatState.frame * fw, 0, fw, fh, 10, 10, 380, 380);
+            } else {
+                // Fallback kedi
+                catCtx.fillStyle = '#f59e0b';
+                catCtx.beginPath();
+                catCtx.arc(200, 260, 50, 0, Math.PI * 2);
+                catCtx.fill();
+            }
+
+            catCanvas.style.left = (CatState.x - 95) + 'px';
+            catCanvas.style.bottom = CatState.bottom + 'px';
+            catCanvas.style.transform = `scaleX(${CatState.dir})`;
+        }
+
+        // ==========================================
+        // 3. LABORATUVAR VE MEKANİK DURUMU
+        // ==========================================
+        let currentMode = 1;
+        let score = 0;
+        const arenaWrapper = document.getElementById('arenaWrapper');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const ctx = gameCanvas.getContext('2d');
+        const turretUnit = document.getElementById('turretUnit');
+        const turretBarrel = document.getElementById('turretBarrel');
+        const btnFireTrigger = document.getElementById('btnFireTrigger');
+
+        let arenaWidth = 400;
+        let arenaHeight = 600;
+
+        function resizeCanvas() {
+            arenaWidth = arenaWrapper.clientWidth;
+            arenaHeight = arenaWrapper.clientHeight;
+            gameCanvas.width = arenaWidth;
+            gameCanvas.height = arenaHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 50);
+
+        // Canlılar (Preys: Sinekler, Böcekler, Fareler)
+        let preys = [];
+        let particles = [];
+        let projectiles = [];
+
+        function spawnPrey(type = null) {
+            const types = ['fly', 'bug', 'mouse'];
+            const chosenType = type || types[Math.floor(Math.random() * types.length)];
+            const prey = {
+                id: Date.now() + Math.random(),
+                type: chosenType,
+                x: 40 + Math.random() * (arenaWidth - 80),
+                y: chosenType === 'fly' ? 80 + Math.random() * 220 : arenaHeight - (40 + Math.random() * 80),
+                vx: (Math.random() > 0.5 ? 1 : -1) * (chosenType === 'fly' ? 1.8 : 1.2),
+                vy: (Math.random() - 0.5) * 0.8,
+                radius: chosenType === 'fly' ? 14 : 18,
+                wingAngle: 0,
+                isWet: false,
+                wetTimer: 0
+            };
+            preys.push(prey);
+        }
+
+        function clearPreys() {
+            preys = [];
+            particles = [];
+            projectiles = [];
+        }
+
+        function addScore(pts) {
+            score += pts;
+            document.getElementById('valScore').innerText = score;
+        }
+
+        function triggerScreenShake() {
+            arenaWrapper.classList.remove('screen-shake');
+            void arenaWrapper.offsetWidth;
+            arenaWrapper.classList.add('screen-shake');
+            setTimeout(() => arenaWrapper.classList.remove('screen-shake'), 300);
+        }
+
+        function addParticle(x, y, text, color = '#ffffff') {
+            particles.push({
+                x, y, text, color,
+                vy: -2,
+                alpha: 1.0,
+                scale: 1.2
+            });
+        }
+
+        // ==========================================
+        // 4. MEKANİK 1: GERÇEKÇİ FİZİKLİ LAZER
+        // ==========================================
+        const LaserState = {
+            active: false,
+            targetX: 200,
+            targetY: 300,
+            currentX: 200,
+            currentY: 300,
+            vx: 0,
+            vy: 0,
+            lockOnTimer: 0
+        };
+
+        // ==========================================
+        // 5. MEKANİK 2: SAPAN / MANCINIK (SLINGSHOT)
+        // ==========================================
+        const SlingshotState = {
+            dragging: false,
+            originX: 200,
+            originY: 480,
+            pullX: 200,
+            pullY: 480,
+            power: 0,
+            angle: 0
+        };
+
+        // ==========================================
+        // 6. MEKANİK 3: DOKUN-VUR SNIPER (TAP LOCK)
+        // ==========================================
+        const TapLockState = {
+            activeLocks: []
+        };
+
+        // ==========================================
+        // 7. MEKANİK 4: TOMA SU TABANCASI
+        // ==========================================
+        const WaterGunState = {
+            spraying: false,
+            aimX: 200,
+            aimY: 200,
+            particles: []
+        };
+
+        // ==========================================
+        // 8. MEKANİK 5: LAZER BLASTER
+        // ==========================================
+        const BlasterState = {
+            aimAngle: 0,
+            aimX: 200,
+            aimY: 200
+        };
+
+        // ==========================================
+        // 9. SEKME DEĞİŞTİRME & BİLGİ GÜNCELLEME
+        // ==========================================
+        const MECHANIC_INFOS = {
+            1: {
+                title: '🔴 1. Gerçekçi Fizikli Serbest Lazer',
+                desc: 'Parmağını ekranda sürükle. Kırmızı lazer noktası momentum & yay fiziğiyle gelir. Bir sineğe denk geldiğinde kedi pusuya yatar ve aniden fırlar!'
+            },
+            2: {
+                title: '🚀 2. Sapan / Mancınık Çek-Bırak',
+                desc: 'Alt ortadan geriye doğru çek ve nişan al. Parabolik rota çizgisi çıkar. Parmağını bıraktığın an kedi mermi gibi uçarak sinekleri avlar!'
+            },
+            3: {
+                title: '🎯 3. Dokun-Vur Seri Sniper (Tap & Lock-On)',
+                desc: 'Ekranda uçan sineklere doğrudan DOKUN (TAP). Anında hedef çemberi kilitlenir ve kedi havada kapar. En pratik ve seri arcade hissi!'
+            },
+            4: {
+                title: '🚒 4. TOMA Su Tabancası (Continuous Stream)',
+                desc: 'Ekrana basılı tut. Taret namlusundan gerçekçi tazyikli su fışkırır. Islanan sinekler yere düşer ve kedi afiyetle toplar!'
+            },
+            5: {
+                title: '⚡ 5. Lazer Blaster (Mermi Duvar Sekme)',
+                desc: 'Ekranda parmağınla hedefi belirle ve ATEŞ butonuna bas! Fırlayan güçlü lazer mermisi duvarlardan sekerek sinekleri vurur!'
+            }
+        };
+
+        function switchMechanic(modeNum) {
+            currentMode = modeNum;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === (modeNum - 1));
+            });
+
+            document.getElementById('infoTitle').innerText = MECHANIC_INFOS[modeNum].title;
+            document.getElementById('infoDesc').innerText = MECHANIC_INFOS[modeNum].desc;
+
+            // UI Elementlerini Mod'a göre aç/kapat
+            turretUnit.style.display = (modeNum === 4 || modeNum === 5) ? 'flex' : 'none';
+            btnFireTrigger.style.display = (modeNum === 5) ? 'flex' : 'none';
+
+            // Temizlik
+            LaserState.active = false;
+            SlingshotState.dragging = false;
+            WaterGunState.spraying = false;
+            CatState.isPouncing = false;
+            CatState.anim = 'idle';
+            CatState.x = arenaWidth * 0.4;
+            CatState.bottom = 30;
+
+            if (preys.length < 3) {
+                spawnPrey('fly');
+                spawnPrey('bug');
+                spawnPrey('mouse');
+            }
+        }
+
+        // ==========================================
+        // 10. DOKUNMATİK VE FARE GİRİŞ DİNLEYİCİLERİ
+        // ==========================================
+        let isPointerDown = false;
+
+        function getArenaPos(e) {
+            const rect = arenaWrapper.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        gameCanvas.addEventListener('pointerdown', (e) => {
+            isPointerDown = true;
+            const pos = getArenaPos(e);
+
+            if (currentMode === 1) {
+                // Mod 1: Serbest Lazer
+                LaserState.active = true;
+                LaserState.targetX = pos.x;
+                LaserState.targetY = pos.y;
+                playSound('laser');
+            } else if (currentMode === 2) {
+                // Mod 2: Sapan Çekme
+                SlingshotState.dragging = true;
+                SlingshotState.originX = CatState.x;
+                SlingshotState.originY = arenaHeight - CatState.bottom - 40;
+                SlingshotState.pullX = pos.x;
+                SlingshotState.pullY = pos.y;
+                playSound('slingshot_pull');
+            } else if (currentMode === 3) {
+                // Mod 3: Dokun-Vur Sniper
+                handleTapLock(pos.x, pos.y);
+            } else if (currentMode === 4) {
+                // Mod 4: TOMA Su Püskürtme
+                WaterGunState.spraying = true;
+                WaterGunState.aimX = pos.x;
+                WaterGunState.aimY = pos.y;
+            } else if (currentMode === 5) {
+                // Mod 5: Blaster Nişan
+                BlasterState.aimX = pos.x;
+                BlasterState.aimY = pos.y;
+            }
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isPointerDown) return;
+            const pos = getArenaPos(e);
+
+            if (currentMode === 1) {
+                LaserState.targetX = pos.x;
+                LaserState.targetY = pos.y;
+            } else if (currentMode === 2 && SlingshotState.dragging) {
+                SlingshotState.pullX = pos.x;
+                SlingshotState.pullY = pos.y;
+            } else if (currentMode === 4) {
+                WaterGunState.aimX = pos.x;
+                WaterGunState.aimY = pos.y;
+            } else if (currentMode === 5) {
+                BlasterState.aimX = pos.x;
+                BlasterState.aimY = pos.y;
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            isPointerDown = false;
+
+            if (currentMode === 1) {
+                LaserState.active = false;
+            } else if (currentMode === 2 && SlingshotState.dragging) {
+                SlingshotState.dragging = false;
+                fireSlingshotPounce();
+            } else if (currentMode === 4) {
+                WaterGunState.spraying = false;
+            }
+        });
+
+        // MOD 3: DOKUN-VUR (TAP & LOCK)
+        function handleTapLock(tapX, tapY) {
+            // En yakın hedefi bul
+            let hitPrey = null;
+            let minDist = 70;
+
+            preys.forEach((p, idx) => {
+                const dist = Math.hypot(p.x - tapX, p.y - tapY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    hitPrey = { prey: p, index: idx };
+                }
+            });
+
+            const lockTarget = hitPrey ? { x: hitPrey.prey.x, y: hitPrey.prey.y, prey: hitPrey.prey, index: hitPrey.index } : { x: tapX, y: tapY, prey: null };
+
+            TapLockState.activeLocks.push({
+                x: lockTarget.x,
+                y: lockTarget.y,
+                radius: 40,
+                alpha: 1.0,
+                timer: 0
+            });
+
+            playSound('lock');
+
+            // Kedi anında bu noktaya zıplasın
+            triggerPounceTo(lockTarget.x, arenaHeight - lockTarget.y, () => {
+                if (lockTarget.prey) {
+                    catchPrey(lockTarget.index);
+                }
+            });
+        }
+
+        // MOD 2: SAPAN FIRLATMA
+        function fireSlingshotPounce() {
+            const dx = SlingshotState.originX - SlingshotState.pullX;
+            const dy = SlingshotState.originY - SlingshotState.pullY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < 20) return;
+
+            const powerRatio = Math.min(2.5, dist / 60);
+            const targetX = Math.max(30, Math.min(arenaWidth - 30, SlingshotState.originX + dx * powerRatio * 1.8));
+            const targetBottom = Math.max(30, Math.min(arenaHeight - 80, (arenaHeight - SlingshotState.originY) + dy * powerRatio * 1.8));
+
+            playSound('pounce');
+            triggerPounceTo(targetX, targetBottom, () => {
+                // Yörüngede veya inilen yerde sinek var mı?
+                preys.forEach((p, idx) => {
+                    const dist = Math.hypot(p.x - targetX, p.y - (arenaHeight - targetBottom));
+                    if (dist < 50) {
+                        catchPrey(idx);
+                    }
+                });
+            });
+        }
+
+        // MOD 5: LAZER BLASTER ATEŞ ET
+        function triggerBlasterFire(e) {
+            e.stopPropagation();
+            const turretX = arenaWidth / 2;
+            const turretY = arenaHeight - 35;
+            const angle = Math.atan2(BlasterState.aimY - turretY, BlasterState.aimX - turretX);
+
+            projectiles.push({
+                x: turretX,
+                y: turretY,
+                vx: Math.cos(angle) * 14,
+                vy: Math.sin(angle) * 14,
+                bounces: 3,
+                radius: 6,
+                color: '#38bdf8'
+            });
+
+            playSound('laser');
+            triggerScreenShake();
+        }
+
+        // KEDİ ZIPLAMA / ATLAMA (SMOOTH PARABOLIC POUNCE)
+        function triggerPounceTo(targetX, targetBottom, onComplete) {
+            if (CatState.isPouncing) return;
+            CatState.isPouncing = true;
+            CatState.anim = 'jump';
+            CatState.pounceStartX = CatState.x;
+            CatState.pounceStartB = CatState.bottom;
+            CatState.pounceTargetX = targetX;
+            CatState.pounceTargetB = targetBottom;
+            CatState.pounceStartTime = performance.now();
+            CatState.pounceDuration = 380;
+            CatState.dir = targetX >= CatState.x ? 1 : -1;
+            CatState.onPounceComplete = onComplete;
+            playSound('pounce');
+        }
+
+        // AV YAKALAMA VE GERİ BİLDİRİM (JUICE)
+        function catchPrey(index) {
+            const p = preys[index];
+            if (!p) return;
+
+            addScore(10);
+            playSound('hit');
+            triggerScreenShake();
+
+            addParticle(p.x, p.y, '💥 ÇAT! +10', '#fbbf24');
+            preys.splice(index, 1);
+
+            // 1.5 sn sonra yeni av spawn et
+            setTimeout(() => {
+                if (preys.length < 3) spawnPrey();
+            }, 1200);
+        }
+
+        function resetLab() {
+            score = 0;
+            document.getElementById('valScore').innerText = 0;
+            clearPreys();
+            spawnPrey('fly');
+            spawnPrey('bug');
+            spawnPrey('mouse');
+            CatState.x = arenaWidth * 0.4;
+            CatState.bottom = 30;
+            CatState.anim = 'idle';
+            CatState.isPouncing = false;
+        }
+
+        // ==========================================
+        // 11. ANA OYUN DÖNGÜSÜ & ÇİZİM (60 FPS)
+        // ==========================================
+        let lastTime = performance.now();
+
+        function gameLoop(now) {
+            const dt = Math.min(0.1, (now - lastTime) / 1000);
+            lastTime = now;
+
+            ctx.clearRect(0, 0, arenaWidth, arenaHeight);
+
+            // Taret Döndürme
+            if (currentMode === 4 || currentMode === 5) {
+                const targetAimX = currentMode === 4 ? WaterGunState.aimX : BlasterState.aimX;
+                const targetAimY = currentMode === 4 ? WaterGunState.aimY : BlasterState.aimY;
+                const dx = targetAimX - arenaWidth / 2;
+                const dy = targetAimY - (arenaHeight - 35);
+                const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+                turretBarrel.style.transform = `rotate(${angleDeg}deg)`;
+            }
+
+            // 1. MEKANİK 1 FİZİK (SERBEST LAZER)
+            if (currentMode === 1 && LaserState.active) {
+                // Spring / Damping İnertia
+                const k = 14;
+                const damp = 0.72;
+                const ax = (LaserState.targetX - LaserState.currentX) * k;
+                const ay = (LaserState.targetY - LaserState.currentY) * k;
+                LaserState.vx = (LaserState.vx + ax * dt) * damp;
+                LaserState.vy = (LaserState.vy + ay * dt) * damp;
+                LaserState.currentX += LaserState.vx * dt * 40;
+                LaserState.currentY += LaserState.vy * dt * 40;
+
+                // Lazer Işığı Çizimi
+                ctx.save();
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#ff0055';
+                ctx.beginPath();
+                ctx.arc(LaserState.currentX, LaserState.currentY, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(LaserState.currentX, LaserState.currentY, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Kedi takibi & Kilitlenme
+                if (!CatState.isPouncing) {
+                    CatState.dir = LaserState.currentX >= CatState.x ? 1 : -1;
+                    preys.forEach((p, idx) => {
+                        const dist = Math.hypot(p.x - LaserState.currentX, p.y - LaserState.currentY);
+                        if (dist < 40) {
+                            LaserState.lockOnTimer += dt;
+                            if (LaserState.lockOnTimer > 0.18) {
+                                LaserState.lockOnTimer = 0;
+                                triggerPounceTo(p.x, arenaHeight - p.y, () => catchPrey(idx));
+                            }
+                        }
+                    });
+                }
+            }
+
+            // 2. MEKANİK 2 ÇİZİM (SAPAN MANCINIK YÖRÜNGESİ)
+            if (currentMode === 2 && SlingshotState.dragging) {
+                const ox = SlingshotState.originX;
+                const oy = SlingshotState.originY;
+                const px = SlingshotState.pullX;
+                const py = SlingshotState.pullY;
+
+                // Lastik Çizimi
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(ox - 25, oy);
+                ctx.lineTo(px, py);
+                ctx.lineTo(ox + 25, oy);
+                ctx.stroke();
+
+                // Parabolik Yörünge Noktaları
+                const dx = ox - px;
+                const dy = oy - py;
+                ctx.fillStyle = '#38bdf8';
+                for (let i = 1; i <= 8; i++) {
+                    const t = i / 8;
+                    const dotX = ox + dx * t * 2.2;
+                    const dotY = oy + dy * t * 2.2 + (t * t * 40);
+                    ctx.beginPath();
+                    ctx.arc(dotX, dotY, 4 * (1 - t * 0.4), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // 3. MEKANİK 3 ÇİZİM (DOKUN-VUR SNIPER HALKALARI)
+            if (currentMode === 3) {
+                TapLockState.activeLocks.forEach((lock, idx) => {
+                    lock.radius -= dt * 60;
+                    lock.alpha -= dt * 1.5;
+
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0, lock.alpha)})`;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(lock.x, lock.y, Math.max(10, lock.radius), 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Artı işareti
+                    ctx.beginPath();
+                    ctx.moveTo(lock.x - 15, lock.y);
+                    ctx.lineTo(lock.x + 15, lock.y);
+                    ctx.moveTo(lock.x, lock.y - 15);
+                    ctx.lineTo(lock.x, lock.y + 15);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    if (lock.alpha <= 0 || lock.radius <= 10) {
+                        TapLockState.activeLocks.splice(idx, 1);
+                    }
+                });
+            }
+
+            // 4. MEKANİK 4 ÇİZİM (TOMA SU PÜSKÜRTME)
+            if (currentMode === 4 && WaterGunState.spraying) {
+                const turretX = arenaWidth / 2;
+                const turretY = arenaHeight - 35;
+                playSound('water_jet');
+
+                // Su damlacıkları üret
+                for (let k = 0; k < 3; k++) {
+                    const angle = Math.atan2(WaterGunState.aimY - turretY, WaterGunState.aimX - turretX) + (Math.random() - 0.5) * 0.15;
+                    const speed = 12 + Math.random() * 6;
+                    WaterGunState.particles.push({
+                        x: turretX,
+                        y: turretY,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        radius: 3 + Math.random() * 3,
+                        alpha: 0.9
+                    });
+                }
+            }
+
+            // Su partiküllerini güncelle ve çiz
+            WaterGunState.particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2; // Yerçekimi
+                p.alpha -= dt * 1.8;
+
+                ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sinekleri ıslatma kontrolü
+                preys.forEach((prey, pIdx) => {
+                    if (Math.hypot(prey.x - p.x, prey.y - p.y) < prey.radius + 5) {
+                        prey.isWet = true;
+                        prey.wetTimer = 3.0;
+                        prey.vy = 2.5; // Islanan sinek aşağı düşer!
+                    }
+                });
+
+                if (p.alpha <= 0) WaterGunState.particles.splice(idx, 1);
+            });
+
+            // 5. MEKANİK 5 ÇİZİM (LAZER BLASTER MERMİLERİ)
+            projectiles.forEach((proj, idx) => {
+                proj.x += proj.vx;
+                proj.y += proj.vy;
+
+                // Duvarlardan sekme
+                if (proj.x < 10 || proj.x > arenaWidth - 10) {
+                    proj.vx *= -1;
+                    proj.bounces--;
+                    playSound('lock');
+                }
+                if (proj.y < 10) {
+                    proj.vy *= -1;
+                    proj.bounces--;
+                    playSound('lock');
+                }
+
+                ctx.save();
+                ctx.shadowColor = proj.color;
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = proj.color;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Hedef vurma kontrolü
+                preys.forEach((prey, pIdx) => {
+                    if (Math.hypot(prey.x - proj.x, prey.y - proj.y) < prey.radius + proj.radius) {
+                        catchPrey(pIdx);
+                        projectiles.splice(idx, 1);
+                    }
+                });
+
+                if (proj.bounces <= 0 || proj.y > arenaHeight) {
+                    projectiles.splice(idx, 1);
+                }
+            });
+
+            // CANLILAR (PREYS) GÜNCELLEME VE ÇİZİM
+            preys.forEach((p) => {
+                p.wingAngle += 0.5;
+
+                if (p.type === 'fly') {
+                    if (!p.isWet) {
+                        p.x += p.vx;
+                        p.y += p.vy + Math.sin(now * 0.006 + p.id) * 0.8;
+                        if (p.x < 30 || p.x > arenaWidth - 30) p.vx *= -1;
+                        if (p.y < 50 || p.y > arenaHeight - 120) p.vy *= -1;
+                    } else {
+                        // Islak sinek düşer
+                        p.y = Math.min(arenaHeight - 40, p.y + p.vy);
+                    }
+
+                    // Sinek Çizimi
+                    ctx.save();
+                    ctx.fillStyle = '#1e293b';
+                    ctx.beginPath();
+                    ctx.ellipse(p.x, p.y, 8, 5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Kanatlar
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.beginPath();
+                    ctx.ellipse(p.x - 4, p.y - 6 + Math.sin(p.wingAngle) * 3, 6, 3, -0.4, 0, Math.PI * 2);
+                    ctx.ellipse(p.x + 4, p.y - 6 - Math.sin(p.wingAngle) * 3, 6, 3, 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                } else if (p.type === 'bug' || p.type === 'mouse') {
+                    p.x += p.vx;
+                    if (p.x < 30 || p.x > arenaWidth - 30) p.vx *= -1;
+
+                    ctx.save();
+                    ctx.fillStyle = p.type === 'mouse' ? '#64748b' : '#991b1b';
+                    ctx.beginPath();
+                    ctx.ellipse(p.x, p.y, p.type === 'mouse' ? 14 : 9, p.type === 'mouse' ? 9 : 6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+
+            // KEDİ ZIPLAMA ANİMASYONU VE HAREKETİ
+            if (CatState.isPouncing) {
+                const elapsed = now - CatState.pounceStartTime;
+                const progress = Math.min(1.0, elapsed / CatState.pounceDuration);
+
+                // Parabolik yay
+                const arcY = Math.sin(progress * Math.PI) * 70;
+                CatState.x = CatState.pounceStartX + (CatState.pounceTargetX - CatState.pounceStartX) * progress;
+                CatState.bottom = CatState.pounceStartB + (CatState.pounceTargetB - CatState.pounceStartB) * progress + arcY;
+
+                if (progress >= 1.0) {
+                    CatState.isPouncing = false;
+                    CatState.anim = 'happy';
+                    setTimeout(() => { if (!CatState.isPouncing) CatState.anim = 'idle'; }, 600);
+                    if (CatState.onPounceComplete) CatState.onPounceComplete();
+                }
+            }
+
+            // Kedi Sprite Frame Döngüsü
+            const anim = SPRITE_DATA[CatState.anim] || SPRITE_DATA.idle;
+            if (now - CatState.lastFrameTime > anim.speed) {
+                CatState.lastFrameTime = now;
+                CatState.frame = (CatState.frame + 1) % anim.frames;
+            }
+            drawCat();
+
+            // PARTİKÜLLER
+            particles.forEach((part, idx) => {
+                part.y += part.vy;
+                part.alpha -= dt * 1.5;
+                ctx.save();
+                ctx.fillStyle = part.color;
+                ctx.font = 'bold 16px Plus Jakarta Sans';
+                ctx.globalAlpha = Math.max(0, part.alpha);
+                ctx.fillText(part.text, part.x - 20, part.y);
+                ctx.restore();
+
+                if (part.alpha <= 0) particles.splice(idx, 1);
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // BAŞLAT
+        window.onload = () => {
+            resizeCanvas();
+            spawnPrey('fly');
+            spawnPrey('bug');
+            spawnPrey('mouse');
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>

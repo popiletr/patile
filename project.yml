@@ -1,0 +1,108 @@
+name: Bipop
+options:
+  bundleIdPrefix: com.bipop
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.4"
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: 8JQGNY2DPD
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+    SWIFT_EMIT_LOC_STRINGS: "YES"
+
+targets:
+  Bipop:
+    type: application
+    platform: iOS
+    sources:
+      - path: Bipop
+        excludes:
+          - "Info.plist"
+          - "Bipop.entitlements"
+      - path: Shared
+    info:
+      path: Bipop/Info.plist
+      properties:
+        CFBundleDisplayName: "B!Pop"
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.bipop.app
+            CFBundleURLSchemes:
+              - bipop
+        LSApplicationQueriesSchemes:
+          - spotify
+        UIBackgroundModes:
+          - remote-notification
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    entitlements:
+      path: Bipop/Bipop.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.bipop.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bipop.app
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 8JQGNY2DPD
+    dependencies:
+      - target: BipopWidgetExtension
+    scheme:
+      shared: true
+
+  BipopWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BipopWidgetExtension
+        excludes:
+          - "Info.plist"
+          - "BipopWidgetExtension.entitlements"
+      - path: Shared
+    info:
+      path: BipopWidgetExtension/Info.plist
+      properties:
+        CFBundleDisplayName: "B!Pop Widget"
+        NSExtension:
+          NSExtensionPointIdentifier: "com.apple.widgetkit-extension"
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    entitlements:
+      path: BipopWidgetExtension/BipopWidgetExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.bipop.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bipop.app.widget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 8JQGNY2DPD
+    scheme:
+      shared: true
+
+schemes:
+  Bipop:
+    build:
+      targets:
+        Bipop: all
+        BipopWidgetExtension: [run]
+    run:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

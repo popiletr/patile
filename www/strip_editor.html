@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐾 Yatay Şerit Frame Düzenleyici & Hizalayıcı</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0f0f17;
+        --card: #181824;
+        --card-border: #28283d;
+        --accent: #ff6b9d;
+        --accent-hover: #ff85b0;
+        --primary: #7928ca;
+        --text: #f0f0f8;
+        --text-dim: #8888a4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
+    h1 { font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#ff6b9d,#7928ca); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; background: var(--card); border: 1px solid var(--card-border); padding: 10px 14px; border-radius: 12px; }
+    .file-tab { background: #222233; color: var(--text-dim); border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .file-tab:hover { background: #2c2c44; color: white; }
+    .file-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    
+    .btn { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--card-border); background: #222233; color: white; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn:hover { background: #2f2f47; border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.eraser-active { background: #ff5252; border-color: #ff5252; color: white; }
+    
+    .layout { display: grid; grid-template-columns: 320px 1fr 340px; gap: 16px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; }
+    .card-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* Frame Selector Grid */
+    .frame-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 14px; }
+    .frame-btn { background: #222233; border: 2px solid var(--card-border); padding: 6px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; color: var(--text-dim); transition: all 0.2s; }
+    .frame-btn:hover { border-color: var(--text-dim); }
+    .frame-btn.active { border-color: var(--accent); background: rgba(255,107,157,0.15); color: white; }
+
+    /* Sliders & Controls */
+    .ctrl-group { margin-bottom: 10px; }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 6px; }
+    .ctrl-label { font-size: 11px; font-weight: 700; color: var(--text-dim); min-width: 50px; }
+    input[type=range] { accent-color: var(--accent); flex: 1; height: 5px; }
+    .pm-btn { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--card-border); background: #222233; color: white; font-weight: 900; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .pm-btn:hover { background: var(--accent); }
+    .ctrl-val { font-family: monospace; font-size: 11px; font-weight: 700; color: var(--accent); min-width: 38px; text-align: right; }
+
+    .checkered-bg {
+        background-color: #151522;
+        background-image: linear-gradient(45deg, #1e1e30 25%, transparent 25%), linear-gradient(-45deg, #1e1e30 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1e1e30 75%), linear-gradient(-45deg, transparent 75%, #1e1e30 75%);
+        background-size: 16px 16px;
+        background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    }
+
+    /* Canvas Areas */
+    .canvas-wrap { background: #12121c; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    #editCanvas { border-radius: 8px; cursor: crosshair; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    
+    /* Animation Live Box */
+    .anim-display { width: 200px; height: 200px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    
+    /* Stage Preview */
+    .stage-box { background: linear-gradient(180deg, #1f1730 0%, #120e1c 100%); border: 1px solid var(--card-border); border-radius: 12px; height: 130px; position: relative; overflow: hidden; margin-top: 10px; }
+    .stage-floor { position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.1); }
+    #stageCat { position: absolute; bottom: 8px; left: 20px; transition: left 0.08s linear; background: transparent; border-radius: 6px; }
+
+    /* Timeline Strips */
+    .bottom-bar { margin-top: 16px; background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; }
+    .strip-list { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0; }
+    .thumb-card { background: #12121c; border: 2px solid var(--card-border); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: all 0.2s; min-width: 120px; }
+    .thumb-card.active { border-color: var(--accent); background: rgba(255,107,157,0.1); }
+    .thumb-card canvas { width: 100px; height: 100px; border-radius: 4px; display: block; margin: 0 auto 4px; }
+    .thumb-card span { font-size: 11px; font-weight: 700; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <div>
+        <h1>🐾 Yatay Şerit Frame Düzenleyici & Hizalayıcı</h1>
+        <div style="font-size: 12px; color: var(--text-dim);">Her kareyi tek tek ölçekle, zemine oturt, silgiyle temizle ve kusursuz animasyon üret.</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="game.html" class="btn" style="background: var(--accent); color: white; text-decoration: none; font-weight: 800; border-color: var(--accent);">🎮 Canlı Oyun Simülatörü</a>
+        <a href="sarman_showcase.html" class="btn" style="color: white; text-decoration: none; font-weight: 800;">🌟 Stüdyo</a>
+    </div>
+</header>
+
+<!-- TOOLBAR: DOSYALAR VE GLOBAL İŞLEMLER -->
+<div class="toolbar">
+    <div style="display: flex; gap: 4px; background: #12121c; padding: 3px; border-radius: 8px; border: 1px solid var(--card-border); margin-right: 8px;">
+        <button class="btn active" id="btnGroupSahnelerPng" onclick="switchGroup('sahneler_png')" style="padding: 4px 10px; font-size: 11px; background: var(--accent); color: white;">💎 Yeni Şeffaf PNG'ler (8)</button>
+        <button class="btn" id="btnGroupSahnelerRaw" onclick="switchGroup('sahneler_raw')" style="padding: 4px 10px; font-size: 11px; background: transparent; color: var(--text-dim);">📷 Sahneler Ham (10)</button>
+        <button class="btn" id="btnGroupTransparan" onclick="switchGroup('transparan')" style="padding: 4px 10px; font-size: 11px; background: transparent; color: var(--text-dim);">💎 Transparan (1-5)</button>
+        <button class="btn" id="btnGroupEdited" onclick="switchGroup('edited')" style="padding: 4px 10px; font-size: 11px; background: transparent; color: var(--text-dim);">✨ Düzeltilmişler (1-10)</button>
+        <button class="btn" id="btnGroupRaw" onclick="switchGroup('raw')" style="padding: 4px 10px; font-size: 11px; background: transparent; color: var(--text-dim);">📷 Ham Orijinaller (1-10)</button>
+    </div>
+    <div id="fileTabs" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+    
+    <label class="btn" style="margin-left: 4px;">
+        📁 Özel Yükle <input type="file" id="fileUpload" accept="image/*" style="display: none;" onchange="handleCustomUpload(event)">
+    </label>
+    
+    <button class="btn" id="eraserBtn" onclick="toggleEraser()">🧽 Silgi: KAPALI</button>
+    <button class="btn" onclick="undoErase()" title="Geri Al (Cmd+Z / Ctrl+Z)">↩️ Geri Al</button>
+    <button class="btn" onclick="redoErase()" title="İleri Al (Cmd+Shift+Z / Ctrl+Y)">↪️ İleri Al</button>
+    <button class="btn" onclick="applyCurrentToAll()">📋 Bu Ayarı Hepsine Uygula</button>
+    <button class="btn" onclick="autoResetCurrentFile()">🔄 Bu Dosyayı Sıfırla</button>
+    <button class="btn" onclick="exportAllSettingsJSON()">📤 JSON Yedekle</button>
+    <label class="btn">
+        📥 JSON Yükle <input type="file" id="jsonUpload" accept=".json" style="display: none;" onchange="importSettingsJSON(event)">
+    </label>
+    
+    <span id="saveStatus" style="font-size: 11px; font-weight: 700; color: #00E676; margin-left: 8px;">💾 Otomatik Kaydedildi</span>
+    <button class="btn primary" onclick="exportCleanStrip()" style="margin-left: auto;">💾 Düzeltilmiş PNG İndir</button>
+</div>
+
+<div class="layout">
+    <!-- SOL PANEL: SEÇİLİ KARE AYARLARI -->
+    <div class="card">
+        <div class="card-title">
+            <span>⚙️ KARE DÜZENLEME</span>
+            <span id="selectedFrameLabel" style="color: var(--accent);">KARE 1</span>
+        </div>
+
+        <!-- Kare Seçici (1 - 6) -->
+        <div class="frame-picker" id="framePicker"></div>
+
+        <!-- Ölçek & Konum -->
+        <div class="ctrl-group">
+            <div class="ctrl-row">
+                <span class="ctrl-label">Ölçek:</span>
+                <button class="pm-btn" onclick="adj('scale', -1)">−</button>
+                <input type="range" id="slScale" min="50" max="160" value="100" oninput="onParamChange()">
+                <button class="pm-btn" onclick="adj('scale', 1)">+</button>
+                <span class="ctrl-val" id="valScale">100%</span>
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label">X Konum:</span>
+                <button class="pm-btn" onclick="adj('ox', -1)">−</button>
+                <input type="range" id="slOx" min="-200" max="200" value="0" oninput="onParamChange()">
+                <button class="pm-btn" onclick="adj('ox', 1)">+</button>
+                <span class="ctrl-val" id="valOx">0</span>
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label">Y Taban:</span>
+                <button class="pm-btn" onclick="adj('oy', -1)">−</button>
+                <input type="range" id="slOy" min="-200" max="200" value="0" oninput="onParamChange()">
+                <button class="pm-btn" onclick="adj('oy', 1)">+</button>
+                <span class="ctrl-val" id="valOy">0</span>
+            </div>
+        </div>
+
+        <!-- Kenar Kırpma (Crop) -->
+        <div class="card-title" style="margin-top: 14px;">✂️ Kenar Kırpma</div>
+        <div class="ctrl-group">
+            <div class="ctrl-row"><span class="ctrl-label">Sol:</span><input type="range" id="slCL" min="0" max="60" value="0" oninput="onParamChange()"><span class="ctrl-val" id="valCL">0</span></div>
+            <div class="ctrl-row"><span class="ctrl-label">Sağ:</span><input type="range" id="slCR" min="0" max="60" value="0" oninput="onParamChange()"><span class="ctrl-val" id="valCR">0</span></div>
+            <div class="ctrl-row"><span class="ctrl-label">Üst:</span><input type="range" id="slCT" min="0" max="60" value="0" oninput="onParamChange()"><span class="ctrl-val" id="valCT">0</span></div>
+            <div class="ctrl-row"><span class="ctrl-label">Alt:</span><input type="range" id="slCB" min="0" max="60" value="0" oninput="onParamChange()"><span class="ctrl-val" id="valCB">0</span></div>
+        </div>
+
+        <!-- Silgi Boyutu -->
+        <div class="card-title" style="margin-top: 14px;">🧽 Silgi Ayarı</div>
+        <div class="ctrl-row">
+            <span class="ctrl-label">Boyut:</span>
+            <input type="range" id="eraserSize" min="5" max="60" value="20" oninput="document.getElementById('valEraser').textContent = this.value + 'px'">
+            <span class="ctrl-val" id="valEraser">20px</span>
+        </div>
+
+        <!-- Kılavuz Çizgileri -->
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-dim); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="chkGround" checked onchange="drawEditView()"> 🔴 Kırmızı Taban Çizgisi Göster
+            </label>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-dim);">👻 Hayalet Referans:</span>
+                <select id="ghostMode" onchange="drawEditView()" style="background: #222233; color: white; border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; outline: none;">
+                    <option value="none">Kapalı</option>
+                    <option value="prev" selected>Bir Önceki Kare</option>
+                    <option value="first">1. Kare (K1)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORTA PANEL: SEÇİLİ KARE DÜZENLEME ALANI (CANVAS) -->
+    <div class="card">
+        <div class="card-title">
+            <span>🎨 KARE ÇALIŞMA ALANI (Silgiyle Temizle & Hizala)</span>
+            <span style="font-size: 11px; color: var(--text-dim);">300×300 Frame</span>
+        </div>
+        
+        <div class="canvas-wrap">
+            <canvas id="editCanvas" width="300" height="300" class="checkered-bg"></canvas>
+            <div style="margin-top: 8px; font-size: 11px; color: var(--text-dim); text-align: center;">
+                💡 <b>İpucu:</b> Kediyi çalışma alanında <b>fareyle tıklayıp istediğin yere sürükleyebilirsin</b>. <b>Fare tekerleği</b> ile büyütüp küçültebilirsin. <b>Silgi açıkken</b> istemediğin çizgileri silebilirsin.
+            </div>
+        </div>
+    </div>
+
+    <!-- SAĞ PANEL: CANLI ANİMASYON ÖNİZLEME -->
+    <div class="card">
+        <div class="card-title">
+            <span>🎬 CANLI ANİMASYON</span>
+            <span id="animFrameInfo" style="color: var(--accent);">Kare 1/6</span>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+            <canvas id="animCanvas" width="200" height="200" class="anim-display checkered-bg"></canvas>
+        </div>
+
+        <div class="ctrl-row">
+            <span class="ctrl-label">Hız (FPS):</span>
+            <input type="range" id="slFps" min="1" max="24" value="8" oninput="updateFps()">
+            <span class="ctrl-val" id="valFps">8 FPS</span>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+            <button class="btn primary" id="btnPlayToggle" onclick="togglePlay()" style="flex: 1;">⏸️ Durdur</button>
+            <button class="btn" onclick="stepFrame(-1)">⏮️</button>
+            <button class="btn" onclick="stepFrame(1)">⏭️</button>
+        </div>
+
+        <!-- Oda Sahnesi -->
+        <div class="card-title" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span id="stageTitle">🏠 Oda Canlı Davranış Testi</span>
+            <button class="btn" id="btnHybridMode" onclick="toggleHybridMode()" style="padding: 4px 10px; font-size: 11px; border-color: var(--accent); color: white;" title="2-3 tur yürüdükten sonra zıplayıp yürümeye devam eder">🔀 Hibrit (Yürü + Zıpla): KAPALI</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">
+            <span id="stageDesc">Seçili animasyon oda sahnesinde oynuyor</span>
+            <span id="stageBadge" style="font-size: 11px; color: var(--accent); font-weight: 800;">🏃 Hareketli</span>
+        </div>
+        <div class="stage-box" id="stageBox">
+            <div class="stage-floor"></div>
+            <div id="stageDecor" style="position: absolute; bottom: 8px; font-size: 22px; z-index: 1;"></div>
+            <canvas id="stageCat" width="130" height="130" style="position: absolute; bottom: 4px; z-index: 2; transition: bottom 0.1s ease;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ALT PANEL: 6 KARENİN ZAMAN ÇİZELGESİ -->
+<div class="bottom-bar">
+    <div class="card-title">🎞️ TÜM 6 KARENİN DURUMU (Tıkla ve Düzenle)</div>
+    <div class="strip-list" id="timelineStrips"></div>
+</div>
+
+<script>
+const GROUPS = {
+    sahneler_png: [
+        'sarman_duzeltilmis_yumak.png',
+        'yumak.png',
+        'yumak2.png',
+        'sarman_duzeltilmis_lazer.png',
+        'sarman_banyo.png',
+        'sarman_duzeltilmis_mamayerken.png',
+        'sarman_duzeltilmis_suiçme.png',
+        'sarman_duzeltilmis_suiçme2.png',
+        'sarman_duzeltilmis_laze oynama.png',
+        'sarman_duzeltilmis_tırmalama.png',
+        'sarman_duzeltilmis_kıvrılma.png',
+        'sarman_duzeltilmis_mamakabı.png',
+        'mamakabı animasyonlu.png',
+        'susebili sprite.png',
+        'butonlar.png'
+    ],
+    sahneler_raw: [
+        'lazer.jpg',
+        'mamayerken.jpg',
+        'suiçme.jpg',
+        'suiçme2.jpg',
+        'laze oynama.jpg',
+        'tırmalama.jpg',
+        'kıvrılma.jpg',
+        'susebili sprite.jpg',
+        'mamakabı animasyonlu.jpg',
+        'sallanan oyuncak.jpg',
+        'mamakabı.jpg',
+        'butonlar.jpg'
+    ],
+    transparan: [
+        'sarman_transparan_1.png',
+        'sarman_transparan_2.png',
+        'sarman_transparan_3.png',
+        'sarman_transparan_4.png',
+        'sarman_transparan_5.png'
+    ],
+    edited: [
+        'sarman_duzeltilmis_1.png', 'sarman_duzeltilmis_2.png', 'sarman_duzeltilmis_3.png',
+        'sarman_duzeltilmis_4.png', 'sarman_duzeltilmis_5.png', 'sarman_duzeltilmis_6.png',
+        'sarman_duzeltilmis_7.png', 'sarman_duzeltilmis_8.png', 'sarman_duzeltilmis_9.png',
+        'sarman_duzeltilmis_10.png'
+    ],
+    raw: [
+        '1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg', '10.jpg'
+    ]
+};
+let currentGroup = 'sahneler_png';
+let FILES = GROUPS.sahneler_png;
+
+const COLS = 6;
+const FRAME_SZ = 300; // Standart frame boyutu (300x300)
+const MASTER_KEY = 'sarman_strip_master_db_v2';
+
+let currentFileIdx = 0;
+let selectedFrame = 0;
+let rawImage = null;
+let imageCache = {};
+let allFilesState = {}; // Bellek içi tüm dosyaların canlı durumu
+
+let eraserActive = false;
+let isMouseDown = false;
+let mouseX = 0, mouseY = 0, isMouseInside = false;
+let isDragging = false;
+let dragStartX = 0, dragStartY = 0;
+let initialOx = 0, initialOy = 0;
+
+let isPlaying = true;
+let animTimer = null;
+let currentAnimFrame = 0;
+let stageX = 20, stageDir = 1;
+
+function getFileUrl(f){
+    if(f.startsWith('sahneler/') || f.startsWith('sarman/')) return encodeURI(f);
+    if(GROUPS.sahneler_png && GROUPS.sahneler_png.includes(f)) return encodeURI(`sahneler/${f}`);
+    if(GROUPS.sahneler_raw && GROUPS.sahneler_raw.includes(f)) return encodeURI(`sahneler/${f}`);
+    return encodeURI(`sarman/${f}`);
+}
+
+// Mevcut aktif dosyanın referansı
+function getFrames(){
+    const fn = FILES[currentFileIdx];
+    if(!allFilesState[fn]){
+        allFilesState[fn] = createDefaultFrames();
+    }
+    return allFilesState[fn];
+}
+
+function createDefaultFrames(){
+    const arr = [];
+    for(let i=0; i<COLS; i++){
+        arr.push({
+            scale: 100,
+            ox: 0,
+            oy: 0,
+            cL: 0, cR: 0, cT: 0, cB: 0,
+            eraserStrokes: [], // [{x, y, r}]
+            bakedCanvas: null,
+            history: [],
+            redoHistory: []
+        });
+    }
+    return arr;
+}
+
+// 1. TÜM VERİYİ SENKRONİZE KAYDET (0ms gecikme, hafif JSON)
+function saveMasterStorage(){
+    const statusEl = document.getElementById('saveStatus');
+    if(statusEl) statusEl.textContent = '⏳ Kaydediliyor...';
+
+    const db = {};
+    Object.keys(allFilesState).forEach(fn => {
+        const frames = allFilesState[fn];
+        if(frames){
+            db[fn] = frames.map(f => ({
+                scale: f.scale,
+                ox: f.ox,
+                oy: f.oy,
+                cL: f.cL,
+                cR: f.cR,
+                cT: f.cT,
+                cB: f.cB,
+                eraserStrokes: f.eraserStrokes || []
+            }));
+        }
+    });
+
+    try {
+        localStorage.setItem(MASTER_KEY, JSON.stringify(db));
+        if(statusEl){
+            const now = new Date();
+            statusEl.textContent = `✅ Kaydedildi (${now.toLocaleTimeString()})`;
+            statusEl.style.color = '#00E676';
+        }
+    } catch(e){
+        console.error("Storage error:", e);
+    }
+}
+
+// 2. TÜM VERİYİ YÜKLE
+function loadMasterStorage(){
+    try {
+        const raw = localStorage.getItem(MASTER_KEY);
+        if(!raw) return {};
+        return JSON.parse(raw) || {};
+    } catch(e){
+        return {};
+    }
+}
+
+// GRUP DEĞİŞTİRME (Sahneler PNG <-> Sahneler Ham <-> Transparan <-> Düzeltilmişler <-> Orijinaller)
+function switchGroup(grp){
+    currentGroup = grp;
+    FILES = GROUPS[grp];
+    
+    [
+        { key: 'sahneler_png', id: 'btnGroupSahnelerPng' },
+        { key: 'sahneler_raw', id: 'btnGroupSahnelerRaw' },
+        { key: 'transparan', id: 'btnGroupTransparan' },
+        { key: 'edited', id: 'btnGroupEdited' },
+        { key: 'raw', id: 'btnGroupRaw' }
+    ].forEach(item => {
+        const btn = document.getElementById(item.id);
+        if(!btn) return;
+        const match = (item.key === grp);
+        btn.style.background = match ? 'var(--accent)' : 'transparent';
+        btn.style.color = match ? 'white' : 'var(--text-dim)';
+    });
+
+    renderTabs();
+    preloadAllImages(() => {
+        switchFile(0);
+    });
+}
+
+function renderTabs(){
+    const tabs = document.getElementById('fileTabs');
+    tabs.innerHTML = '';
+    
+    const LABELS = {
+        'sarman_duzeltilmis_mamayerken.png': '🥣 1. Mama Yeme (PNG)',
+        'sarman_duzeltilmis_suiçme.png': '💧 2. Su İçme 1 (PNG)',
+        'sarman_duzeltilmis_suiçme2.png': '💧 3. Su İçme 2 (PNG)',
+        'sarman_duzeltilmis_laze oynama.png': '🔴 4. Lazer Oyunu (PNG)',
+        'sarman_duzeltilmis_tırmalama.png': '🪵 5. Tırmalama (PNG)',
+        'sarman_duzeltilmis_kıvrılma.png': '💤 6. Kıvrılma (PNG)',
+        'sarman_duzeltilmis_mamakabı.png': '✨ 7. Mama Kabı (PNG)',
+        'mamakabı animasyonlu.png': '✨ 8. Mama Kabı Animasyonlu (PNG)',
+        'sarman_duzeltilmis_sallanan oyuncak.png': '✨ 9. Olta Oyuncağı (PNG)',
+        'susebili sprite.png': '💧 10. Su Sebili (PNG)',
+        'mamayerken.jpg': '🥣 1. Mama Yeme',
+        'suiçme.jpg': '💧 2. Su İçme (1)',
+        'suiçme2.jpg': '💧 3. Su İçme (2)',
+        'laze oynama.jpg': '🔴 4. Lazer Oyunu',
+        'tırmalama.jpg': '🪵 5. Tırmalama',
+        'kıvrılma.jpg': '💤 6. Kıvrılıp Uyuma',
+        'susebili sprite.jpg': '✨ 7. Su Sebili (Anim)',
+        'mamakabı animasyonlu.jpg': '✨ 8. Mama Kabı (Anim)',
+        'sallanan oyuncak.jpg': '✨ 9. Sallanan Olta',
+        'mamakabı.jpg': '✨ 10. Mama Kabı',
+        'sarman_transparan_1.png': '1. Yürüme (Walk)',
+        'sarman_transparan_2.png': '2. Duruş (Idle)',
+        'sarman_transparan_3.png': '3. Uyuma (Sleep)',
+        'sarman_transparan_4.png': '4. Mama Yeme (Eat)',
+        'sarman_transparan_5.png': '5. Sevilme (Happy)'
+    };
+
+    FILES.forEach((f, idx) => {
+        const t = document.createElement('div');
+        t.className = 'file-tab' + (idx === currentFileIdx ? ' active' : '');
+        t.textContent = LABELS[f] || f.replace('sarman_duzeltilmis_', 'Düzeltilmiş ').replace('.png', '').replace('.jpg', '');
+        t.onclick = () => switchFile(idx);
+        tabs.appendChild(t);
+    });
+}
+
+// BAŞLATMA
+function init(){
+    const savedDB = loadMasterStorage();
+
+    // Tüm grupların state'lerini hazırla
+    [...GROUPS.sahneler_png, ...GROUPS.sahneler_raw, ...GROUPS.transparan, ...GROUPS.edited, ...GROUPS.raw].forEach(fn => {
+        allFilesState[fn] = createDefaultFrames();
+        if(savedDB[fn] && Array.isArray(savedDB[fn])){
+            savedDB[fn].forEach((saved, i) => {
+                if(allFilesState[fn][i]){
+                    allFilesState[fn][i].scale = saved.scale ?? 100;
+                    allFilesState[fn][i].ox = saved.ox ?? 0;
+                    allFilesState[fn][i].oy = saved.oy ?? 0;
+                    allFilesState[fn][i].cL = saved.cL ?? 0;
+                    allFilesState[fn][i].cR = saved.cR ?? 0;
+                    allFilesState[fn][i].cT = saved.cT ?? 0;
+                    allFilesState[fn][i].cB = saved.cB ?? 0;
+                    allFilesState[fn][i].eraserStrokes = saved.eraserStrokes || [];
+                }
+            });
+        }
+    });
+
+    renderTabs();
+
+    // Kare butonlarını oluştur (K1-K6)
+    const picker = document.getElementById('framePicker');
+    picker.innerHTML = '';
+    for(let i=0; i<COLS; i++){
+        const b = document.createElement('div');
+        b.className = 'frame-btn' + (i === 0 ? ' active' : '');
+        b.textContent = 'K' + (i+1);
+        b.onclick = () => selectFrame(i);
+        picker.appendChild(b);
+    }
+
+    setupCanvasEvents();
+    preloadAllImages(() => {
+        switchFile(0);
+        startAnimation();
+    });
+}
+
+// Tüm görselleri önceden belleğe al (Sekme geçişleri ve Hibrit mod anlık olsun)
+function preloadAllImages(callback){
+    const allFiles = Array.from(new Set([...GROUPS.sahneler_png, ...GROUPS.sahneler_raw, ...GROUPS.transparan, ...GROUPS.edited, ...GROUPS.raw]));
+    let loaded = 0;
+    allFiles.forEach(f => {
+        const img = new Image();
+        img.src = getFileUrl(f);
+        img.onload = () => {
+            imageCache[f] = img;
+            loaded++;
+            if(loaded === allFiles.length && callback) callback();
+        };
+        img.onerror = () => {
+            loaded++;
+            if(loaded === allFiles.length && callback) callback();
+        };
+    });
+}
+
+// SEKME DEĞİŞTİRME (SIFIR KAYIP & ANINDA GEÇİŞ)
+function switchFile(idx){
+    currentFileIdx = idx;
+    document.querySelectorAll('.file-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+
+    rawImage = imageCache[FILES[idx]];
+    if(!rawImage){
+        const img = new Image();
+        img.src = getFileUrl(FILES[idx]);
+        img.onload = () => {
+            imageCache[FILES[idx]] = img;
+            rawImage = img;
+            bakeAllFrames();
+            selectFrame(0);
+            renderTimeline();
+        };
+        return;
+    }
+
+    bakeAllFrames();
+    selectFrame(selectedFrame < COLS ? selectedFrame : 0);
+    renderTimeline();
+}
+
+function handleCustomUpload(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.src = ev.target.result;
+        img.onload = () => {
+            const customKey = 'custom_' + Date.now();
+            FILES.push(customKey);
+            imageCache[customKey] = img;
+            allFilesState[customKey] = createDefaultFrames();
+            
+            // Tab ekle
+            const tabs = document.getElementById('fileTabs');
+            const t = document.createElement('div');
+            t.className = 'file-tab';
+            t.textContent = 'Özel';
+            const newIdx = FILES.length - 1;
+            t.onclick = () => switchFile(newIdx);
+            tabs.appendChild(t);
+
+            switchFile(newIdx);
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
+// BAKE: Ham görselden dilimle, ölçekle, kırp, silgileri uygula
+function bakeFrame(idx){
+    if(!rawImage) return;
+    const frames = getFrames();
+    const fd = frames[idx];
+
+    const cv = document.createElement('canvas');
+    cv.width = FRAME_SZ; cv.height = FRAME_SZ;
+    const ctx = cv.getContext('2d');
+
+    // Şeffaf arkaplanı temizle
+    ctx.clearRect(0, 0, FRAME_SZ, FRAME_SZ);
+
+    // Kedi boyutları ve konumlandırma (Kesilme olmadan tüm şerit taranır)
+    const scale = (fd.scale / 100);
+    const canvasRawW = FRAME_SZ * COLS * scale;
+    const canvasRawH = canvasRawW * (rawImage.height / rawImage.width);
+
+    // Seçili karenin merkezini (idx + 0.5) tam canvas ortasına hizala
+    const destX = (FRAME_SZ / 2) - ((idx + 0.5) / COLS) * canvasRawW + fd.ox;
+    const destY = (FRAME_SZ / 2) - (0.5 * canvasRawH) + fd.oy;
+
+    // Kesilme olmadan tam görseli çiz
+    ctx.drawImage(rawImage, destX, destY, canvasRawW, canvasRawH);
+
+    // Kenar kırpmaları şeffaf olarak temizle
+    if(fd.cL > 0){
+        ctx.clearRect(0, 0, (FRAME_SZ * fd.cL) / 100, FRAME_SZ);
+    }
+    if(fd.cR > 0){
+        const rw = (FRAME_SZ * fd.cR) / 100;
+        ctx.clearRect(FRAME_SZ - rw, 0, rw, FRAME_SZ);
+    }
+    if(fd.cT > 0){
+        ctx.clearRect(0, 0, FRAME_SZ, (FRAME_SZ * fd.cT) / 100);
+    }
+    if(fd.cB > 0){
+        const bh = (FRAME_SZ * fd.cB) / 100;
+        ctx.clearRect(0, FRAME_SZ - bh, FRAME_SZ, bh);
+    }
+
+    // Varsa silinmiş noktaları şeffaflaştırarak (destination-out) tekrar uygula
+    if(fd.eraserStrokes && fd.eraserStrokes.length > 0){
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        fd.eraserStrokes.forEach(s => {
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+
+    fd.bakedCanvas = cv;
+}
+
+function bakeAllFrames(){
+    for(let i=0; i<COLS; i++) bakeFrame(i);
+}
+
+function selectFrame(idx){
+    selectedFrame = idx;
+    document.getElementById('selectedFrameLabel').textContent = `KARE ${idx + 1}`;
+    document.querySelectorAll('.frame-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+    
+    // Sliderları bu karenin değerlerine ayarla
+    const fd = getFrames()[idx];
+    document.getElementById('slScale').value = fd.scale;
+    document.getElementById('valScale').textContent = fd.scale + '%';
+    document.getElementById('slOx').value = fd.ox;
+    document.getElementById('valOx').textContent = fd.ox;
+    document.getElementById('slOy').value = fd.oy;
+    document.getElementById('valOy').textContent = fd.oy;
+    document.getElementById('slCL').value = fd.cL;
+    document.getElementById('valCL').textContent = fd.cL;
+    document.getElementById('slCR').value = fd.cR;
+    document.getElementById('valCR').textContent = fd.cR;
+    document.getElementById('slCT').value = fd.cT;
+    document.getElementById('valCT').textContent = fd.cT;
+    document.getElementById('slCB').value = fd.cB;
+    document.getElementById('valCB').textContent = fd.cB;
+
+    drawEditView();
+    renderTimeline();
+}
+
+function onParamChange(){
+    const fd = getFrames()[selectedFrame];
+    fd.scale = parseInt(document.getElementById('slScale').value);
+    fd.ox = parseInt(document.getElementById('slOx').value);
+    fd.oy = parseInt(document.getElementById('slOy').value);
+    fd.cL = parseInt(document.getElementById('slCL').value);
+    fd.cR = parseInt(document.getElementById('slCR').value);
+    fd.cT = parseInt(document.getElementById('slCT').value);
+    fd.cB = parseInt(document.getElementById('slCB').value);
+
+    document.getElementById('valScale').textContent = fd.scale + '%';
+    document.getElementById('valOx').textContent = fd.ox;
+    document.getElementById('valOy').textContent = fd.oy;
+    document.getElementById('valCL').textContent = fd.cL;
+    document.getElementById('valCR').textContent = fd.cR;
+    document.getElementById('valCT').textContent = fd.cT;
+    document.getElementById('valCB').textContent = fd.cB;
+
+    bakeFrame(selectedFrame);
+    drawEditView();
+    renderTimeline();
+    saveMasterStorage();
+}
+
+function adj(param, delta){
+    const el = document.getElementById(param === 'scale' ? 'slScale' : (param === 'ox' ? 'slOx' : 'slOy'));
+    el.value = parseInt(el.value) + delta;
+    onParamChange();
+}
+
+function applyCurrentToAll(){
+    const frames = getFrames();
+    const src = frames[selectedFrame];
+    for(let i=0; i<COLS; i++){
+        frames[i].scale = src.scale;
+        frames[i].oy = src.oy;
+        frames[i].cL = src.cL;
+        frames[i].cR = src.cR;
+        frames[i].cT = src.cT;
+        frames[i].cB = src.cB;
+        bakeFrame(i);
+    }
+    drawEditView();
+    renderTimeline();
+    saveMasterStorage();
+}
+
+function autoResetCurrentFile(){
+    const fn = FILES[currentFileIdx];
+    if(!confirm(`${fn} dosyasının ayarlarını sıfırlamak istediğinize emin misiniz?`)) return;
+    allFilesState[fn] = createDefaultFrames();
+    bakeAllFrames();
+    selectFrame(0);
+    saveMasterStorage();
+}
+
+// JSON DIŞA / İÇE AKTARMA
+function exportAllSettingsJSON(){
+    const raw = localStorage.getItem(MASTER_KEY);
+    const exportData = {
+        app: "SarmanStripEditor",
+        version: "2.0",
+        exportDate: new Date().toISOString(),
+        files: raw ? JSON.parse(raw) : {}
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const link = document.createElement('a');
+    link.download = `sarman_tum_ayarlar_yedek_${new Date().toISOString().slice(0,10)}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+}
+
+function importSettingsJSON(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            const data = JSON.parse(ev.target.result);
+            if(data && data.files){
+                localStorage.setItem(MASTER_KEY, JSON.stringify(data.files));
+                alert("✅ Tüm ayarlar başarıyla yüklendi!");
+                init();
+            }
+        } catch(err){
+            alert("❌ Geçersiz JSON dosyası!");
+        }
+    };
+    reader.readAsText(file);
+}
+
+// ÇİZİM: Çalışma Alanı (Edit Canvas)
+function drawEditView(){
+    const cv = document.getElementById('editCanvas');
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, FRAME_SZ, FRAME_SZ);
+
+    const frames = getFrames();
+    const fd = frames[selectedFrame];
+
+    // 1. Önce Seçili Kareyi Çiz
+    if(fd.bakedCanvas){
+        ctx.drawImage(fd.bakedCanvas, 0, 0);
+    }
+
+    // 2. Hayalet Referans (Multiply Blend Mode)
+    const gMode = document.getElementById('ghostMode') ? document.getElementById('ghostMode').value : 'prev';
+    let ghostIdx = -1;
+    if(gMode === 'prev' && selectedFrame > 0) ghostIdx = selectedFrame - 1;
+    else if(gMode === 'first' && selectedFrame !== 0) ghostIdx = 0;
+
+    if(ghostIdx >= 0 && frames[ghostIdx] && frames[ghostIdx].bakedCanvas){
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(frames[ghostIdx].bakedCanvas, 0, 0);
+        ctx.restore();
+    }
+
+    // Kılavuz Çizgileri
+    if(document.getElementById('chkGround').checked){
+        ctx.strokeStyle = '#ff3366';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 240); ctx.lineTo(FRAME_SZ, 240);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(0,150,255,0.4)';
+        ctx.setLineDash([4,4]);
+        ctx.beginPath();
+        ctx.moveTo(FRAME_SZ/2, 0); ctx.lineTo(FRAME_SZ/2, FRAME_SZ);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Silgi Cursor Dairesi
+    if(eraserActive && isMouseInside){
+        const r = parseInt(document.getElementById('eraserSize').value) / 2;
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, r, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,82,82,0.2)';
+        ctx.fill();
+    }
+}
+
+// SİLGİ İŞLEMLERİ
+function toggleEraser(){
+    eraserActive = !eraserActive;
+    const btn = document.getElementById('eraserBtn');
+    btn.textContent = eraserActive ? '🧽 Silgi: AÇIK' : '🧽 Silgi: KAPALI';
+    btn.classList.toggle('eraser-active', eraserActive);
+    updateCursor();
+    drawEditView();
+}
+
+function saveEraserStrokeSnapshot(fd){
+    if(!fd || !fd.bakedCanvas) return;
+    const snap = document.createElement('canvas');
+    snap.width = FRAME_SZ; snap.height = FRAME_SZ;
+    snap.getContext('2d').drawImage(fd.bakedCanvas, 0, 0);
+    if(!fd.history) fd.history = [];
+    fd.history.push({
+        canvasSnap: snap,
+        strokesCount: (fd.eraserStrokes || []).length
+    });
+    if(fd.history.length > 30) fd.history.shift();
+    fd.redoHistory = [];
+}
+
+function eraseAt(x, y){
+    const fd = getFrames()[selectedFrame];
+    if(!fd.bakedCanvas) return;
+    const ctx = fd.bakedCanvas.getContext('2d');
+
+    const r = parseInt(document.getElementById('eraserSize').value) / 2;
+    if(!fd.eraserStrokes) fd.eraserStrokes = [];
+    fd.eraserStrokes.push({ x: Math.round(x), y: Math.round(y), r: r });
+
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    drawEditView();
+    renderTimeline();
+}
+
+function undoErase(){
+    const fd = getFrames()[selectedFrame];
+    if(fd && fd.history && fd.history.length > 0){
+        // Redo için mevcut durumu sakla
+        const currentSnap = document.createElement('canvas');
+        currentSnap.width = FRAME_SZ; currentSnap.height = FRAME_SZ;
+        currentSnap.getContext('2d').drawImage(fd.bakedCanvas, 0, 0);
+        if(!fd.redoHistory) fd.redoHistory = [];
+        fd.redoHistory.push({
+            canvasSnap: currentSnap,
+            strokesCount: (fd.eraserStrokes || []).length
+        });
+
+        const last = fd.history.pop();
+        const ctx = fd.bakedCanvas.getContext('2d');
+        ctx.clearRect(0, 0, FRAME_SZ, FRAME_SZ);
+        ctx.drawImage(last.canvasSnap, 0, 0);
+        if(fd.eraserStrokes) fd.eraserStrokes.length = last.strokesCount;
+
+        drawEditView();
+        renderTimeline();
+        saveMasterStorage();
+    }
+}
+
+function redoErase(){
+    const fd = getFrames()[selectedFrame];
+    if(fd && fd.redoHistory && fd.redoHistory.length > 0){
+        const currentSnap = document.createElement('canvas');
+        currentSnap.width = FRAME_SZ; currentSnap.height = FRAME_SZ;
+        currentSnap.getContext('2d').drawImage(fd.bakedCanvas, 0, 0);
+        if(!fd.history) fd.history = [];
+        fd.history.push({
+            canvasSnap: currentSnap,
+            strokesCount: (fd.eraserStrokes || []).length
+        });
+
+        const next = fd.redoHistory.pop();
+        const ctx = fd.bakedCanvas.getContext('2d');
+        ctx.clearRect(0, 0, FRAME_SZ, FRAME_SZ);
+        ctx.drawImage(next.canvasSnap, 0, 0);
+        if(fd.eraserStrokes) fd.eraserStrokes.length = next.strokesCount;
+
+        drawEditView();
+        renderTimeline();
+        saveMasterStorage();
+    }
+}
+
+function updateCursor(){
+    const cv = document.getElementById('editCanvas');
+    if(!cv) return;
+    if(eraserActive){
+        cv.style.cursor = 'crosshair';
+    } else if(isDragging){
+        cv.style.cursor = 'grabbing';
+    } else {
+        cv.style.cursor = 'grab';
+    }
+}
+
+function setupCanvasEvents(){
+    const cv = document.getElementById('editCanvas');
+    updateCursor();
+
+    cv.addEventListener('mousedown', (e) => {
+        const rect = cv.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) * (FRAME_SZ / rect.width);
+        mouseY = (e.clientY - rect.top) * (FRAME_SZ / rect.height);
+
+        const fd = getFrames()[selectedFrame];
+        if(eraserActive){
+            saveEraserStrokeSnapshot(fd);
+            isMouseDown = true;
+            eraseAt(mouseX, mouseY);
+        } else {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            initialOx = fd.ox;
+            initialOy = fd.oy;
+            updateCursor();
+        }
+    });
+
+    cv.addEventListener('mousemove', (e) => {
+        const rect = cv.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) * (FRAME_SZ / rect.width);
+        mouseY = (e.clientY - rect.top) * (FRAME_SZ / rect.height);
+        isMouseInside = true;
+
+        if(eraserActive){
+            if(isMouseDown) eraseAt(mouseX, mouseY);
+            else drawEditView();
+        } else if(isDragging){
+            const deltaX = (e.clientX - dragStartX) * (FRAME_SZ / rect.width);
+            const deltaY = (e.clientY - dragStartY) * (FRAME_SZ / rect.height);
+            
+            const fd = getFrames()[selectedFrame];
+            fd.ox = Math.round(Math.max(-200, Math.min(200, initialOx + deltaX)));
+            fd.oy = Math.round(Math.max(-200, Math.min(200, initialOy + deltaY)));
+
+            document.getElementById('slOx').value = fd.ox;
+            document.getElementById('valOx').textContent = fd.ox;
+            document.getElementById('slOy').value = fd.oy;
+            document.getElementById('valOy').textContent = fd.oy;
+
+            bakeFrame(selectedFrame);
+            drawEditView();
+            renderTimeline();
+            saveMasterStorage();
+        } else {
+            drawEditView();
+        }
+    });
+
+    cv.addEventListener('mouseenter', () => { 
+        isMouseInside = true; 
+        updateCursor();
+        drawEditView(); 
+    });
+
+    cv.addEventListener('mouseleave', () => { 
+        isMouseInside = false; 
+        if(isMouseDown && eraserActive) saveMasterStorage();
+        isMouseDown = false; 
+        isDragging = false;
+        updateCursor();
+        drawEditView(); 
+    });
+
+    window.addEventListener('mouseup', () => { 
+        if(isMouseDown && eraserActive) saveMasterStorage();
+        isMouseDown = false; 
+        if(isDragging){
+            isDragging = false;
+            updateCursor();
+            saveMasterStorage();
+        }
+    });
+
+    // Klavye Kısayolları (Cmd+Z / Ctrl+Z = Geri Al, Cmd+Shift+Z / Ctrl+Y = İleri Al)
+    window.addEventListener('keydown', (e) => {
+        if((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z'){
+            e.preventDefault();
+            undoErase();
+        } else if(((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y')){
+            e.preventDefault();
+            redoErase();
+        }
+    });
+
+    // Fare Tekerleği ile Zoom
+    cv.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 2 : -2;
+        adj('scale', delta);
+    }, { passive: false });
+}
+
+const SPRITE_BEHAVIORS = {
+    // 💎 Sahneler Yeni Şeffaf PNG'ler
+    'sarman_duzeltilmis_mamayerken.png': { isMoving: false, speed: 0, label: '🥣 1. Mama Yeme (Şeffaf PNG)', decor: '🥣', status: '🏠 Sabit' },
+    'sarman_duzeltilmis_suiçme.png': { isMoving: false, speed: 0, label: '💧 2. Su İçme 1 (Şeffaf PNG)', decor: '🥣', status: '🏠 Sabit' },
+    'sarman_duzeltilmis_suiçme2.png': { isMoving: false, speed: 0, label: '💧 3. Su İçme 2 (Şeffaf PNG)', decor: '🥣', status: '🏠 Sabit' },
+    'sarman_duzeltilmis_laze oynama.png': { isMoving: true, speed: 5.5, label: '🔴 4. Lazer Oyunu & Atılma (Şeffaf PNG)', decor: '✨', status: '🐾 Hareketli' },
+    'sarman_duzeltilmis_tırmalama.png': { isMoving: false, speed: 0, label: '🪵 5. Tırmalama (Şeffaf PNG)', decor: '🪵', status: '🏠 Sabit' },
+    'sarman_duzeltilmis_kıvrılma.png': { isMoving: false, speed: 0, label: '💤 6. Kıvrılıp Uyuma (Şeffaf PNG)', decor: '🛏️', status: '💤 Sabit' },
+    'sarman_duzeltilmis_mamakabı.png': { isMoving: false, speed: 0, label: '✨ 7. Mama Kabı (Şeffaf PNG)', decor: '🐟', status: '✨ Eşya' },
+    'mamakabı animasyonlu.png': { isMoving: false, speed: 0, label: '✨ 8. Mama Kabı Animasyonlu (Şeffaf PNG)', decor: '🐟', status: '✨ Eşya' },
+    'sarman_duzeltilmis_sallanan oyuncak.png': { isMoving: false, speed: 0, label: '✨ 9. Sallanan Olta (Şeffaf PNG)', decor: '🎣', status: '✨ Eşya' },
+    'susebili sprite.png': { isMoving: false, speed: 0, label: '💧 10. Su Sebili (Şeffaf PNG)', decor: '💧', status: '✨ Eşya' },
+
+    // 📷 Sahneler Klasörü (Ham JPG)
+    'mamayerken.jpg': { isMoving: false, speed: 0, label: '🥣 1. Mama Yeme (Ham)', decor: '🥣', status: '🏠 Sabit' },
+    'suiçme.jpg': { isMoving: false, speed: 0, label: '💧 2. Su İçme 1 (Ham)', decor: '🥣', status: '🏠 Sabit' },
+    'suiçme2.jpg': { isMoving: false, speed: 0, label: '💧 3. Su İçme 2 (Ham)', decor: '🥣', status: '🏠 Sabit' },
+    'laze oynama.jpg': { isMoving: true, speed: 5.0, label: '🔴 4. Lazerle Oynama & Atılma (Ham)', decor: '✨', status: '🐾 Hareketli' },
+    'tırmalama.jpg': { isMoving: false, speed: 0, label: '🪵 5. Tırmalama Hareketi (Ham)', decor: '🪵', status: '🏠 Sabit' },
+    'kıvrılma.jpg': { isMoving: false, speed: 0, label: '💤 6. Kıvrılıp Uyuma (Ham)', decor: '🛏️', status: '💤 Sabit' },
+    'susebili sprite.jpg': { isMoving: false, speed: 0, label: '✨ 7. Su Sebili (Animasyonlu)', decor: '💧', status: '✨ Eşya' },
+    'mamakabı animasyonlu.jpg': { isMoving: false, speed: 0, label: '✨ 8. Mama Kabı (Animasyonlu)', decor: '🐟', status: '✨ Eşya' },
+    'sallanan oyuncak.jpg': { isMoving: false, speed: 0, label: '✨ 9. Sallanan Olta Oyuncağı', decor: '✨', status: '✨ Eşya' },
+    'mamakabı.jpg': { isMoving: false, speed: 0, label: '✨ 10. Mama Kabı (Sabit)', decor: '🐟', status: '✨ Eşya' },
+
+    // 💎 Transparan 1-5
+    'sarman_transparan_1.png': { isMoving: true, speed: 3.5, label: '🚶 1. Yürüme (Walk)', decor: '', status: '🏃 Hareketli' },
+    'sarman_transparan_2.png': { isMoving: false, speed: 0, label: '🧍 2. Ayakta Duruş (Idle)', decor: '🧶', status: '🏠 Sabit' },
+    'sarman_transparan_3.png': { isMoving: false, speed: 0, label: '💤 3. Uyuma (Sleep)', decor: '🛏️', status: '💤 Sabit' },
+    'sarman_transparan_4.png': { isMoving: false, speed: 0, label: '🐟 4. Mama Yeme (Eat)', decor: '🥣', status: '🐟 Sabit' },
+    'sarman_transparan_5.png': { isMoving: false, speed: 0, label: '💖 5. Sevilme & Yuvarlanma', decor: '🎀', status: '💖 Sabit' },
+
+    // ✨ Düzeltilmişler 1-10
+    'sarman_duzeltilmis_1.png': { isMoving: true, speed: 3.5, label: '🚶 1. Yürüme (Walk)', decor: '', status: '🏃 Hareketli' },
+    'sarman_duzeltilmis_2.png': { isMoving: false, speed: 0, label: '🧍 2. Ayakta Duruş / Tıslama', decor: '🧶', status: '🏠 Sabit' },
+    'sarman_duzeltilmis_3.png': { isMoving: false, speed: 0, label: '💤 3. Kıvrılmış Uyuma', decor: '🛏️', status: '💤 Sabit' },
+    'sarman_duzeltilmis_4.png': { isMoving: false, speed: 0, label: '🐟 4. Mama Yeme (Kap Başında)', decor: '🥣', status: '🐟 Sabit' },
+    'sarman_duzeltilmis_5.png': { isMoving: false, speed: 0, label: '💖 5. Sevilme & Sırtüstü', decor: '🎀', status: '💖 Sabit' },
+    'sarman_duzeltilmis_6.png': { isMoving: false, speed: 0, label: '🍲 6. Mama Yeme & Çiğneme', decor: '🥣', status: '🍲 Sabit' },
+    'sarman_duzeltilmis_7.png': { isMoving: false, speed: 0, label: '💤 7. Derin Uyku', decor: '🛏️', status: '💤 Sabit' },
+    'sarman_duzeltilmis_8.png': { isMoving: true, speed: 5.5, label: '🐾 8. Zıplama / Atılma (Pounce)', decor: '✨', status: '🐾 Hareketli' },
+    'sarman_duzeltilmis_9.png': { isMoving: false, speed: 0, label: '💖 9. Kalpli Sevilme', decor: '🎀', status: '💖 Sabit' },
+    'sarman_duzeltilmis_10.png': { isMoving: false, speed: 0, label: '🧼 10. Banyo & Yüz Yıkama', decor: '✨', status: '🧼 Sabit' },
+
+    // 📷 Orijinaller 1-10
+    '1.jpg': { isMoving: true, speed: 3.5, label: '🚶 1. Yürüme', decor: '', status: '🏃 Hareketli' },
+    '2.jpg': { isMoving: false, speed: 0, label: '🧍 2. Ayakta Duruş', decor: '🧶', status: '🏠 Sabit' },
+    '3.jpg': { isMoving: false, speed: 0, label: '💤 3. Uyuma', decor: '🛏️', status: '💤 Sabit' },
+    '4.jpg': { isMoving: false, speed: 0, label: '🐟 4. Mama Yeme', decor: '🥣', status: '🐟 Sabit' },
+    '5.jpg': { isMoving: false, speed: 0, label: '💖 5. Sevilme', decor: '🎀', status: '💖 Sabit' },
+    '6.jpg': { isMoving: false, speed: 0, label: '🍲 6. Mama Yeme', decor: '🥣', status: '🍲 Sabit' },
+    '7.jpg': { isMoving: false, speed: 0, label: '💤 7. Uyuma', decor: '🛏️', status: '💤 Sabit' },
+    '8.jpg': { isMoving: true, speed: 5.5, label: '🐾 8. Zıplama / Atılma', decor: '✨', status: '🐾 Hareketli' },
+    '9.jpg': { isMoving: false, speed: 0, label: '💖 9. Sevilme', decor: '🎀', status: '💖 Sabit' },
+    '10.jpg': { isMoving: false, speed: 0, label: '🧼 10. Banyo & Temizlenme', decor: '✨', status: '🧼 Sabit' }
+};
+
+let isHybridActive = false;
+let hybridMode = 'walk'; // 'walk' | 'pounce'
+let hybridWalkTicks = 0;
+let hybridPounceFrame = 0;
+
+function toggleHybridMode(){
+    isHybridActive = !isHybridActive;
+    const btn = document.getElementById('btnHybridMode');
+    if(btn){
+        btn.textContent = isHybridActive ? '🔀 Hibrit Mod (Yürü + Zıpla): AÇIK' : '🔀 Hibrit (Yürü + Zıpla): KAPALI';
+        btn.style.background = isHybridActive ? 'var(--accent)' : '#222233';
+    }
+    hybridMode = 'walk';
+    hybridWalkTicks = 0;
+    hybridPounceFrame = 0;
+    const sCat = document.getElementById('stageCat');
+    if(sCat) sCat.style.bottom = '4px';
+}
+
+// CANLI ANİMASYON DÖNGÜSÜ
+function renderLiveAnimation(){
+    const cv = document.getElementById('animCanvas');
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, 200, 200);
+
+    const frames = getFrames();
+    const fd = frames[currentAnimFrame];
+    if(fd && fd.bakedCanvas){
+        ctx.drawImage(fd.bakedCanvas, 0, 0, FRAME_SZ, FRAME_SZ, 0, 0, 200, 200);
+    }
+    document.getElementById('animFrameInfo').textContent = `Kare ${currentAnimFrame + 1} / ${COLS}`;
+
+    const stageTitle = document.getElementById('stageTitle');
+    const stageDesc = document.getElementById('stageDesc');
+    const stageBadge = document.getElementById('stageBadge');
+    const stageDecor = document.getElementById('stageDecor');
+    const sCat = document.getElementById('stageCat');
+    const sCtx = sCat.getContext('2d');
+    sCtx.clearRect(0, 0, 130, 130);
+
+    const stageBox = document.getElementById('stageBox');
+    const maxW = (stageBox ? stageBox.clientWidth : 300) - 100;
+
+    // 🎮 HİBRİT MOD (Biraz Yürü + Zıpla + Yürümeye Devam Et)
+    if(isHybridActive){
+        if(stageTitle) stageTitle.textContent = '🔀 Hibrit Oyun Simülasyonu';
+        if(stageDecor) stageDecor.style.display = 'none';
+
+        const walkImg = imageCache['sarman_transparan_1.png'] || imageCache['sarman_duzeltilmis_1.png'] || rawImage;
+        const pounceImg = imageCache['sarman_duzeltilmis_8.png'] || imageCache['8.jpg'] || rawImage;
+
+        if(hybridMode === 'walk'){
+            // 🚶 1. EVRE: BİRAZ YÜRÜR (~2.5 saniye / 18-20 frame adım)
+            if(stageBadge) stageBadge.textContent = '🚶 Adımlıyor (Yürüyüş)';
+            if(stageDesc) stageDesc.textContent = 'Birkaç adım yürüyor...';
+
+            if(walkImg){
+                const fw = walkImg.width / COLS;
+                const fh = walkImg.height;
+                sCtx.drawImage(walkImg, currentAnimFrame * fw, 0, fw, fh, 20, 20, 90, 90);
+            } else if(fd && fd.bakedCanvas){
+                sCtx.drawImage(fd.bakedCanvas, 0, 0, FRAME_SZ, FRAME_SZ, 20, 20, 90, 90);
+            }
+
+            stageX += 3.5 * stageDir;
+            if(stageX > maxW){ stageDir = -1; sCat.style.transform = 'scaleX(-1)'; }
+            if(stageX < 15){ stageDir = 1; sCat.style.transform = 'scaleX(1)'; }
+            sCat.style.left = stageX + 'px';
+            sCat.style.bottom = '4px';
+
+            hybridWalkTicks++;
+            // Birkaç adım (18 frame) yürüdükten sonra havaya zıpla!
+            if(hybridWalkTicks >= 18){
+                hybridMode = 'pounce';
+                hybridPounceFrame = 0;
+                hybridWalkTicks = 0;
+            }
+        } else if(hybridMode === 'pounce'){
+            // 🐾 2. EVRE: ZIPLAR VE İLERİ ATILIR (6 frame zıplama)
+            if(stageBadge) stageBadge.textContent = '💥 ZIPLIYOR (Atılma!)';
+            if(stageDesc) stageDesc.textContent = 'Havaya zıplayıp ileri atılıyor!';
+
+            if(pounceImg){
+                const pFw = pounceImg.width / COLS;
+                const pFh = pounceImg.height;
+                const pW = 116;
+                const pH = 116;
+                const pOffX = 7;
+                const pOffY = 7;
+                sCtx.drawImage(pounceImg, hybridPounceFrame * pFw, 0, pFw, pFh, pOffX, pOffY, pW, pH);
+            }
+
+            // Parabolik Zıplama Yay Eğrisi (Yukarı çıkıp iner)
+            const jumpH = Math.sin((hybridPounceFrame / 5) * Math.PI) * 30;
+            sCat.style.bottom = (4 + jumpH) + 'px';
+
+            // İleri Doğru Hızlı İlerleme
+            stageX += 6.0 * stageDir;
+            if(stageX > maxW) { stageDir = -1; sCat.style.transform = 'scaleX(-1)'; }
+            if(stageX < 15) { stageDir = 1; sCat.style.transform = 'scaleX(1)'; }
+            sCat.style.left = stageX + 'px';
+
+            hybridPounceFrame++;
+            if(hybridPounceFrame >= COLS){
+                // Zıplama bitti, ayakları yere bastı, hemen yürüyüşe devam et!
+                hybridMode = 'walk';
+                hybridWalkTicks = 0;
+                hybridPounceFrame = 0;
+                sCat.style.bottom = '4px';
+            }
+        }
+        return;
+    }
+
+    // NORMAL TEKİL ANİMASYON MODU
+    const fn = FILES[currentFileIdx];
+    const beh = SPRITE_BEHAVIORS[fn] || { isMoving: false, speed: 0, label: '🏠 Oda Simülasyonu', decor: '', status: 'Sabit' };
+
+    if(stageTitle) stageTitle.textContent = beh.label;
+    if(stageDesc) stageDesc.textContent = beh.label;
+    if(stageBadge) stageBadge.textContent = beh.status;
+
+    if(fd && fd.bakedCanvas){
+        sCtx.drawImage(fd.bakedCanvas, 0, 0, FRAME_SZ, FRAME_SZ, 20, 20, 90, 90);
+    }
+    sCat.style.bottom = '4px';
+
+    if(beh.isMoving){
+        // 🏃 YÜRÜME / ZIPLAMA: ODA İÇİNDE GEZİNİR
+        stageX += beh.speed * stageDir;
+        if(stageX > maxW) { stageDir = -1; sCat.style.transform = 'scaleX(-1)'; }
+        if(stageX < 15) { stageDir = 1; sCat.style.transform = 'scaleX(1)'; }
+        sCat.style.left = stageX + 'px';
+        if(stageDecor) stageDecor.style.display = 'none';
+    } else {
+        // 🏠 SABİT ANİMASYONLAR (Uyuma, Mama, Duruş, Sevilme): MERKEZDE VE DEKORUN YANINDA SABİT KALIR
+        const fixedX = Math.round(maxW / 2);
+        sCat.style.left = fixedX + 'px';
+        sCat.style.transform = 'scaleX(1)';
+        
+        if(stageDecor){
+            stageDecor.style.display = 'block';
+            stageDecor.textContent = beh.decor;
+            stageDecor.style.left = (fixedX - 25) + 'px';
+        }
+    }
+}
+
+function renderTimeline(){
+    const container = document.getElementById('timelineStrips');
+    container.innerHTML = '';
+
+    const frames = getFrames();
+    for(let i=0; i<COLS; i++){
+        const card = document.createElement('div');
+        card.className = 'thumb-card' + (i === selectedFrame ? ' active' : '');
+        card.onclick = () => selectFrame(i);
+
+        const c = document.createElement('canvas');
+        c.width = 100; c.height = 100;
+        const ctx = c.getContext('2d');
+        const fd = frames[i];
+        if(fd && fd.bakedCanvas){
+            ctx.drawImage(fd.bakedCanvas, 0, 0, FRAME_SZ, FRAME_SZ, 0, 0, 100, 100);
+        }
+
+        const lbl = document.createElement('span');
+        lbl.textContent = `Kare ${i + 1} (Y:${fd.oy})`;
+
+        card.appendChild(c);
+        card.appendChild(lbl);
+        container.appendChild(card);
+    }
+}
+
+function startAnimation(){
+    const fps = parseInt(document.getElementById('slFps').value);
+    animTimer = setInterval(() => {
+        if(isPlaying){
+            currentAnimFrame = (currentAnimFrame + 1) % COLS;
+            renderLiveAnimation();
+        }
+    }, 1000 / fps);
+}
+
+function updateFps(){
+    const fps = document.getElementById('slFps').value;
+    document.getElementById('valFps').textContent = fps + ' FPS';
+    clearInterval(animTimer);
+    startAnimation();
+}
+
+function togglePlay(){
+    isPlaying = !isPlaying;
+    document.getElementById('btnPlayToggle').textContent = isPlaying ? '⏸️ Durdur' : '▶️ Oynat';
+}
+
+function stepFrame(dir){
+    if(isPlaying) togglePlay();
+    currentAnimFrame = (currentAnimFrame + dir + COLS) % COLS;
+    renderLiveAnimation();
+}
+
+// DIŞA AKTARMA (EXPORT)
+function exportCleanStrip(){
+    const outCv = document.createElement('canvas');
+    outCv.width = FRAME_SZ * COLS; // 1800 x 300
+    outCv.height = FRAME_SZ;
+    const outCtx = outCv.getContext('2d');
+
+    const frames = getFrames();
+    for(let i=0; i<COLS; i++){
+        const fd = frames[i];
+        if(fd && fd.bakedCanvas){
+            outCtx.drawImage(fd.bakedCanvas, i * FRAME_SZ, 0);
+        }
+    }
+
+    const link = document.createElement('a');
+    link.download = `sarman_duzeltilmis_${FILES[currentFileIdx].replace('.jpg', '')}.png`;
+    link.href = outCv.toDataURL('image/png');
+    link.click();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

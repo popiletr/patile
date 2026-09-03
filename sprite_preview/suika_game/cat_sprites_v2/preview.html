@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sprite v2 - 4x4 Izgara Analizi</title>
+    <style>
+        body {
+            background: #1e1a17;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #ffa94d; margin-bottom: 20px; font-size: 20px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 800px;
+        }
+        .card {
+            background: #2a221c;
+            border: 1.5px solid #4a382c;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+        .img-box {
+            width: 130px;
+            height: 130px;
+            background-image: linear-gradient(45deg, #18110c 25%, transparent 25%), linear-gradient(-45deg, #18110c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #18110c 75%), linear-gradient(-45deg, transparent 75%, #18110c 75%);
+            background-size: 16px 16px;
+            background-color: #241810;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+        }
+        .img-box img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .title { font-size: 12px; font-weight: 700; color: #ffe8cc; }
+    </style>
+</head>
+<body>
+    <h1>🐱 Yeni 4x4 Izgara Spriteları (sprite.png)</h1>
+    <div class="grid">
+        <!-- Row 1 -->
+        <div class="card"><div class="img-box"><img src="cell_1_1.png"></div><div class="title">R1C1 (L1 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_1_2.png"></div><div class="title">R1C2 (L1 Buzlu)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_1_3.png"></div><div class="title">R1C3 (L2 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_1_4.png"></div><div class="title">R1C4 (L2 Buzlu)</div></div>
+        <!-- Row 2 -->
+        <div class="card"><div class="img-box"><img src="cell_2_1.png"></div><div class="title">R2C1 (L3 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_2_2.png"></div><div class="title">R2C2 (L3 Buzlu)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_2_3.png"></div><div class="title">R2C3 (L4 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_2_4.png"></div><div class="title">R2C4 (L4 Buzlu)</div></div>
+        <!-- Row 3 -->
+        <div class="card"><div class="img-box"><img src="cell_3_1.png"></div><div class="title">R3C1 (L5 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_3_2.png"></div><div class="title">R3C2 (L5 Buzlu)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_3_3.png"></div><div class="title">R3C3 (L6 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_3_4.png"></div><div class="title">R3C4 (L6 Buzlu)</div></div>
+        <!-- Row 4 -->
+        <div class="card"><div class="img-box"><img src="cell_4_1.png"></div><div class="title">R4C1 (L7 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_4_2.png"></div><div class="title">R4C2 (L7 Buzlu)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_4_3.png"></div><div class="title">R4C3 (L8 Normal)</div></div>
+        <div class="card"><div class="img-box"><img src="cell_4_4.png"></div><div class="title">R4C4 (L8 Buzlu)</div></div>
+    </div>
+</body>
+</html>

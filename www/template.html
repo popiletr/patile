@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Şablon Oluşturucu</title>
+</head>
+<body>
+<script>
+// 2000x2000 piksel, 6x6 grid şablon oluştur
+const SIZE = 2000;
+const COLS = 6;
+const ROWS = 6;
+const CELL = Math.floor(SIZE / COLS); // 333px
+
+const canvas = document.createElement('canvas');
+canvas.width = SIZE;
+canvas.height = SIZE;
+const ctx = canvas.getContext('2d');
+
+// Transparan arka plan
+ctx.clearRect(0, 0, SIZE, SIZE);
+
+// Her hücreye alternatif renk arka plan
+for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+        const x = c * CELL;
+        const y = r * CELL;
+        // Dama tahtası deseni
+        if ((r + c) % 2 === 0) {
+            ctx.fillStyle = 'rgba(230, 230, 230, 0.3)';
+        } else {
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+        }
+        ctx.fillRect(x, y, CELL, CELL);
+    }
+}
+
+// Kırmızı grid çizgileri (4px)
+ctx.strokeStyle = '#FF0000';
+ctx.lineWidth = 4;
+
+for (let i = 0; i <= COLS; i++) {
+    const x = i * CELL;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, SIZE);
+    ctx.stroke();
+}
+for (let i = 0; i <= ROWS; i++) {
+    const y = i * CELL;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(SIZE, y);
+    ctx.stroke();
+}
+
+// Etiketler
+const labels = [
+    'IDLE', 'WALK', 'SLEEP', 'EAT', 'CRY', 'HAPPY'
+];
+
+ctx.font = 'bold 24px Arial';
+ctx.textAlign = 'center';
+
+for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+        const cx = c * CELL + CELL / 2;
+        const cy = r * CELL + CELL / 2;
+        
+        // Arka plan kutu
+        const text = `${labels[r]} F${c+1}`;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(cx - 60, cy - 14, 120, 28);
+        
+        // Yazı
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(text, cx, cy + 8);
+    }
+}
+
+// PNG olarak indir
+const link = document.createElement('a');
+link.download = 'sprite_template_2000x2000.png';
+link.href = canvas.toDataURL('image/png');
+link.click();
+
+document.body.innerHTML = '<h1 style="font-family:sans-serif;text-align:center;margin-top:100px">✅ Şablon indirildi!<br><br>sprite_template_2000x2000.png<br><br>2000x2000px — 6x6 grid — 333x333px hücreler</h1>';
+</script>
+</body>
+</html>

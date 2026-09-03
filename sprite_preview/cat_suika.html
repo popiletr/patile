@@ -1,0 +1,3518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pati Suika: Kedi Görevleri & Seviye Macerası</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Matter.js Physics Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>window.Matter || document.write('<script src="suika_game/matter.min.js"><\/script>')</script>
+
+    <style>
+        :root {
+            --theme-cream: #FFFDF9;
+            --theme-card: #FFF8EE;
+            --theme-wood: #8B5A2B;
+            --theme-border: #E6D2BC;
+            --theme-dark: #2D231D;
+            --theme-muted: #8E7A6C;
+            --cat-gold: #FFB834;
+            --cat-peach: #FF6B8B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #E8DACB;
+            font-family: 'Outfit', 'Nunito', sans-serif;
+            color: var(--theme-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 📱 MOBİL OYUN KABINI */
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 440px;
+            max-height: 880px;
+            position: relative;
+            background: url('suika_game/ui_assets/arkaplan.png') center/cover no-repeat;
+            border-radius: 40px;
+            box-shadow: 0 25px 70px rgba(90, 50, 25, 0.35), 0 0 0 10px #FFFFFF, 0 0 0 13px #E2CFBA;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none;            /* Mobilde scroll/zoom engelle */
+            -webkit-touch-callout: none;   /* iOS uzun basınca menü engelle */
+        }
+
+        @media (max-width: 480px) {
+            #game-container {
+                border-radius: 0;
+                box-shadow: none;
+                max-width: 100%;
+                max-height: 100%;
+                /* iOS safe area (notch) desteği */
+                padding-top: env(safe-area-inset-top, 0px);
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+        }
+
+        /* Titreşim Sınıfları */
+        .shake-intense {
+            animation: intenseShakeAnim 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes intenseShakeAnim {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, -3px, 0); }
+            40%, 60% { transform: translate3d(6px, 3px, 0); }
+        }
+
+        /* ==========================================
+           🏆 1. ÜST HUD BARI (4 EŞİT YÜKSEKLİKTE KART)
+           ========================================== */
+        #game-header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        /* Ortak HUD Kart Taban Stili (4 Kart Eşit Yükseklikte & Ferah) */
+        .hud-badge-level,
+        .hud-quest-panel,
+        .hud-drops-pill,
+        .hud-coin-pill {
+            height: 44px;
+            background: #FFF9EF;
+            border: 2px solid #F0E2D0;
+            border-bottom: 3.5px solid #D6C1AA;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(110, 70, 40, 0.1);
+            pointer-events: auto;
+            flex-shrink: 0;
+        }
+
+        /* 1. SEVİYE KARTI */
+        .hud-badge-level {
+            flex-direction: column;
+            padding: 2px 8px;
+            min-width: 52px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .hud-badge-level:active {
+            transform: scale(0.94);
+        }
+
+        .level-title-tiny {
+            font-size: 8.5px;
+            font-weight: 800;
+            color: #A38F7E;
+            letter-spacing: 0.6px;
+            line-height: 1;
+        }
+
+        .level-number-huge {
+            font-size: 15px;
+            font-weight: 900;
+            color: #4A2E1B;
+            line-height: 1.1;
+        }
+
+        /* 2. GÖREV KARTI & ÇATI ROZETLERİ */
+        .hud-quest-panel {
+            position: relative;
+            padding: 4px 10px 0;
+            flex: 1;
+            max-width: 160px;
+            min-width: 110px;
+        }
+
+        .quest-roof-wrapper {
+            position: absolute;
+            top: -8.5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .quest-roof-badge {
+            background: linear-gradient(180deg, #784A28 0%, #5C3518 100%);
+            color: #FFEEDD;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            padding: 1.5px 7px;
+            border-radius: 9px;
+            border: 1.5px solid #FFF8EE;
+            box-shadow: 0 2px 4px rgba(90, 50, 25, 0.25);
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .hud-diff-pill {
+            font-size: 8px;
+            font-weight: 900;
+            padding: 1.5px 6px;
+            border-radius: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            border: 1.5px solid #FFF8EE;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        .hud-diff-pill.diff-easy {
+            background: linear-gradient(135deg, #2ECC71, #27AE60);
+            color: #FFF;
+        }
+
+        .hud-diff-pill.diff-medium {
+            background: linear-gradient(135deg, #F39C12, #D68910);
+            color: #FFF;
+        }
+
+        .hud-diff-pill.diff-hard {
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: #FFF;
+        }
+
+        .hud-diff-pill.diff-boss {
+            background: linear-gradient(135deg, #E74C3C, #C0392B);
+            color: #FFF;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.7);
+            animation: bossTagPulse 0.8s infinite alternate;
+        }
+
+        @keyframes bossTagPulse {
+            from { transform: scale(0.96); }
+            to { transform: scale(1.06); }
+        }
+
+        #targets-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .quest-item-slot {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .quest-item-img {
+            width: 23px;
+            height: 23px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+
+        .quest-item-count {
+            font-size: 14px;
+            font-weight: 900;
+            color: #4A2E1B;
+            line-height: 1;
+        }
+
+        .quest-item-count.done {
+            color: #2ECC71;
+        }
+
+        /* 3. SAĞ AKSİYONLAR (Atış Kartı, Skor Kartı & Ayarlar) */
+        .hud-right-actions {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 3. ATIŞ SAYACI KARTI */
+        .hud-drops-pill {
+            padding: 0 7px;
+            gap: 4px;
+            min-width: 44px;
+        }
+
+        .drops-icon {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+        }
+
+        .drops-val {
+            font-size: 14px;
+            font-weight: 900;
+            color: #4A2E1B;
+            min-width: 12px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* 4. SKOR KARTI */
+        .hud-coin-pill {
+            padding: 0 7px 0 5px;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 48px;
+        }
+        .hud-coin-pill:active {
+            transform: scale(0.94);
+        }
+
+        .coin-icon-img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+
+        .coin-val-text {
+            font-size: 14px;
+            font-weight: 900;
+            color: #4A2E1B;
+            min-width: 16px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* 🔄 YENİDEN BAŞLATMA BUTONU */
+        .btn-restart-small {
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-restart-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(90, 50, 25, 0.2));
+        }
+
+        .btn-restart-small:active {
+            transform: scale(0.9);
+        }
+
+        /* ⚙️ AYARLAR BUTONU */
+        .btn-settings-small {
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-settings-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(90, 50, 25, 0.2));
+        }
+
+        .btn-settings-small:active {
+            transform: scale(0.9);
+        }
+
+        /* ==========================================
+           🪢 2. TAVANDAN İPLE ASILI "NEXT" KAPSÜLÜ
+           ========================================== */
+        #hanging-next-dock {
+            position: absolute;
+            top: 36px;
+            right: 18px;
+            width: 66px;
+            height: 99px;
+            background: url('suika_game/ui_assets/next_pod.png') center/contain no-repeat;
+            z-index: 5;
+            pointer-events: none;
+            animation: gentleSwing 4s ease-in-out infinite alternate;
+            transform-origin: top center;
+            filter: drop-shadow(0 6px 12px rgba(90, 50, 25, 0.22));
+        }
+
+        @keyframes gentleSwing {
+            0% { transform: rotate(-1.5deg); }
+            100% { transform: rotate(1.5deg); }
+        }
+
+        .next-inner-preview {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .next-inner-preview.spin-anim {
+            transform: translateX(-50%) rotate(360deg) scale(1.15);
+        }
+
+        /* ==========================================
+           🐱 3. SPAWNER KEDİ PATİSİ & REHBER
+           ========================================== */
+        #spawner-cat-wrapper {
+            position: absolute;
+            top: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: left 0.04s ease-out;
+        }
+
+        #spawner-cat-sprite {
+            width: 54px;
+            height: auto;
+            filter: drop-shadow(0 6px 12px rgba(80, 40, 15, 0.35));
+        }
+
+        #spawner-current-item {
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+            transition: transform 0.15s ease-out;
+        }
+
+        #drop-laser-beam {
+            position: absolute;
+            top: 175px;
+            bottom: 70px;
+            width: 3px;
+            background-image: radial-gradient(#FFFFFF 45%, transparent 45%);
+            background-size: 3px 12px;
+            pointer-events: none;
+            z-index: 15;
+            display: none;
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+        }
+
+        /* ==========================================
+           🫙 4. 3D GERÇEKÇİ CAM KAVANOZ
+           ========================================== */
+        #playfield-glass-jar {
+            position: absolute;
+            top: 175px;
+            left: 12px;
+            right: 12px;
+            bottom: 64px;
+            border: 4px solid rgba(255, 248, 238, 0.92);
+            border-top: 5px solid #F3DEC9;
+            border-radius: 20px 20px 38px 38px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.18) 100%);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.7), 0 20px 40px rgba(90, 50, 25, 0.18);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #jar-wooden-rim {
+            position: absolute;
+            top: 168px;
+            left: 36px;
+            right: 36px;
+            height: 12px;
+            background: linear-gradient(180deg, #F9E7D2 0%, #D8B998 100%);
+            border: 2px solid #FFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(90, 50, 25, 0.18);
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        /* ⚠️ TEHLİKE ÇİZGİSİ */
+        #danger-line {
+            position: absolute;
+            top: 188px;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            border-top: 2px dashed rgba(239, 68, 68, 0.45);
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        #danger-warning {
+            position: absolute;
+            top: 192px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #EF4444;
+            color: #FFF;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 10px;
+            border-radius: 10px;
+            z-index: 14;
+            display: none;
+            box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
+            animation: pulseAlert 0.6s infinite alternate;
+        }
+
+        @keyframes pulseAlert {
+            0% { transform: translateX(-50%) scale(0.95); }
+            100% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* 🎯 JOKER HEDEFLEME BİLGİ BARI */
+        #joker-target-hint {
+            position: absolute;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(45, 35, 29, 0.92);
+            color: #FFF;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1.5px solid #FFB834;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            z-index: 50;
+            display: none;
+            pointer-events: auto;
+            cursor: pointer;
+            animation: bounceIn 0.3s ease-out;
+        }
+
+        /* ==========================================
+           🪄 5. SAĞ 3D JOKER PANELİ
+           ========================================== */
+        #jokers-dock {
+            position: absolute;
+            right: 14px;
+            top: 250px;
+            width: 54px;
+            height: 159px;
+            background: url('suika_game/ui_assets/jokers_dock.png') center/contain no-repeat;
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
+            filter: drop-shadow(0 6px 14px rgba(90, 50, 25, 0.25));
+        }
+
+        .joker-hit-area {
+            flex: 1;
+            width: 100%;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .joker-hit-area:active {
+            transform: scale(0.92);
+        }
+
+        .joker-hit-area.active-mode {
+            animation: jokerPulse 0.8s infinite alternate;
+        }
+
+        @keyframes jokerPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.8)); }
+            100% { transform: scale(1.1); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 1)); }
+        }
+
+        .joker-badge {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            color: #FFF;
+            font-size: 11px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            line-height: 1;
+        }
+
+        .badge-hammer { top: 25.33%; left: 75.33%; }
+        .badge-shake { top: 58.59%; left: 75.33%; }
+        .badge-swap { top: 90.65%; left: 74.90%; }
+
+        
+        .dock-action-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dock-action-btn:active {
+            transform: scale(0.90);
+        }
+        .dock-action-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(90, 50, 25, 0.25));
+        }
+
+        /* ==========================================
+           ⏸️ 6. ALT EVRİM & DURDURMA BARI
+           ========================================== */
+        #bottom-panel-dock {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            height: 52px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .btn-pause-round {
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-pause-round img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(90, 50, 25, 0.25));
+        }
+
+        .btn-pause-round:active {
+            transform: scale(0.92);
+        }
+
+        /* 🌟 ALTTAR EVRİM RAYI (SAF CSS 3D TASARIM - 12 OBJE) */
+        .evolution-rail-container {
+            flex: 1;
+            height: 44px;
+            background: linear-gradient(180deg, #FFF9F0 0%, #F5E8D4 100%);
+            border: 2.5px solid #E2CAAE;
+            border-bottom: 4px solid #C4A786;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px;
+            box-shadow: 0 4px 12px rgba(80, 45, 20, 0.15), inset 0 2px 3px #FFFFFF;
+            position: relative;
+        }
+
+        .evo-rail-line {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            right: 12px;
+            height: 3px;
+            background: #E0C7AA;
+            border-top: 1px solid #C4A786;
+            border-bottom: 1px solid #FFFDF8;
+            transform: translateY(-50%);
+            z-index: 1;
+            border-radius: 2px;
+        }
+
+        .evo-item-slot {
+            position: relative;
+            z-index: 2;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #FFFDF8 0%, #F8EEDB 60%, #E6D2BA 100%);
+            border: 1.5px solid #C89C6A;
+            box-shadow: 0 1px 3px rgba(90, 50, 20, 0.2), inset 0 1px 1px #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+
+        .evo-item-slot.king {
+            border-color: #FFB834;
+            box-shadow: 0 0 8px rgba(255, 184, 52, 0.8), 0 2px 4px rgba(90, 50, 20, 0.25);
+            background: radial-gradient(circle at 35% 35%, #FFF9D2 0%, #FCD26B 60%, #E69D1E 100%);
+        }
+
+        .evo-item-img {
+            width: 17px;
+            height: 17px;
+            object-fit: contain;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+        }
+
+        /* 🎮 CANVAS */
+        #matter-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        /* ==========================================
+           🌟 MODALLAR (1:1 SPRITE ŞABLONLARI)
+           ========================================== */
+        .game-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 20, 15, 0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .game-modal.active {
+            display: flex;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 🏆 ZAFER KARTI (MODAL_WIN) */
+        .modal-card-win {
+            width: 320px;
+            height: 370px;
+            background: url('suika_game/ui_assets/modal_win_3star.png') center/contain no-repeat;
+            position: relative;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.45));
+            transition: background 0.2s;
+        }
+
+        .win-close-btn {
+            position: absolute;
+            top: 19.1%;
+            left: 90.7%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .win-ribbon-text {
+            position: absolute;
+            top: 27.9%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: 900;
+            color: #FFF;
+            text-shadow: 0 2px 5px rgba(80, 40, 15, 0.9);
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+
+        
+        .win-completed-goals {
+            position: absolute;
+            top: 42.8%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 84%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.48);
+            border: 1.5px solid rgba(215, 175, 135, 0.45);
+            border-radius: 16px;
+            padding: 4px 10px;
+            box-shadow: inset 0 1px 3px rgba(160, 110, 70, 0.12);
+        }
+        .win-goal-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .win-goal-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+        }
+        .win-goal-text {
+            font-size: 16px;
+            font-weight: 900;
+            color: #4A2E1B;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+        }
+        .win-goal-check {
+            width: 15px;
+            height: 15px;
+            background: #10B981;
+            color: #FFF;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.35);
+        }
+.win-box-left {
+            position: absolute;
+            top: 59.5%;
+            left: 30.5%;
+            transform: translate(-50%, -50%);
+            width: 105px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .win-box-right {
+            position: absolute;
+            top: 59.5%;
+            left: 70.0%;
+            transform: translate(-50%, -50%);
+            width: 105px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .win-box-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #8C725E;
+            letter-spacing: 0.5px;
+        }
+
+        .win-box-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .win-box-val {
+            font-size: 19px;
+            font-weight: 900;
+            color: #4A2E1B;
+        }
+
+        .win-coin-mini {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+
+        .win-joker-mini {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+        }
+
+        .win-btn-action {
+            position: absolute;
+            top: 84.1%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 175px;
+            height: 52px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 900;
+            color: #FFF;
+            text-shadow: 0 2px 4px rgba(180, 20, 60, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: transform 0.1s;
+        }
+
+        .win-btn-action:active {
+            transform: translate(-50%, -50%) scale(0.94);
+        }
+
+        /* 🗺️ HARİTA KARTI (MODAL_MAP) */
+        .modal-card-map {
+            width: 320px;
+            height: 460px;
+            background: url('suika_game/ui_assets/modal_map.png') center/100% 100% no-repeat;
+            position: relative;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.45));
+        }
+
+        .map-ribbon-text {
+            position: absolute;
+            top: 28.0%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: 900;
+            color: #FFF;
+            text-shadow: 0 2px 5px rgba(80, 40, 15, 0.9);
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+
+        .map-close-btn {
+            position: absolute;
+            top: 29.5%;
+            left: 88.0%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .map-close-btn:active {
+            transform: translate(-50%, -50%) scale(0.92);
+        }
+
+        .map-close-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+        }
+
+        .map-grid-overlay {
+            position: absolute;
+            top: 175px;
+            left: 16px;
+            right: 16px;
+            bottom: 22px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 6px;
+            place-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 4px 24px 4px;
+            scrollbar-width: thin;
+            scrollbar-color: #DCA058 transparent;
+        }
+
+        .map-grid-overlay::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .map-grid-overlay::-webkit-scrollbar-thumb {
+            background: #DCA058;
+            border-radius: 4px;
+        }
+
+        .map-grid-overlay::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .map-node-btn {
+            width: 52px;
+            height: 52px;
+            background: radial-gradient(circle at 35% 35%, #FFE5B0, #DCA058 70%, #9E5B22);
+            border: 2.5px solid #6E3B14;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(90, 45, 15, 0.35), inset 0 2px 3px rgba(255,255,255,0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .map-node-btn:active {
+            transform: scale(0.92);
+        }
+
+        .map-node-num {
+            font-size: 19px;
+            font-weight: 900;
+            color: #FFFDF8;
+            text-shadow: 0 1px 3px rgba(70, 35, 15, 0.9), 0 2px 5px rgba(0,0,0,0.3);
+            line-height: 1;
+        }
+
+        .map-node-btn.locked {
+            background: radial-gradient(circle at 35% 35%, #DED4C7, #A89888 70%, #6E5E50);
+            border-color: #584A3E;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .map-node-btn.locked .map-node-num {
+            color: #8C7B6C;
+            text-shadow: none;
+        }
+
+        .map-node-btn.current {
+            border-color: #FF5E7E;
+            box-shadow: 0 0 14px rgba(255, 94, 126, 0.9), 0 4px 8px rgba(90, 45, 15, 0.35);
+            animation: pulseMapNode 0.9s infinite alternate;
+        }
+
+        .map-node-stars {
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-weight: 900;
+            color: #FFB834;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        /* 🪄 JOKER ONAY KARTI */
+        .modal-card-confirm {
+            width: 290px;
+            background: linear-gradient(180deg, #FFFDF8 0%, #F7EBD8 100%);
+            border: 3px solid #D8B78F;
+            border-bottom: 5px solid #A88155;
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 2px 4px #FFFFFF;
+            padding: 24px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: modalScaleUp 0.2s ease-out;
+        }
+
+        @keyframes modalScaleUp {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .confirm-icon-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: radial-gradient(circle at 35% 35%, #FFEFC8, #F3D295);
+            border: 2px solid #C49862;
+            box-shadow: 0 4px 10px rgba(90, 50, 20, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .confirm-icon-box img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+        }
+
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #4A2E1B;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .confirm-desc {
+            font-size: 13px;
+            font-weight: 700;
+            color: #8C6A50;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .confirm-btn-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .confirm-btn {
+            flex: 1;
+            height: 42px;
+            border-radius: 21px;
+            border: none;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.1s;
+            letter-spacing: 0.5px;
+        }
+
+        .confirm-btn:active {
+            transform: scale(0.94);
+        }
+
+        .confirm-btn.cancel {
+            background: linear-gradient(180deg, #F0E6D8 0%, #D8C8B4 100%);
+            color: #7A624E;
+            border-bottom: 3px solid #B09E88;
+        }
+
+        .confirm-btn.ok {
+            background: linear-gradient(180deg, #5EE67A 0%, #2EB84E 100%);
+            color: #FFFFFF;
+            text-shadow: 0 1px 2px rgba(20, 80, 30, 0.6);
+            border-bottom: 3px solid #1C8A36;
+            box-shadow: 0 4px 10px rgba(46, 184, 78, 0.35);
+        }
+
+        .map-close-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ⚙️ AYARLAR KARTI */
+        .modal-card-settings {
+            width: 300px;
+            background: #FFF9EF;
+            border: 3px solid #EAD8C3;
+            border-bottom: 5px solid #D6C1AA;
+            border-radius: 28px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .settings-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #4A2E1B;
+            margin-bottom: 16px;
+        }
+
+        .settings-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #FDF4E7;
+            border-radius: 16px;
+            margin-bottom: 10px;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            font-weight: 800;
+            color: #5C381E;
+        }
+
+        .settings-toggle {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            border: 2px solid #FFF;
+            transition: all 0.15s;
+        }
+
+        /* 🎮 GAME OVER MODALI */
+        .modal-card-gameover {
+            width: 300px;
+            background: linear-gradient(180deg, #2D231D 0%, #1A120C 100%);
+            border: 3px solid #8B5A2B;
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 2px 4px rgba(139, 90, 43, 0.3);
+            padding: 28px 20px 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: modalScaleUp 0.3s ease-out;
+        }
+
+        .gameover-emoji { width: 64px; height: 64px; margin-bottom: 10px; border-radius: 16px; object-fit: contain; }
+        .gameover-title {
+            font-size: 22px; font-weight: 900; color: #FF6B8B;
+            text-shadow: 0 2px 8px rgba(255, 107, 139, 0.5);
+            margin-bottom: 6px; letter-spacing: 1px;
+        }
+        .gameover-subtitle {
+            font-size: 13px; font-weight: 700; color: #B89A82;
+            margin-bottom: 18px; line-height: 1.4;
+        }
+        .gameover-btn-row { display: flex; gap: 10px; width: 100%; }
+        .gameover-btn {
+            flex: 1; height: 44px; border-radius: 22px; border: none;
+            font-size: 13px; font-weight: 900; cursor: pointer;
+            transition: transform 0.1s; letter-spacing: 0.5px;
+        }
+        .gameover-btn:active { transform: scale(0.94); }
+        .gameover-btn.retry {
+            background: linear-gradient(180deg, #FF6B8B 0%, #E83A5D 100%);
+            color: #FFF; text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            border-bottom: 3px solid #C41E42; box-shadow: 0 4px 10px rgba(232, 58, 93, 0.4);
+        }
+        .gameover-btn.map {
+            background: linear-gradient(180deg, #F0E6D8 0%, #D8C8B4 100%);
+            color: #5C381E; border-bottom: 3px solid #B09E88;
+        }
+
+        /* ✨ İKİNCİ ŞANS / REVIVE BUTONU */
+        .gameover-revive-btn {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(180deg, #3498DB 0%, #2980B9 100%);
+            border: 2px solid #6DD5FA;
+            border-radius: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.45), inset 0 1px 2px rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 0 14px;
+            animation: revivePulse 1s infinite alternate;
+        }
+        .gameover-revive-btn:active {
+            transform: scale(0.96);
+        }
+        .gameover-revive-btn.disabled {
+            background: #3A2F27;
+            border: 2px solid #5C4A3E;
+            box-shadow: none;
+            cursor: not-allowed;
+            animation: none;
+            opacity: 0.5;
+        }
+        .revive-joker-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .revive-btn-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+        .revive-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #FFF;
+            letter-spacing: 0.8px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            line-height: 1.2;
+        }
+        .revive-sub {
+            font-size: 10px;
+            font-weight: 800;
+            color: #D4E6F1;
+            line-height: 1.2;
+        }
+        @keyframes revivePulse {
+            from { transform: scale(0.98); box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
+            to { transform: scale(1.02); box-shadow: 0 6px 20px rgba(52, 152, 219, 0.75); }
+        }
+
+        /* COMBO GÖSTERGESİ */
+        #combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 20px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #FFF;
+            background: linear-gradient(180deg, rgba(255, 150, 30, 0.92) 0%, rgba(232, 58, 93, 0.92) 100%);
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 3px solid rgba(255,255,255,0.6);
+            box-shadow: 0 4px 20px rgba(255, 100, 50, 0.6), inset 0 1px 2px rgba(255,255,255,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 55;
+            pointer-events: none;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+            opacity: 0;
+            letter-spacing: 1px;
+        }
+        #combo-display.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        /* ✨ MERGE PARÇACIK KATMANI */
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        /* (Mükerrer drops pill kaldırıldı) */
+
+        .settings-toggle {
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .settings-toggle.on {
+            background: #2ECC71;
+            color: #FFF;
+            box-shadow: 0 2px 6px rgba(46, 204, 113, 0.4);
+        }
+
+        .settings-toggle.off {
+            background: #E0D4C5;
+            color: #7A695A;
+        }
+
+        .btn-settings-close {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #FF6B8B 0%, #E83A5D 100%);
+            border: 2px solid #FFF;
+            color: #FFF;
+            font-size: 14px;
+            font-weight: 900;
+            border-radius: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(232, 58, 93, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- 🏆 1. ÜST HUD BARI (4 EŞİT YÜKSEKLİKTE KART) -->
+        <div id="game-header">
+            <!-- 1. Seviye Kartı -->
+            <div class="hud-badge-level" onclick="openRoadmapModal()" title="Seviyeler Haritası">
+                <span class="level-title-tiny">SEVİYE</span>
+                <span class="level-number-huge" id="lblCurrentLevel">1</span>
+            </div>
+
+            <!-- 2. Görev Kartı (Üstünde GÖREV ve ZORLUK rozetleri) -->
+            <div class="hud-quest-panel">
+                <div class="quest-roof-wrapper">
+                    <div class="quest-roof-badge">GÖREV</div>
+                    <div class="hud-diff-pill diff-easy" id="lblLevelDiff">KOLAY</div>
+                </div>
+                <div id="targets-container">
+                    <!-- JS Üretecek -->
+                </div>
+            </div>
+
+            <!-- 3. Atış Kartı & 4. Skor Kartı -->
+            <div class="hud-right-actions">
+                <div class="hud-drops-pill" title="Kullanılan Atış Sayısı">
+                    <img class="drops-icon" src="suika_game/ui_assets/icon_drops.png?v=2" alt="Atış">
+                    <span class="drops-val" id="lblDropsUsed">0</span>
+                </div>
+                <div class="hud-coin-pill" onclick="openRoadmapModal()" title="Pati Skoru">
+                    <img class="coin-icon-img" src="suika_game/ui_assets/btn_shop.png" alt="Pati">
+                    <span class="coin-val-text" id="lblCurrentScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🪢 2. ASILI "NEXT" KAPSÜLÜ -->
+        <div id="hanging-next-dock">
+            <img id="nextItemImg" class="next-inner-preview" src="suika_game/cat_sprites/1.png" alt="Sıradaki">
+        </div>
+
+        <!-- 🐱 3. SPAWNER KEDİ PATİSİ & REHBER ÇİZGİSİ -->
+        <div id="drop-laser-beam"></div>
+        <div id="spawner-cat-wrapper">
+            <img id="spawner-cat-sprite" src="suika_game/ui_assets/spawner_paw.png" alt="Fırlatıcı Pati">
+            <img id="spawner-current-item" src="suika_game/cat_sprites/1.png" alt="Atılacak Obje">
+        </div>
+
+        <!-- 🫙 4. GERÇEKÇİ CAM KAVANOZ & DUDAK -->
+        <div id="jar-wooden-rim"></div>
+        <div id="playfield-glass-jar"></div>
+
+        <!-- ⚠️ TEHLİKE ÇİZGİSİ -->
+        <div id="danger-line"></div>
+        <div id="danger-warning">TAŞIYOR!</div>
+
+        <!-- 🎯 JOKER HEDEFLEME BİLGİSİ -->
+        <div id="joker-target-hint" onclick="cancelHammerMode()">
+            🔨 Kaldırmak istediğin objeye dokun (İptal)
+        </div>
+
+        <!-- 🪄 5. SAĞ 3D JOKER PANELİ -->
+        <div id="jokers-dock">
+            <div class="joker-hit-area" id="btnJokerHammer" onclick="requestJoker('hammer')" title="Pati Tokadı"></div>
+            <div class="joker-hit-area" id="btnJokerShake" onclick="requestJoker('shake')" title="Kasırga Sarsıntı"></div>
+            <div class="joker-hit-area" id="btnJokerSwap" onclick="requestJoker('swap')" title="Yem Değiştir"></div>
+            
+            <span class="joker-badge badge-hammer" id="badgeJokerHammer">3</span>
+            <span class="joker-badge badge-shake" id="badgeJokerShake">2</span>
+            <span class="joker-badge badge-swap" id="badgeJokerSwap">3</span>
+        </div>
+
+        <!-- 🎮 MATTER.JS CANVAS -->
+        <canvas id="matter-canvas"></canvas>
+
+        <!-- ✨ PARÇACIK CANVAS -->
+        <canvas id="particle-canvas"></canvas>
+
+        <!-- 💥 COMBO GÖSTERGESİ -->
+        <div id="combo-display"></div>
+
+        <!-- ⏸️ 6. ALT KONTROL VE EVRİM BARI -->
+        <div id="bottom-panel-dock">
+            <div class="dock-action-btn" onclick="requestRestartLevel()" title="Seviyeyi Baştan Başlat">
+                <img src="suika_game/ui_assets/btn_pause.png" alt="Yenile">
+            </div>
+            <div class="dock-action-btn" onclick="openSettingsModal()" title="Ayarlar">
+                <img src="suika_game/ui_assets/btn_settings.png" alt="Ayarlar">
+            </div>
+            <div class="evolution-rail-container">
+                <div class="evo-rail-line"></div>
+                <div class="evo-item-slot" title="1. Yumak"><img src="suika_game/cat_sprites/1.png" class="evo-item-img" alt="Yumak"></div>
+                <div class="evo-item-slot" title="2. Zil"><img src="suika_game/cat_sprites/2.png" class="evo-item-img" alt="Zil"></div>
+                <div class="evo-item-slot" title="3. Süt"><img src="suika_game/cat_sprites/3.png" class="evo-item-img" alt="Süt"></div>
+                <div class="evo-item-slot" title="4. Balık"><img src="suika_game/cat_sprites/4.png" class="evo-item-img" alt="Balık"></div>
+                <div class="evo-item-slot" title="5. Fare"><img src="suika_game/cat_sprites/5.png" class="evo-item-img" alt="Fare"></div>
+                <div class="evo-item-slot" title="6. Konserve"><img src="suika_game/cat_sprites/6.png" class="evo-item-img" alt="Konserve"></div>
+                <div class="evo-item-slot" title="7. Tavuk"><img src="suika_game/cat_sprites/7.png" class="evo-item-img" alt="Tavuk"></div>
+                <div class="evo-item-slot" title="8. Kral Kedi"><img src="suika_game/cat_sprites/8.png" class="evo-item-img" alt="Kral Kedi"></div>
+                <div class="evo-item-slot" title="9. Tırmalama Ağacı"><img src="suika_game/cat_sprites_v3/9.png" class="evo-item-img" alt="Tırmalama Ağacı"></div>
+                <div class="evo-item-slot" title="10. Kraliyet Koltuğu"><img src="suika_game/cat_sprites_v3/10.png" class="evo-item-img" alt="Kraliyet Koltuğu"></div>
+                <div class="evo-item-slot" title="11. Prenses Kedi"><img src="suika_game/cat_sprites_v3/11.png" class="evo-item-img" alt="Prenses Kedi"></div>
+                <div class="evo-item-slot king" title="12. Kozmik İmparator Kedi"><img src="suika_game/cat_sprites_v3/12.png" class="evo-item-img" alt="Kozmik Kedi"></div>
+            </div>
+        </div>
+
+        <!-- 💀 GAME OVER MODALI -->
+        <div class="game-modal" id="modalGameOver">
+            <div class="modal-card-gameover">
+                <img class="gameover-emoji" src="suika_game/ui_assets/icon_gameover.png" alt="Game Over">
+                <div class="gameover-title">OYUN BİTTİ!</div>
+                <div class="gameover-subtitle">Kavanoz taştı!<br>Seviye <span id="lblGameOverLevel">1</span> başarısız.</div>
+                
+                <!-- ✨ İKİNCİ ŞANS / KAVANOZU KURTARMA BUTONU -->
+                <div id="gameover-revive-box" style="width: 100%; margin-bottom: 12px;">
+                    <button class="gameover-revive-btn" id="btnReviveWithJoker" onclick="reviveWithJoker()">
+                        <img src="suika_game/ui_assets/joker_btn_swap.png" class="revive-joker-icon" alt="Kurtarma">
+                        <div class="revive-btn-text">
+                            <span class="revive-title">KAVANOZU KURTAR!</span>
+                            <span class="revive-sub">Alt Sırayı Temizle (<span id="lblGameOverJokerCount">0</span> Joker)</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="gameover-btn-row">
+                    <button class="gameover-btn map" onclick="gameOverToMap()">HARİTA</button>
+                    <button class="gameover-btn retry" onclick="gameOverRetry()">TEKRAR DENE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🏆 ZAFER MODALI -->
+        <div class="game-modal" id="modalWin" onclick="event.stopPropagation()">
+            <div class="modal-card-win" id="modalCardWin" onclick="event.stopPropagation()">
+                <!-- X Kapatma Butonu (Seviye Haritasını Açar) -->
+                <div class="win-close-btn" onclick="event.stopPropagation(); openRoadmapFromWin();" title="Kapat & Haritayı Aç"></div>
+
+                <!-- Ahşap Kurdele Başlığı -->
+                <div class="win-ribbon-text">SEVİYE GEÇİLDİ!</div>
+                <div class="win-completed-goals" id="winCompletedGoals"></div>
+
+                <!-- Sol Kutu: Altın (Suika Skoru) -->
+                <div class="win-box-left">
+                    <span class="win-box-title">ALTIN</span>
+                    <div class="win-box-content">
+                        <span id="lblWinScore" class="win-box-val">+100</span>
+                        <img src="suika_game/ui_assets/btn_shop.png" class="win-coin-mini" alt="Pati">
+                    </div>
+                </div>
+
+                <!-- Sağ Kutu: Oyuna Aktarılan (100'de 1'i) -->
+                <div class="win-box-right">
+                    <span class="win-box-title" id="lblWinRewardTitle">AKTARILAN</span>
+                    <div class="win-box-content">
+                        <span class="win-box-val" id="lblWinRewardQty">+1</span>
+                        <img src="suika_game/ui_assets/btn_shop.png" id="lblWinRewardImg" class="win-coin-mini" alt="Pati">
+                    </div>
+                </div>
+
+                <!-- Pembe Buton (Yalnızca bu butona basılınca sonraki seviyeye geçer) -->
+                <button class="win-btn-action" onclick="event.stopPropagation(); goToNextLevel();">SONRAKİ SEVİYE</button>
+            </div>
+        </div>
+
+        <!-- 🗺️ SEVİYE HARİTASI MODALI -->
+        <div class="game-modal" id="modalRoadmap">
+            <div class="modal-card-map">
+                <div class="map-close-btn" onclick="closeModals()">
+                    <img src="suika_game/ui_assets/btn_close.png" alt="Kapat">
+                </div>
+                <div class="map-ribbon-text">SEVİYE HARİTASI</div>
+                <div class="map-grid-overlay" id="map-levels-grid">
+                    <!-- JS Üretecek -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔄 SEVİYEYİ YENİDEN BAŞLATMA ONAY MODALI -->
+        <div class="game-modal" id="modalRestartConfirm">
+            <div class="modal-card-confirm">
+                <div class="confirm-icon-box">
+                    <img src="suika_game/ui_assets/btn_restart.png" alt="Yeniden Başlat">
+                </div>
+                <div class="confirm-title">SEVİYEYİ SIFIRLA</div>
+                <div class="confirm-desc">Bu seviyeyi baştan başlatmak istiyor musun?<br>Mevcut atışlar ve tahta sıfırlanacaktır.</div>
+                <div class="confirm-btn-row">
+                    <button class="confirm-btn cancel" onclick="closeRestartConfirm()">VAZGEÇ</button>
+                    <button class="confirm-btn ok" onclick="confirmRestartLevel()">BAŞTAN BAŞLA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🪄 JOKER ONAY MODALI -->
+        <div class="game-modal" id="modalJokerConfirm">
+            <div class="modal-card-confirm">
+                <div class="confirm-icon-box">
+                    <img id="jokerConfirmImg" src="suika_game/ui_assets/joker_btn_hammer.png" alt="Joker">
+                </div>
+                <div class="confirm-title" id="jokerConfirmTitle">JOKER KULLAN</div>
+                <div class="confirm-desc" id="jokerConfirmDesc">Bu jokeri kullanmak istiyor musun?</div>
+                <div class="confirm-btn-row">
+                    <button class="confirm-btn cancel" onclick="closeJokerConfirm()">VAZGEÇ</button>
+                    <button class="confirm-btn ok" onclick="executePendingJoker()">KULLAN</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⚙️ AYARLAR MODALI -->
+        <div class="game-modal" id="modalSettings">
+            <div class="modal-card-settings">
+                <div class="settings-title">OYUN AYARLARI</div>
+                <div class="settings-row">
+                    <span class="settings-label">Müzik (BGM)</span>
+                    <button class="settings-toggle on" id="btnToggleBGM" onclick="toggleBGM()">AÇIK</button>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Ses Efektleri (SFX)</span>
+                    <button class="settings-toggle on" id="btnToggleSFX" onclick="toggleSFX()">AÇIK</button>
+                </div>
+                <button class="btn-settings-close" onclick="closeModals()">TAMAM</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         🐱 OYUN MOTORU (JAVASCRIPT)
+         ========================================== -->
+    <script>
+        // 🐱 12 KADEMELİ EVRİM VE DENGELENMİŞ ÇEMBER BOYUTLARI
+        const CAT_ITEMS = [
+            { tier: 1,  name: "Yumak",           radius: 14, score: 2,    scale: 2.12, physicsRatio: 0.90, sprite: "suika_game/cat_sprites/1.png",    frozenSprite: "suika_game/cat_sprites/1_frozen.png" },
+            { tier: 2,  name: "Zil",             radius: 18, score: 4,    scale: 2.10, physicsRatio: 0.90, sprite: "suika_game/cat_sprites/2.png",    frozenSprite: "suika_game/cat_sprites/2_frozen.png" },
+            { tier: 3,  name: "Süt",             radius: 23, score: 8,    scale: 2.12, physicsRatio: 0.89, sprite: "suika_game/cat_sprites/3.png",    frozenSprite: "suika_game/cat_sprites/3_frozen.png" },
+            { tier: 4,  name: "Balık",           radius: 29, score: 16,   scale: 2.15, physicsRatio: 0.88, sprite: "suika_game/cat_sprites/4.png",    frozenSprite: "suika_game/cat_sprites/4_frozen.png" },
+            { tier: 5,  name: "Fare",            radius: 36, score: 32,   scale: 2.16, physicsRatio: 0.88, sprite: "suika_game/cat_sprites/5.png",    frozenSprite: "suika_game/cat_sprites/5_frozen.png" },
+            { tier: 6,  name: "Konserve",        radius: 44, score: 64,   scale: 2.10, physicsRatio: 0.90, sprite: "suika_game/cat_sprites/6.png",    frozenSprite: "suika_game/cat_sprites/6_frozen.png" },
+            { tier: 7,  name: "Tavuk",           radius: 53, score: 128,  scale: 2.16, physicsRatio: 0.87, sprite: "suika_game/cat_sprites/7.png",    frozenSprite: "suika_game/cat_sprites/7_frozen.png" },
+            { tier: 8,  name: "Kral Kedi",       radius: 63, score: 256,  scale: 2.08, physicsRatio: 0.92, sprite: "suika_game/cat_sprites/8.png",    frozenSprite: "suika_game/cat_sprites/8_frozen.png" },
+            { tier: 9,  name: "Tırmalama Ağacı", radius: 74, score: 512,  scale: 2.26, physicsRatio: 0.80, sprite: "suika_game/cat_sprites_v3/9.png", frozenSprite: "suika_game/cat_sprites_v3/9_frozen.png" },
+            { tier: 10, name: "Kraliyet Koltuğu",radius: 86, score: 1024, scale: 2.06, physicsRatio: 0.92, sprite: "suika_game/cat_sprites_v3/10.png",frozenSprite: "suika_game/cat_sprites_v3/10_frozen.png" },
+            { tier: 11, name: "Prenses Kedi",    radius: 98, score: 2048, scale: 2.06, physicsRatio: 0.92, sprite: "suika_game/cat_sprites_v3/11.png",frozenSprite: "suika_game/cat_sprites_v3/11_frozen.png" },
+            { tier: 12, name: "Kozmik Kedi",     radius: 112, score: 4096, scale: 2.05, physicsRatio: 0.93, sprite: "suika_game/cat_sprites_v3/12.png",frozenSprite: "suika_game/cat_sprites_v3/12_frozen.png" }
+        ];
+
+        /* ==========================================
+           💾 İLERLEME & KAYIT SİSTEMİ (LOCALSTORAGE)
+           ========================================== */
+        const SAVE_KEY = 'cat_suika_save_v2';
+        let currentLevel = 1;
+        let maxUnlockedLevel = 1;
+        let currentScore = 0;
+        let dropsUsedInLevel = 0;
+        let levelStars = {};
+        let jokerCounts = { hammer: 3, shake: 2, swap: 3 };
+        let levelGoals = {};
+
+        let currentDropLevel = 1;
+        let nextDropLevel = 1;
+        let isDropping = false;
+        let isLevelCompleted = false;
+        let isVictoryTriggered = false;
+        let isVictoryModalOpen = false;
+        let isTransitioningLevel = false;
+        let victoryTimer = null;
+        let modalOpenTimer = null;
+        let isHammerMode = false;
+        let isGameOver = false;
+
+        // 💥 Combo Sistemi
+        let comboCount = 0;
+        let comboTimer = null;
+        const COMBO_WINDOW_MS = 1200;
+
+        // ✨ Parçacık Sistemi
+        let particleCanvas, particleCtx;
+        const particles = [];
+
+        // 💀 Game Over Kontrolü
+        let dangerTimer = null;
+        let dangerAccumulator = 0;
+        const DANGER_Y = 188; // Tehlike çizgisi Y konumu
+        const DANGER_THRESHOLD_MS = 3000; // 3 saniye tehlikede kalırsa oyun biter
+
+        let soundSettings = { bgm: true, sfx: true };
+        let audioCtx = null;
+
+        let engine, world;
+        let ground, leftWall, rightWall;
+        let gameCanvas, ctx;
+        let containerWidth = 400;
+        let containerHeight = 800;
+
+        const loadedImages = {};
+        function preloadAssets() {
+            CAT_ITEMS.forEach(item => {
+                const img1 = new Image(); img1.src = item.sprite; loadedImages[item.sprite] = img1;
+                const img2 = new Image(); img2.src = item.frozenSprite; loadedImages[item.frozenSprite] = img2;
+            });
+            [1, 2, 3].forEach(s => {
+                const img = new Image();
+                img.src = `suika_game/ui_assets/modal_win_${s}star.png`;
+            });
+        }
+
+        /* ==========================================
+           🔊 SES MOTORU (WEB AUDIO API)
+           ========================================== */
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        /* ==========================================
+           🎵 ARKA PLAN MÜZİĞİ (BGM) SENTETİZÖRÜ
+           ========================================== */
+        let bgmTimer = null;
+        let bgmNoteIndex = 0;
+
+        // Tatlı, Neşeli & Rahatlatıcı Kedi Melodisi (Hz & Süre)
+        const BGM_MELODY = [
+            { f: 523.25, d: 0.28 }, // C5
+            { f: 659.25, d: 0.28 }, // E5
+            { f: 783.99, d: 0.28 }, // G5
+            { f: 880.00, d: 0.28 }, // A5
+            { f: 783.99, d: 0.28 }, // G5
+            { f: 659.25, d: 0.28 }, // E5
+            { f: 587.33, d: 0.28 }, // D5
+            { f: 523.25, d: 0.56 }, // C5
+            { f: 440.00, d: 0.28 }, // A4
+            { f: 523.25, d: 0.28 }, // C5
+            { f: 659.25, d: 0.28 }, // E5
+            { f: 587.33, d: 0.56 }, // D5
+            { f: 493.88, d: 0.28 }, // B4
+            { f: 523.25, d: 0.56 }  // C5
+        ];
+
+        function startBGM() {
+            if (!soundSettings.bgm) return;
+            initAudio();
+            if (!audioCtx) return;
+            if (bgmTimer) return;
+
+            function playNextBgmNote() {
+                if (!soundSettings.bgm || !audioCtx) {
+                    stopBGM();
+                    return;
+                }
+                try {
+                    const note = BGM_MELODY[bgmNoteIndex % BGM_MELODY.length];
+                    bgmNoteIndex++;
+
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(note.f, now);
+
+                    // Yumuşak çan / marimba tınısı
+                    gain.gain.setValueAtTime(0.045, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0005, now + note.d * 0.95);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + note.d);
+
+                    bgmTimer = setTimeout(playNextBgmNote, note.d * 1000);
+                } catch(e) {}
+            }
+
+            playNextBgmNote();
+        }
+
+        function stopBGM() {
+            if (bgmTimer) {
+                clearTimeout(bgmTimer);
+                bgmTimer = null;
+            }
+        }
+
+        function toggleBGM() {
+            soundSettings.bgm = !soundSettings.bgm;
+            if (soundSettings.bgm) {
+                startBGM();
+            } else {
+                stopBGM();
+            }
+            saveUserProgress();
+            updateSoundToggleUI();
+        }
+
+        function toggleSFX() {
+            soundSettings.sfx = !soundSettings.sfx;
+            saveUserProgress();
+            updateSoundToggleUI();
+        }
+
+        function updateSoundToggleUI() {
+            const btnBGM = document.getElementById('btnToggleBGM');
+            const btnSFX = document.getElementById('btnToggleSFX');
+            if (btnBGM) {
+                btnBGM.className = 'settings-toggle ' + (soundSettings.bgm ? 'on' : 'off');
+                btnBGM.innerText = soundSettings.bgm ? 'AÇIK' : 'KAPALI';
+            }
+            if (btnSFX) {
+                btnSFX.className = 'settings-toggle ' + (soundSettings.sfx ? 'on' : 'off');
+                btnSFX.innerText = soundSettings.sfx ? 'AÇIK' : 'KAPALI';
+            }
+        }
+
+        function playSound(type, param) {
+            if (!soundSettings.sfx) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'drop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'merge') {
+                    const freqs = [330, 392, 440, 493, 523, 587, 659, 783, 880, 988, 1046, 1174];
+                    const f = freqs[Math.min((param || 1) - 1, freqs.length - 1)];
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now);
+                    osc.frequency.exponentialRampToValueAtTime(f * 1.5, now + 0.2);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'hammer') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'swap') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'win') {
+                    [523, 659, 783, 1046].forEach((fr, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(fr, now + idx * 0.1);
+                        g.gain.setValueAtTime(0.3, now + idx * 0.1);
+                        g.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.25);
+                    });
+                }
+            } catch(e) {}
+        }
+
+        /* ==========================================
+           💾 KAYIT & İLERLEME SİSTEMİ
+           ========================================== */
+        function loadUserProgress() {
+            try {
+                const raw = localStorage.getItem('cat_suika_save_v2');
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    maxUnlockedLevel = data.maxUnlockedLevel || 1;
+                    currentLevel = data.currentLevel || maxUnlockedLevel;
+                    levelStars = data.levelStars || {};
+                    if (data.jokerCounts) jokerCounts = Object.assign(jokerCounts, data.jokerCounts);
+                    if (data.soundSettings) soundSettings = Object.assign(soundSettings, data.soundSettings);
+                }
+            } catch(e) {}
+            updateJokerBadges();
+            updateSoundToggleUI();
+            updateLevelDifficultyBadge(currentLevel);
+        }
+
+        function saveUserProgress() {
+            try {
+                const payload = {
+                    maxUnlockedLevel,
+                    currentLevel,
+                    levelStars,
+                    jokerCounts,
+                    soundSettings,
+                    currentScore
+                };
+                localStorage.setItem('cat_suika_save_v2', JSON.stringify(payload));
+            } catch(e) {}
+        }
+
+        /* 💾 CANLI TAHTA & OBJE DURUMU KAYDI (Debounced - Ana thread'i dondurmaz!) */
+        let _saveBoardTimer = null;
+        function saveActiveBoardState() {
+            if (!world || isLevelCompleted || isGameOver) return;
+            if (_saveBoardTimer) clearTimeout(_saveBoardTimer);
+            _saveBoardTimer = setTimeout(_performActualBoardSave, 180);
+        }
+
+        function _performActualBoardSave() {
+            if (!world || isLevelCompleted || isGameOver) return;
+            try {
+                const bodies = Matter.Composite.allBodies(world);
+                const activeBodies = [];
+                for (let i = 0; i < bodies.length; i++) {
+                    const b = bodies[i];
+                    if (b.customData && b.customData.tier) {
+                        activeBodies.push({
+                            x: Math.round(b.position.x * 10) / 10,
+                            y: Math.round(b.position.y * 10) / 10,
+                            vx: b.velocity ? Math.round(b.velocity.x * 100) / 100 : 0,
+                            vy: b.velocity ? Math.round(b.velocity.y * 100) / 100 : 0,
+                            angle: Math.round((b.angle || 0) * 100) / 100,
+                            angularVelocity: Math.round((b.angularVelocity || 0) * 100) / 100,
+                            isStatic: !!b.isStatic,
+                            tier: b.customData.tier,
+                            isFrozen: !!b.customData.isFrozen,
+                            spawnTime: b.customData.spawnTime || (Date.now() - 5000)
+                        });
+                    }
+                }
+                const boardPayload = {
+                    level: currentLevel,
+                    score: currentScore,
+                    dropsUsed: dropsUsedInLevel,
+                    levelGoals: levelGoals,
+                    currentDropLevel: currentDropLevel,
+                    nextDropLevel: nextDropLevel,
+                    bodies: activeBodies,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('cat_suika_active_board_v1', JSON.stringify(boardPayload));
+            } catch(e) {}
+        }
+
+        function clearActiveBoardState() {
+            try {
+                localStorage.removeItem('cat_suika_active_board_v1');
+            } catch(e) {}
+        }
+
+        function updateJokerBadges() {
+            document.getElementById('badgeJokerHammer').innerText = jokerCounts.hammer;
+            document.getElementById('badgeJokerShake').innerText = jokerCounts.shake;
+            document.getElementById('badgeJokerSwap').innerText = jokerCounts.swap;
+        }
+
+        /* ==========================================
+           🎯 SEVİYE OLUŞTURMA MOTORU v2
+           ==========================================
+           
+           📐 TASARIM İLKELERİ:
+           
+           1. HER SEVİYE BENZERSİZ: Seviye numarası → deterministik hedef seti
+           2. KADEMELI ZORLUK EĞRİSİ:
+              - İlk 5 seviye: Öğretici (Tier 3-5 hedefler)
+              - 6-15: Orta düzey (Tier 4-7)
+              - 16-25: İleri (Tier 5-9)
+              - 26-35: Uzman (Tier 7-11)
+              - 36+: Efsane (Tier 9-12)
+           3. RİTİM DÖNGÜSÜ: Her 5 seviyede 1 döngü
+              [Kolay → Orta → Orta-Zor → Zor → Boss]
+              Boss her zaman en yüksek tier hedeflerle gelir
+           4. HEDEF SAYISI: Kolay=1 hedef, Orta=1-2, Zor=2, Boss=2-3
+           
+           📊 YILDIZ HESAPLAMA:
+           Bir Tier N obje üretmek için gereken TEORİK MİNİMUM atış:
+             minDrops(N) = 2^(N - maxDropTier)
+           Burada maxDropTier düşebilecek en yüksek obje tier'ı (3-5).
+           Toplam hedef için tüm goalların minDrops'u toplanır.
+           ========================================== */
+
+        // =========================================================================
+        // 🎯 HOMOJEN & DALGALI SEVİYE MATEMATİĞİ (PACING & RETENTION CURVE)
+        // 7 Seviyelik Mükemmel Dalga Ritmi:
+        // 1: KOLAY -> 2: ORTA -> 3: KOLAY -> 4: ZOR -> 5: KOLAY -> 6: ORTA -> 7: BOSS
+        // =========================================================================
+        function getLevelMeta(lvl) {
+            const cycle = ((lvl - 1) % 7) + 1; // 1-7 arası dalga pozisyonu
+            const phase = Math.floor((lvl - 1) / 7); // Kaçıncı büyük bölge (0, 1, 2, 3...)
+
+            // Dalgalı Ritim Dizilimi (Kullanıcı Formülü: Kolay -> Orta -> Kolay -> Zor -> Kolay -> Orta -> Boss)
+            let difficulty;
+            if (cycle === 1) difficulty = 'easy';          // 1. Kolay (Ferahlatıcı başlangıç)
+            else if (cycle === 2) difficulty = 'medium';    // 2. Orta (Isınma)
+            else if (cycle === 3) difficulty = 'easy';      // 3. Kolay (Rahatlatıcı ara nefes)
+            else if (cycle === 4) difficulty = 'hard';      // 4. Zor (İlk büyük efor)
+            else if (cycle === 5) difficulty = 'easy';      // 5. Kolay (Zordan sonra ödül ve akış)
+            else if (cycle === 6) difficulty = 'medium';    // 6. Orta (Boss öncesi hazırlık)
+            else difficulty = 'boss';                       // 7. BOSS (Büyük dönemin zirvesi)
+
+            // Kademeli büyüyen tavan tier (Seviye 1-7: max 6, Seviye 8-14: max 7 ... Seviye 42+: max 12)
+            const maxReachableTier = Math.min(12, 5 + phase);
+
+            // Düşme havuzu (Düşebilecek max tier)
+            let maxDropTier = 3;
+            if (lvl >= 6) maxDropTier = 4;
+            if (lvl >= 15) maxDropTier = 5;
+
+            return { cycle, phase, difficulty, maxReachableTier, maxDropTier };
+        }
+
+        function generateLevelConfig(lvl) {
+            const goals = {};
+            const { cycle, phase, difficulty, maxReachableTier, maxDropTier } = getLevelMeta(lvl);
+
+            if (difficulty === 'easy') {
+                // 1. & 3. & 5. KOLAY: Rahatlatıcı, hızlı tamamlanan tatlı hedef (Tavanın 2-3 altı)
+                const tTarget = Math.max(3, maxReachableTier - 2);
+                goals[tTarget] = { target: 1, current: 0 };
+
+            } else if (difficulty === 'medium') {
+                // 2. & 6. ORTA: Dengeli tempo. 1 ana hedef (Tavanın 1 altı) + 1 ufak yan hedef
+                const tMain = Math.max(4, maxReachableTier - 1);
+                const tSub = Math.max(2, tMain - 2);
+                goals[tMain] = { target: 1, current: 0 };
+                if (tSub !== tMain && phase >= 1) {
+                    goals[tSub] = { target: 1, current: 0 };
+                }
+
+            } else if (difficulty === 'hard') {
+                // 4. ZOR: Ciddi efor. Tavan kademeden SADECE 1 ADET (Asla Boss'tan daha zor olamaz!)
+                const tPeak = maxReachableTier;
+                goals[tPeak] = { target: 1, current: 0 };
+                // Yanına sadece küçük bir destek hedef eklenir
+                if (phase >= 2) {
+                    const tSmall = Math.max(3, tPeak - 3);
+                    if (tSmall !== tPeak) {
+                        goals[tSmall] = { target: 1, current: 0 };
+                    }
+                }
+
+            } else {
+                // 7. BOSS: O DÖNGÜNÜN TARTIŞMASIZ EN BÜYÜK ZİRVESİ!
+                // Her zaman Zor seviyeden daha yüksek hedef içerir!
+                const tPeak = maxReachableTier;
+                const tSub = Math.max(4, tPeak - 1);
+
+                if (tPeak < 12) {
+                    // Normal Boss: 1 adet Zirve + 1 adet Zirvenin hemen altı
+                    goals[tPeak] = { target: 1, current: 0 };
+                    goals[tSub] = { target: 1, current: 0 };
+                } else {
+                    // Kozmik Boss (İleri seviyeler): 1 Kozmik Kedi (Tier 12) + 1 Prenses Kedi (Tier 11)
+                    goals[12] = { target: 1, current: 0 };
+                    goals[11] = { target: 1, current: 0 };
+                }
+            }
+
+            return goals;
+        }
+
+        function renderGoals() {
+            const container = document.getElementById('targets-container');
+            container.innerHTML = '';
+            for (const [tierStr, data] of Object.entries(levelGoals)) {
+                const tier = parseInt(tierStr);
+                const item = CAT_ITEMS[tier - 1];
+                const isDone = data.current >= data.target;
+
+                const slot = document.createElement('div');
+                slot.className = 'quest-item-slot';
+                slot.innerHTML = `
+                    <img class="quest-item-img" src="${item.sprite}" alt="${item.name}">
+                    <span class="quest-item-count ${isDone ? 'done' : ''}" id="goal-count-${tier}">
+                        ${Math.min(data.current, data.target)}/${data.target}
+                    </span>
+                `;
+                container.appendChild(slot);
+            }
+        }
+
+        function checkAllGoalsCompleted() {
+            if (!levelGoals || Object.keys(levelGoals).length === 0) return false;
+            for (const key in levelGoals) {
+                if ((levelGoals[key].current || 0) < levelGoals[key].target) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        let pendingVictoryAfterAd = false;
+
+        function checkLevelGoals(mergedTier) {
+            if (levelGoals[mergedTier]) {
+                levelGoals[mergedTier].current += 1;
+                renderGoals();
+            }
+
+            if (checkAllGoalsCompleted() && !isLevelCompleted && !isVictoryTriggered) {
+                isLevelCompleted = true;
+                isVictoryTriggered = true;
+                if (typeof AdManager !== 'undefined' && AdManager.isAdShowing) {
+                    pendingVictoryAfterAd = true;
+                } else {
+                    if (victoryTimer) clearTimeout(victoryTimer);
+                    victoryTimer = setTimeout(triggerVictory, 350);
+                }
+            }
+        }
+
+        // 🛡️ KESİNTİSİZ ZAFER GÜVENCESİ (GÖREV BİTTİYSE MODAL ASLA KAYBOLMAZ / TAKILI KALMAZ)
+        setInterval(() => {
+            if (isGameOver || !world) return;
+            if (isVictoryTriggered || isLevelCompleted || isVictoryModalOpen) return;
+            if (checkAllGoalsCompleted()) {
+                isLevelCompleted = true;
+                isVictoryTriggered = true;
+                if (typeof AdManager !== 'undefined' && AdManager.isAdShowing) return;
+                triggerVictory();
+            }
+        }, 400);
+
+        /* ==========================================
+           🌟 AKILLI YILDIZ HESAPLAMA SİSTEMİ
+           ==========================================
+           
+           Suika birleşme fiziğine göre doğru hesaplama:
+           
+           Bir Tier N obje üretmek için minimum atış sayısı:
+             minDropsForTier(N) = 2^(N - dropTier)
+           
+           Örnek (maxDropTier=3): 
+             Tier 3 = 1 atış (direkt düşer)
+             Tier 4 = 2 atış (2 x Tier3 birleşir)
+             Tier 5 = 4 atış
+             Tier 6 = 8 atış
+             Tier 7 = 16 atış
+             Tier 8 = 32 atış
+           
+           Toplam hedef atışı = Σ (hedef_count × minDropsForTier)
+           
+           Toleranslar:
+             3 yıldız: ideal × 1.3 (Mükemmel oyun, %30 tolerans)
+             2 yıldız: ideal × 2.0 (Ortalama oyun, %100 tolerans)
+             1 yıldız: Geri kalan (Uğraştı ama bitti)
+           ========================================== */
+        function calculateLevelStars(lvl, dropsUsed) {
+            const { maxDropTier } = getLevelMeta(lvl);
+            
+            let idealMinDrops = 0;
+            for (const k in levelGoals) {
+                const tier = parseInt(k);
+                const count = levelGoals[k].target;
+                // Her hedef tier için gereken minimum atış
+                const dropsPerUnit = Math.max(1, Math.pow(2, tier - maxDropTier));
+                idealMinDrops += dropsPerUnit * count;
+            }
+
+            // Alt sınır: en az 5 atış (çok küçük hedefler için makul minimum)
+            idealMinDrops = Math.max(5, idealMinDrops);
+
+            // Tolerans bantları (Suika'da mükemmel oyun bile teorik min'in üstünde olur)
+            const star3Threshold = Math.ceil(idealMinDrops * 1.4);  // %40 tolerans
+            const star2Threshold = Math.ceil(idealMinDrops * 2.2);  // %120 tolerans
+
+            if (dropsUsed <= star3Threshold) {
+                return 3; // ⭐⭐⭐ Mükemmel
+            } else if (dropsUsed <= star2Threshold) {
+                return 2; // ⭐⭐ İyi
+            } else {
+                return 1; // ⭐ Tamamladı
+            }
+        }
+
+        function triggerVictory() {
+            if (isVictoryModalOpen) return;
+            isVictoryModalOpen = true;
+            isVictoryTriggered = true;
+            isLevelCompleted = true;
+
+            if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null; }
+            if (modalOpenTimer) { clearTimeout(modalOpenTimer); modalOpenTimer = null; }
+
+            playSound('win');
+            clearActiveBoardState(); // Zafer kazanıldığında tahta kaydı temizlenir
+            
+            // Yıldız Hesaplama (Ters mantık: Az hamle = 3 Yıldız)
+            const earnedStars = calculateLevelStars(currentLevel, dropsUsedInLevel);
+            levelStars[currentLevel] = Math.max(levelStars[currentLevel] || 0, earnedStars);
+
+            // SADECE HER 5 SEVİYEDE BİR (5, 10, 15...) 3 JOKERDEN BİRİ RANDOM VERİLİR
+            let rewardImg = 'suika_game/ui_assets/btn_shop.png';
+            let rewardQtyText = `+${100 * currentLevel}`;
+
+            if (currentLevel % 5 === 0) {
+                const jokerTypes = ['hammer', 'shake', 'swap'];
+                const randomJoker = jokerTypes[Math.floor(Math.random() * jokerTypes.length)];
+                jokerCounts[randomJoker] += 1;
+                
+                if (randomJoker === 'hammer') {
+                    rewardImg = 'suika_game/ui_assets/joker_btn_hammer.png';
+                } else if (randomJoker === 'shake') {
+                    rewardImg = 'suika_game/ui_assets/joker_btn_tornado.png';
+                } else {
+                    rewardImg = 'suika_game/ui_assets/joker_btn_swap.png';
+                }
+                rewardQtyText = '+1';
+            }
+
+            maxUnlockedLevel = Math.max(maxUnlockedLevel, currentLevel + 1);
+            saveUserProgress();
+            updateJokerBadges();
+
+            // Kesin Yıldız Arka Planı (1, 2 veya 3 yıldız görseli)
+            const winCard = document.getElementById('modalCardWin');
+            winCard.style.backgroundImage = `url('suika_game/ui_assets/modal_win_${earnedStars}star.png')`;
+
+            document.getElementById('lblWinScore').innerText = `+${100 * currentLevel}`;
+            document.getElementById('lblWinRewardQty').innerText = rewardQtyText;
+            document.getElementById('lblWinRewardImg').src = rewardImg;
+
+            modalOpenTimer = setTimeout(() => {
+                const modal = document.getElementById('modalWin');
+                if (modal) modal.classList.add('active');
+            }, 1000);
+        }
+
+        function openRoadmapFromWin() {
+            document.getElementById('modalWin').classList.remove('active');
+            openRoadmapModal();
+        }
+
+        function goToNextLevel() {
+            if (isTransitioningLevel) return;
+            isTransitioningLevel = true;
+
+            if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null; }
+            if (modalOpenTimer) { clearTimeout(modalOpenTimer); modalOpenTimer = null; }
+
+            const winModal = document.getElementById('modalWin');
+            if (winModal) winModal.classList.remove('active');
+
+            currentLevel += 1;
+            clearActiveBoardState();
+            saveUserProgress();
+
+            startLevel(currentLevel, true);
+            setTimeout(() => { isTransitioningLevel = false; }, 600);
+        }
+
+        function startLevel(lvl, forceReset = false) {
+            currentLevel = lvl;
+            isLevelCompleted = false;
+            isVictoryTriggered = false;
+            isVictoryModalOpen = false;
+            isGameOver = false;
+            isDropping = false;
+            comboCount = 0;
+            dangerAccumulator = 0;
+            cancelHammerMode();
+
+            if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null; }
+            if (modalOpenTimer) { clearTimeout(modalOpenTimer); modalOpenTimer = null; }
+
+            document.getElementById('lblCurrentLevel').innerText = currentLevel;
+            updateLevelDifficultyBadge(currentLevel);
+            document.getElementById('danger-warning').style.display = 'none';
+
+            // Fizik dünyasındaki duvarlar ve zemin dışındaki tüm objeleri temizle
+            if (world) {
+                const bodies = Matter.Composite.allBodies(world);
+                bodies.forEach(b => {
+                    if (!b.isStatic || (b.customData && b.customData.tier)) {
+                        Matter.World.remove(world, b);
+                    }
+                });
+            }
+
+            let restored = false;
+            if (!forceReset) {
+                try {
+                    const raw = localStorage.getItem('cat_suika_active_board_v1');
+                    if (raw) {
+                        const data = JSON.parse(raw);
+                        if (data && data.level === lvl && Array.isArray(data.bodies) && data.bodies.length > 0) {
+                            currentScore = data.score || 0;
+                            dropsUsedInLevel = data.dropsUsed || 0;
+                            levelGoals = data.levelGoals || generateLevelConfig(currentLevel);
+                            currentDropLevel = data.currentDropLevel || getRandomDropLevel();
+                            nextDropLevel = data.nextDropLevel || getRandomDropLevel();
+
+                            for (const itemData of data.bodies) {
+                                const item = CAT_ITEMS[itemData.tier - 1];
+                                if (!item) continue;
+                                if (itemData.isFrozen) {
+                                    const body = Matter.Bodies.circle(itemData.x, itemData.y, item.radius * 0.94, {
+                                        isStatic: true,
+                                        restitution: 0.1,
+                                        friction: 0.8,
+                                        angle: itemData.angle || 0,
+                                        label: `frozen_cat_${itemData.tier}`,
+                                        customData: {
+                                            tier: itemData.tier,
+                                            isFrozen: true,
+                                            sprite: item.frozenSprite,
+                                            normalSprite: item.sprite
+                                        }
+                                    });
+                                    Matter.World.add(world, body);
+                                } else {
+                                    const body = Matter.Bodies.circle(itemData.x, itemData.y, item.radius * 0.98, {
+                                        isStatic: itemData.isStatic || false,
+                                        restitution: 0.08,
+                                        friction: 0.004,
+                                        frictionAir: 0.0006,
+                                        density: 0.001,
+                                        angle: itemData.angle || 0,
+                                        label: `cat_${itemData.tier}`,
+                                        customData: {
+                                            tier: itemData.tier,
+                                            isFrozen: false,
+                                            spawnTime: itemData.spawnTime || (Date.now() - 5000)
+                                        }
+                                    });
+                                    if (itemData.vx !== undefined && itemData.vy !== undefined) {
+                                        Matter.Body.setVelocity(body, { x: itemData.vx, y: itemData.vy });
+                                    }
+                                    if (itemData.angularVelocity !== undefined) {
+                                        Matter.Body.setAngularVelocity(body, itemData.angularVelocity);
+                                    }
+                                    Matter.World.add(world, body);
+                                }
+                            }
+                            restored = true;
+                        }
+                    }
+                } catch(e) {
+                    console.error('Kayıtlı tahta yüklenemedi:', e);
+                }
+            }
+
+            if (!restored) {
+                currentScore = 0;
+                dropsUsedInLevel = 0;
+                levelGoals = generateLevelConfig(currentLevel);
+                spawnObstaclesForLevel(currentLevel);
+                currentDropLevel = getRandomDropLevel();
+                nextDropLevel = getRandomDropLevel();
+                clearActiveBoardState();
+            }
+
+            document.getElementById('lblCurrentScore').innerText = currentScore;
+            document.getElementById('lblDropsUsed').innerText = dropsUsedInLevel;
+            renderGoals();
+            updateSpawnerItemUI();
+            saveUserProgress();
+            if (!restored) {
+                saveActiveBoardState();
+            }
+        }
+
+        function updateLevelDifficultyBadge(lvl) {
+            const { difficulty } = getLevelMeta(lvl);
+            const tag = document.getElementById('lblLevelDiff');
+            if (!tag) return;
+
+            if (difficulty === 'easy') {
+                tag.className = 'hud-diff-pill diff-easy';
+                tag.innerText = 'KOLAY';
+            } else if (difficulty === 'medium' || difficulty === 'medium-hard') {
+                tag.className = 'hud-diff-pill diff-medium';
+                tag.innerText = difficulty === 'medium' ? 'ORTA' : 'ORTA-ZOR';
+            } else if (difficulty === 'hard') {
+                tag.className = 'hud-diff-pill diff-hard';
+                tag.innerText = 'ZOR';
+            } else {
+                tag.className = 'hud-diff-pill diff-boss';
+                tag.innerText = 'BOSS';
+            }
+        }
+
+        /* ==========================================
+           🎯 SEVİYE BAZLI AKTİF DROP & ENGEL HAVUZU
+           (Kural: Buzlu engeller SADECE yukarıdan düşebilen nesnelerden oluşur;
+            böylece tahtada birleştirilemeyen 'çöp' nesne ASLA kalmaz!)
+           ========================================== */
+        function getLevelDropPool(lvl) {
+            const { difficulty, phase } = getLevelMeta(lvl);
+
+            // 👑 BOSS SEVİYELERİ: T1 ve T2 ASLA YOK! Sadece T3..T8
+            if (difficulty === 'boss') {
+                if (phase >= 3) {
+                    return {
+                        tiers: [3, 4, 5, 6, 7, 8],
+                        weights: [0.20, 0.25, 0.25, 0.15, 0.10, 0.05]
+                    };
+                } else {
+                    return {
+                        tiers: [3, 4, 5, 6, 7],
+                        weights: [0.30, 0.28, 0.22, 0.13, 0.07]
+                    };
+                }
+            }
+
+            // 🔴 ZOR SEVİYELER: T1 ve T2 ASLA YOK! Sadece T3..T7
+            if (difficulty === 'hard') {
+                return {
+                    tiers: [3, 4, 5, 6, 7],
+                    weights: [0.35, 0.30, 0.20, 0.10, 0.05]
+                };
+            }
+
+            // 🟠 ORTA-ZOR SEVİYELER: Ağırlık T2..T6 (T1 çok nadir)
+            if (difficulty === 'medium-hard') {
+                return {
+                    tiers: [1, 2, 3, 4, 5, 6],
+                    weights: [0.15, 0.25, 0.28, 0.18, 0.10, 0.04]
+                };
+            }
+
+            // 🟡 ORTA SEVİYELER: T1..T5
+            if (difficulty === 'medium') {
+                return {
+                    tiers: [1, 2, 3, 4, 5],
+                    weights: [0.30, 0.28, 0.22, 0.13, 0.07]
+                };
+            }
+
+            // 🟢 KOLAY SEVİYELER: T1..T4/5
+            if (phase >= 2) {
+                return {
+                    tiers: [1, 2, 3, 4, 5],
+                    weights: [0.40, 0.30, 0.18, 0.08, 0.04]
+                };
+            } else {
+                return {
+                    tiers: [1, 2, 3, 4],
+                    weights: [0.50, 0.30, 0.15, 0.05]
+                };
+            }
+        }
+
+        /* ==========================================
+           🎲 DİNAMİK & GÜVENLİ DÜŞEN OBJE SEÇİMİ
+           ========================================== */
+        function getRandomDropLevel() {
+            const pool = getLevelDropPool(currentLevel);
+            const r = Math.random();
+            let cumulative = 0;
+            for (let i = 0; i < pool.tiers.length; i++) {
+                cumulative += pool.weights[i];
+                if (r < cumulative) {
+                    return pool.tiers[i];
+                }
+            }
+            return pool.tiers[pool.tiers.length - 1];
+        }
+
+        function updateSpawnerItemUI() {
+            const curItem = CAT_ITEMS[currentDropLevel - 1];
+            const nextItem = CAT_ITEMS[nextDropLevel - 1];
+
+            const spawnerImg = document.getElementById('spawner-current-item');
+            if (spawnerImg) {
+                spawnerImg.src = curItem.sprite;
+                // Objelerin boyutunu tier'a göre görsel olarak pati ucunda orantıla
+                const previewSize = Math.max(28, Math.min(48, Math.round(curItem.radius * 1.5)));
+                spawnerImg.style.width = `${previewSize}px`;
+                spawnerImg.style.height = `${previewSize}px`;
+            }
+
+            const nextImg = document.getElementById('nextItemImg');
+            if (nextImg) {
+                nextImg.src = nextItem.sprite;
+            }
+        }
+
+        /* ==========================================
+           🧊 DİNAMİK BUZLU ENGEL SİSTEMİ
+           (Kural: Buzlu engeller SADECE o seviyede düşebilen pool.tiers parçalarından üretilir!)
+           ========================================== */
+        function spawnObstaclesForLevel(lvl) {
+            if (lvl <= 1) return; // Seviye 1: tertemiz öğrenme alanı
+
+            const { difficulty, phase } = getLevelMeta(lvl);
+            const pool = getLevelDropPool(lvl); // Sadece ve sadece o seviyede düşebilen tier havuzu!
+            let numRows = 1;
+
+            // Zorluk döngüsüne göre katman sayısı
+            if (difficulty === 'easy') {
+                numRows = Math.min(2, 1 + Math.floor(phase / 2));
+            } else if (difficulty === 'medium' || difficulty === 'medium-hard') {
+                numRows = Math.min(3, 1 + Math.floor(phase / 1.5));
+            } else if (difficulty === 'hard') {
+                numRows = Math.min(4, 2 + Math.floor(phase / 1.5));
+            } else {
+                // Boss: daha yoğun engeller
+                numRows = Math.min(5, 2 + Math.floor(phase / 1.2));
+            }
+
+            const groundY = containerHeight - 85;
+            const usableWidth = containerWidth - 80;
+
+            for (let row = 0; row < numRows; row++) {
+                const isEvenRow = (row % 2 === 0);
+                const itemsInRow = isEvenRow ? 4 : 3;
+                const spacing = usableWidth / (itemsInRow + 1);
+                const rowY = groundY - (row * 38); // Katmanlar yukarı doğru dizilir
+
+                for (let col = 1; col <= itemsInRow; col++) {
+                    const x = 40 + col * spacing + (isEvenRow ? 0 : spacing * 0.1);
+                    
+                    // 🎯 BUZLU NESNE TIER'I: Kesinlikle ve sadece bu seviyede düşebilen pool.tiers içinden seçilir!
+                    // Asla düşmeyen bir nesne buzun içine giremez, böylece çöp olarak kalamaz.
+                    const tierIndex = (lvl + row + col) % pool.tiers.length;
+                    const tier = pool.tiers[tierIndex];
+
+                    const item = CAT_ITEMS[tier - 1];
+
+                    const body = Matter.Bodies.circle(x, rowY, item.radius * 0.94, {
+                        isStatic: true,
+                        restitution: 0.1,
+                        friction: 0.8,
+                        label: `frozen_cat_${tier}`,
+                        customData: {
+                            tier: tier,
+                            isFrozen: true,
+                            sprite: item.frozenSprite,
+                            normalSprite: item.sprite
+                        }
+                    });
+
+                    Matter.World.add(world, body);
+                }
+            }
+        }
+
+        /* ==========================================
+           🎮 MATTER.JS FİZİK MOTORU & CANVAS
+           ========================================== */
+        function initPhysicsEngine() {
+            const container = document.getElementById('game-container');
+            containerWidth = container.clientWidth || 400;
+            containerHeight = container.clientHeight || 800;
+
+            gameCanvas = document.getElementById('matter-canvas');
+            gameCanvas.width = containerWidth;
+            gameCanvas.height = containerHeight;
+            ctx = gameCanvas.getContext('2d');
+
+            engine = Matter.Engine.create({ 
+                enableSleeping: false,
+                positionIterations: 12,
+                velocityIterations: 12
+            });
+            world = engine.world;
+            world.gravity.y = 1.0;
+
+            // Zemin ve Duvarlar (Kavanozun iç tabanına ve kenarlarına tam oturan, sızdırmaz ultra kalın gövdeler)
+            const groundY = containerHeight - 68;
+            
+            // Ultra Kalın Zemin (120px kalınlık, üst sınırı tam groundY)
+            ground = Matter.Bodies.rectangle(containerWidth / 2, groundY + 60, containerWidth * 2, 120, {
+                isStatic: true, friction: 0.4, restitution: 0.0, label: 'ground'
+            });
+
+            // Ultra Kalın Sol Duvar (60px kalınlık, sağ yüzeyi x=16px kavanoz iç kenarı)
+            leftWall = Matter.Bodies.rectangle(16 - 30, containerHeight / 2, 60, containerHeight * 2, {
+                isStatic: true, friction: 0.005, restitution: 0.05, label: 'wall_left'
+            });
+
+            // Ultra Kalın Sağ Duvar (60px kalınlık, sol yüzeyi x=containerWidth-16px kavanoz iç kenarı)
+            rightWall = Matter.Bodies.rectangle((containerWidth - 16) + 30, containerHeight / 2, 60, containerHeight * 2, {
+                isStatic: true, friction: 0.005, restitution: 0.05, label: 'wall_right'
+            });
+
+            Matter.World.add(world, [ground, leftWall, rightWall]);
+
+            Matter.Events.on(engine, 'collisionStart', handleCollisions);
+
+            // 🧲 Optimize Manyetik Çekim & Hızlı Temas Birleşmesi (Karekök kaldırıldı, kareler üzerinden hesaplama)
+            Matter.Events.on(engine, 'beforeUpdate', () => {
+                const bodies = Matter.Composite.allBodies(world);
+                const toMerge = [];
+                const processed = new Set();
+                const len = bodies.length;
+
+                for (let i = 0; i < len; i++) {
+                    const a = bodies[i];
+                    if (!a.customData || a.customData.isFrozen || a.isStatic || processed.has(a)) continue;
+
+                    // 🛡️ Anti-Jitter Damping (Duran objelerin mikroskobik titremesini sıfırla)
+                    const aSpeedSq = a.velocity.x * a.velocity.x + a.velocity.y * a.velocity.y;
+                    if (aSpeedSq < 0.008 && Math.abs(a.angularVelocity) < 0.008) {
+                        Matter.Body.setVelocity(a, { x: 0, y: 0 });
+                        Matter.Body.setAngularVelocity(a, 0);
+                    }
+
+                    const aTier = a.customData.tier;
+                    const aRadius = CAT_ITEMS[aTier - 1].radius;
+
+                    for (let j = i + 1; j < len; j++) {
+                        const b = bodies[j];
+                        if (!b.customData || b.customData.isFrozen || b.isStatic || processed.has(b)) continue;
+
+                        if (aTier === b.customData.tier && aTier <= 12) {
+                            const dx = b.position.x - a.position.x;
+                            const dy = b.position.y - a.position.y;
+                            const distSq = dx * dx + dy * dy;
+
+                            const touchRadius = (aRadius + aRadius) * 1.05;
+                            const touchThresholdSq = touchRadius * touchRadius;
+                            const magnetRadius = (aRadius + aRadius) * 1.25;
+                            const magnetThresholdSq = magnetRadius * magnetRadius;
+
+                            // 1. Teğet veya değen objeleri anında birleştir
+                            if (distSq <= touchThresholdSq) {
+                                processed.add(a);
+                                processed.add(b);
+                                toMerge.push({ a, b, tier: aTier });
+                                break;
+                            }
+                            // 2. Manyetik çekim: Sadece objelerden en az biri hareket halindeyse uygula (Dururken titremeyi önler)
+                            else if (distSq < magnetThresholdSq && (aSpeedSq > 0.04 || (b.velocity.x * b.velocity.x + b.velocity.y * b.velocity.y) > 0.04)) {
+                                const dist = Math.sqrt(distSq);
+                                const forceMag = 0.00008 * Math.min(a.mass, b.mass);
+                                const fx = (dx / dist) * forceMag;
+                                const fy = (dy / dist) * forceMag;
+                                Matter.Body.applyForce(a, a.position, { x: fx, y: fy });
+                                Matter.Body.applyForce(b, b.position, { x: -fx, y: -fy });
+                            }
+                        }
+                    }
+                }
+
+                for (let k = 0; k < toMerge.length; k++) {
+                    const m = toMerge[k];
+                    executeMerge(m.a, m.b, m.tier);
+                }
+            });
+
+            // 🚀 Akıcı 60 FPS Delta-Time Render Döngüsü
+            let lastLoopTime = performance.now();
+            (function renderLoop(now) {
+                const delta = Math.min((now - lastLoopTime) || 16.67, 33.33);
+                lastLoopTime = now;
+                Matter.Engine.update(engine, delta);
+                drawScene();
+                requestAnimationFrame(renderLoop);
+            })(performance.now());
+        }
+
+        function drawScene() {
+            ctx.clearRect(0, 0, containerWidth, containerHeight);
+
+            const bodies = Matter.Composite.allBodies(world);
+            bodies.forEach(body => {
+                if (body.customData) {
+                    const { position, angle, circleRadius, customData } = body;
+                    const item = CAT_ITEMS[customData.tier - 1];
+                    const spritePath = customData.isFrozen ? item.frozenSprite : item.sprite;
+                    const img = loadedImages[spritePath];
+
+                    ctx.save();
+                    ctx.translate(position.x, position.y);
+                    ctx.rotate(angle);
+
+                    // Hedefleme Modu Parlaması
+                    if (isHammerMode) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, item.radius + 4, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#FF5E7E';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([4, 4]);
+                        ctx.stroke();
+                    }
+
+                    if (img && img.complete) {
+                        const drawScale = item.scale || 2.22;
+                        const drawSize = item.radius * drawScale;
+                        ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, circleRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = customData.isFrozen ? '#A0E8FF' : '#FFB834';
+                        ctx.fill();
+                    }
+
+                    ctx.restore();
+                }
+            });
+        }
+
+        /* ==========================================
+           💥 BİRLEŞME & KOZMİK İMPARATOR PATLAMASI
+           ========================================== */
+        function executeMerge(bodyA, bodyB, tier) {
+            if (!world) return;
+            // 🛡️ Merge Güvenliği: Body hâlâ world'de mi kontrol et
+            try {
+                if (!Matter.Composite.get(world, bodyA.id, 'body') ||
+                    !Matter.Composite.get(world, bodyB.id, 'body')) return;
+            } catch(e) { return; }
+
+            const midX = (bodyA.position.x + bodyB.position.x) / 2;
+            const midY = (bodyA.position.y + bodyB.position.y) / 2;
+
+            // 💥 Combo Sayacını İlerlet
+            comboCount++;
+            if (comboTimer) clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                comboCount = 0;
+                const cd = document.getElementById('combo-display');
+                if (cd) cd.classList.remove('visible');
+            }, COMBO_WINDOW_MS);
+
+            // Combo göstergesini güncelle (x2'den itibaren göster)
+            if (comboCount >= 2) {
+                const cd = document.getElementById('combo-display');
+                if (cd) {
+                    cd.style.fontSize = comboCount >= 10 ? '17px' : '20px';
+                    cd.innerText = `x${comboCount} COMBO!`;
+                    cd.classList.add('visible');
+                }
+            }
+
+            // ✨ Birleşme Parçacık Efekti
+            spawnMergeParticles(midX, midY, tier);
+
+            // Combo Çarpanı (x2 = 1.5x, x3 = 2x, x4+ = 2.5x)
+            let comboMultiplier = 1;
+            if (comboCount >= 4) comboMultiplier = 2.5;
+            else if (comboCount >= 3) comboMultiplier = 2;
+            else if (comboCount >= 2) comboMultiplier = 1.5;
+
+            // 👑 SON SEVİYE 2 KOZMİK İMPARATOR KEDİ (Tier 12) BİRLEŞİNCE: Ekrandan yok olurlar & Dev Kozmik Patlama!
+            if (tier === 12) {
+                Matter.World.remove(world, [bodyA, bodyB]);
+                
+                // Dev bonus puanı (combo çarpanı uygulanmış)
+                currentScore += Math.round(5000 * comboMultiplier);
+                document.getElementById('lblCurrentScore').innerText = currentScore;
+
+                // Hedef sayacını Kozmik Kedi için ilerlet
+                checkLevelGoals(12);
+
+                // Özel Zafer / Çan Sesi
+                playSound('win');
+
+                // Güçlü şok dalgası: Etraftaki donuk buzları geniş alanda çözer
+                unfreezeNearbyObstacles(midX, midY, 260);
+
+                // Yakındaki tüm nesnelere merkezden dışarıya güçlü bir patlama kuvveti uygula
+                const bodies = Matter.Composite.allBodies(world);
+                bodies.forEach(b => {
+                    if (!b.isStatic) {
+                        const dx = b.position.x - midX;
+                        const dy = b.position.y - midY;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist > 0 && dist < 280) {
+                            const force = 0.024 * b.mass * (1 - dist / 280);
+                            Matter.Body.applyForce(b, b.position, {
+                                x: (dx / dist) * force,
+                                y: (dy / dist) * force - 0.015 * b.mass
+                            });
+                        }
+                    }
+                });
+
+                // Hafif ekran sarsıntısı efekti
+                const container = document.getElementById('game-container');
+                container.classList.add('shake-intense');
+                setTimeout(() => container.classList.remove('shake-intense'), 300);
+
+                return;
+            }
+
+            // Normal birleşme (Tier 1..11 -> Tier 2..12)
+            const nextTier = tier + 1;
+            Matter.World.remove(world, [bodyA, bodyB]);
+            const newBody = spawnCatBody(midX, midY, nextTier, false);
+            Matter.Body.setVelocity(newBody, {
+                x: (bodyA.velocity.x + bodyB.velocity.x) * 0.35,
+                y: Math.min(-1.2, (bodyA.velocity.y + bodyB.velocity.y) * 0.35)
+            });
+
+            currentScore += Math.round(CAT_ITEMS[nextTier - 1].score * comboMultiplier);
+            document.getElementById('lblCurrentScore').innerText = currentScore;
+
+            playSound('merge', nextTier);
+            checkLevelGoals(nextTier);
+            
+            // Yakındaki donuk buzları çöz (Kademeli genişleyen şok dalgası)
+            unfreezeNearbyObstacles(midX, midY, 90 + nextTier * 12);
+
+            // Tahta durumunu kaydet
+            saveActiveBoardState();
+        }
+
+        function handleCollisions(event) {
+            const pairs = event.pairs;
+            const toRemove = new Set();
+
+            pairs.forEach(pair => {
+                const { bodyA, bodyB } = pair;
+                if (!bodyA.customData || !bodyB.customData) return;
+                if (toRemove.has(bodyA) || toRemove.has(bodyB)) return;
+
+                // 1. Aynı Tür İki Kedi Birleşmesi
+                if (!bodyA.customData.isFrozen && !bodyB.customData.isFrozen) {
+                    if (bodyA.customData.tier === bodyB.customData.tier && bodyA.customData.tier <= 12) {
+                        toRemove.add(bodyA);
+                        toRemove.add(bodyB);
+                        executeMerge(bodyA, bodyB, bodyA.customData.tier);
+                        return;
+                    }
+                }
+
+                // 2. Normal Objenin Donuk Engele Çarpması (Direkt Çarpma ile Çözme)
+                if ((bodyA.customData.isFrozen && !bodyB.customData.isFrozen) || (!bodyA.customData.isFrozen && bodyB.customData.isFrozen)) {
+                    const frozenBody = bodyA.customData.isFrozen ? bodyA : bodyB;
+                    const normalBody = bodyA.customData.isFrozen ? bodyB : bodyA;
+                    const speed = Math.hypot(normalBody.velocity.x, normalBody.velocity.y);
+                    
+                    // Aynı tür temas ettiyse veya yeterli hızla çarptıysa buzu anında çöz!
+                    if (frozenBody.customData.tier === normalBody.customData.tier || speed > 1.2) {
+                        unfreezeNearbyObstacles(frozenBody.position.x, frozenBody.position.y, 80);
+                    }
+                }
+            });
+        }
+
+        function unfreezeNearbyObstacles(x, y, radius) {
+            const bodies = Matter.Composite.allBodies(world);
+            let unfrozenAny = false;
+
+            bodies.forEach(b => {
+                if (b.customData && b.customData.isFrozen) {
+                    const dist = Math.hypot(b.position.x - x, b.position.y - y);
+                    if (dist <= radius) {
+                        b.customData.isFrozen = false;
+                        Matter.Body.setStatic(b, false);
+                        
+                        // Dinamik fiziğe geçiş
+                        b.friction = 0.005;
+                        b.frictionAir = 0.001;
+                        b.restitution = 0.08;
+
+                        // Şok dalgasıyla hafif yukarı ve yana fırlat
+                        const angle = Math.atan2(b.position.y - y, b.position.x - x);
+                        Matter.Body.setVelocity(b, {
+                            x: Math.cos(angle) * 2 + (Math.random() - 0.5) * 2,
+                            y: -2.8 - Math.random() * 2
+                        });
+
+                        unfrozenAny = true;
+                    }
+                }
+            });
+
+            if (unfrozenAny) {
+                playSound('merge', 2);
+                saveActiveBoardState();
+            }
+        }
+
+        function spawnCatBody(x, y, tier, isFrozen = false) {
+            const item = CAT_ITEMS[tier - 1];
+            // Akıcı Suika Yuvarlanma Fiziği (Görsel sınırla birebir çember)
+            const body = Matter.Bodies.circle(x, y, item.radius * 0.98, {
+                restitution: 0.0,
+                friction: 0.08,
+                frictionAir: 0.002,
+                density: 0.001,
+                label: `cat_${tier}`,
+                customData: { tier, isFrozen, spawnTime: Date.now() }
+            });
+            Matter.World.add(world, body);
+            return body;
+        }
+
+        /* ==========================================
+           🎯 ATMA & GECİKMESİZ SIRADAKİ GEÇİŞİ
+           ========================================== */
+        function dropCurrentItem(dropX) {
+            if (isDropping || isLevelCompleted || isGameOver || isAnyModalOpen() || isHammerMode) return;
+
+            const clampX = Math.max(35, Math.min(containerWidth - 35, dropX));
+            isDropping = true;
+            dropsUsedInLevel++;
+
+            // HUD Atış Sayacını Güncelle
+            document.getElementById('lblDropsUsed').innerText = dropsUsedInLevel;
+
+            // Sahneye Bırak
+            spawnCatBody(clampX, 160, currentDropLevel, false);
+            playSound('drop');
+
+            // GECİKMESİZ: Sıradaki hemen patiye gelir, yeni sıradaki seçilir
+            currentDropLevel = nextDropLevel;
+            nextDropLevel = getRandomDropLevel();
+            updateSpawnerItemUI();
+
+            saveActiveBoardState();
+
+            setTimeout(() => {
+                isDropping = false;
+            }, 300);
+        }
+
+        /* ==========================================
+           🪄 JOKER SİSTEMİ & ONAY & HEDEFLEME
+           ========================================== */
+        let pendingJokerType = null;
+
+        function requestJoker(type) {
+            if (jokerCounts[type] <= 0 || isLevelCompleted || isAnyModalOpen()) return;
+            pendingJokerType = type;
+
+            const img = document.getElementById('jokerConfirmImg');
+            const title = document.getElementById('jokerConfirmTitle');
+            const desc = document.getElementById('jokerConfirmDesc');
+
+            if (type === 'hammer') {
+                img.src = 'suika_game/ui_assets/joker_btn_hammer.png';
+                title.innerText = 'ÇEKİÇ JOKERİ';
+                desc.innerText = 'Seçtiğin herhangi bir nesneye dokunarak onu sahneden tamamen kaldırır. Kullanılsın mı?';
+            } else if (type === 'shake') {
+                img.src = 'suika_game/ui_assets/joker_btn_tornado.png';
+                title.innerText = 'KASIRGA JOKERİ';
+                desc.innerText = 'Kutudaki tüm nesneleri nazikçe sallar ve birleşmeleri hızlandırır. Kullanılsın mı?';
+            } else if (type === 'swap') {
+                img.src = 'suika_game/ui_assets/joker_btn_swap.png';
+                title.innerText = 'SÜPÜRGE & KURTARMA JOKERİ';
+                desc.innerText = 'Kavanozun en alt sırasındaki nesneleri silerek yukarıdaki tüm objelerin aşağı inmesini ve alan açılmasını sağlar. Kullanılsın mı?';
+            }
+
+            document.getElementById('modalJokerConfirm').classList.add('active');
+        }
+
+        function closeJokerConfirm() {
+            pendingJokerType = null;
+            document.getElementById('modalJokerConfirm').classList.remove('active');
+        }
+
+        function executePendingJoker() {
+            const type = pendingJokerType;
+            closeJokerConfirm();
+            if (!type) return;
+
+            if (type === 'hammer') {
+                toggleHammerMode();
+            } else if (type === 'shake') {
+                triggerShakeJoker();
+            } else if (type === 'swap') {
+                triggerSwapJoker();
+            }
+        }
+
+        function toggleHammerMode() {
+            if (jokerCounts.hammer <= 0) return;
+            isHammerMode = !isHammerMode;
+            document.getElementById('joker-target-hint').style.display = isHammerMode ? 'block' : 'none';
+            document.getElementById('btnJokerHammer').classList.toggle('active-mode', isHammerMode);
+        }
+
+        function cancelHammerMode() {
+            isHammerMode = false;
+            document.getElementById('joker-target-hint').style.display = 'none';
+            document.getElementById('btnJokerHammer').classList.remove('active-mode');
+        }
+
+        function createExplosionParticles(x, y, color = '#FF5E7E', count = 18) {
+            if (typeof particles === 'undefined') return;
+            if (particles.length > 60) {
+                particles.splice(0, particles.length - 30);
+            }
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.5;
+                const speed = 2.0 + Math.random() * 4.0;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.0,
+                    size: 3.5 + Math.random() * 3.5,
+                    color: color,
+                    life: 1,
+                    decay: 0.025 + Math.random() * 0.02
+                });
+            }
+            for (let i = 0; i < 6; i++) {
+                particles.push({
+                    x: x + (Math.random() - 0.5) * 24,
+                    y: y + (Math.random() - 0.5) * 24,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: -2 - Math.random() * 4,
+                    size: 2 + Math.random() * 2.5,
+                    color: '#FFFDF0',
+                    life: 1,
+                    decay: 0.03
+                });
+            }
+        }
+
+        function handleHammerClick(x, y) {
+            const bodies = Matter.Composite.allBodies(world);
+            let hitBody = null;
+
+            for (let i = bodies.length - 1; i >= 0; i--) {
+                const b = bodies[i];
+                if (b.customData) {
+                    const dist = Math.hypot(b.position.x - x, b.position.y - y);
+                    if (dist <= CAT_ITEMS[b.customData.tier - 1].radius + 8) {
+                        hitBody = b;
+                        break;
+                    }
+                }
+            }
+
+            if (hitBody) {
+                Matter.World.remove(world, hitBody);
+                playSound('hammer');
+                jokerCounts.hammer--;
+                updateJokerBadges();
+                saveUserProgress();
+                cancelHammerMode();
+                saveActiveBoardState();
+            }
+        }
+
+        function triggerShakeJoker() {
+            if (jokerCounts.shake <= 0 || isLevelCompleted) return;
+            jokerCounts.shake--;
+            updateJokerBadges();
+            saveUserProgress();
+
+            playSound('drop');
+            const container = document.getElementById('game-container');
+            container.classList.add('shake-intense');
+            setTimeout(() => container.classList.remove('shake-intense'), 600);
+
+            // 🌪️ ÇAMAŞIR MAKİNESİ GİRDAP DÖNGÜSÜ (Yumuşak & Dengeli Girdap)
+            // Objeleri yukarı fırlatmadan, yerinde nazikçe yarım tur çeviren tatlı çalkalama
+            const centerX = suikaContainerWidth / 2;
+            const centerY = (suikaContainerHeight - 68) * 0.65;
+            const swirlDirection = Math.random() > 0.5 ? 1 : -1;
+
+            let pulses = 0;
+            const maxPulses = 4;
+            const swirlInterval = setInterval(() => {
+                pulses++;
+                const bodies = Matter.Composite.allBodies(world);
+                bodies.forEach(b => {
+                    if (!b.isStatic && b.customData && b.customData.tier) {
+                        const dx = b.position.x - centerX;
+                        const dy = b.position.y - centerY;
+                        const dist = Math.hypot(dx, dy) || 1;
+
+                        // Teğetsel çembersel kuvvet (Nazik çamaşır makinesi dönüşü)
+                        const tanX = (-dy / dist) * swirlDirection;
+                        const tanY = (dx / dist) * swirlDirection;
+
+                        // Çok hafif havalanma + yumuşak çembersel itiş (fırlama yapmaz)
+                        const liftY = -0.003 * b.mass;
+                        const forceMag = 0.009 * b.mass;
+
+                        Matter.Body.applyForce(b, b.position, {
+                            x: tanX * forceMag,
+                            y: (tanY * forceMag * 0.6) + liftY
+                        });
+
+                        // Nazik spin / yarım tur dönüş
+                        Matter.Body.setAngularVelocity(b, swirlDirection * (0.05 + Math.random() * 0.05));
+                    }
+                });
+
+                // Parçacık kasırgası
+                if (typeof createExplosionParticles === 'function' && pulses <= 1) {
+                    createExplosionParticles(centerX, centerY, '#60A5FA', 10);
+                }
+
+                if (pulses >= maxPulses) {
+                    clearInterval(swirlInterval);
+                    saveActiveBoardState();
+                }
+            }, 65);
+
+            // Yakındaki donuk buzları da çöz
+            unfreezeNearbyObstacles(centerX, centerY, 200);
+        }
+
+        /* ==========================================
+           🧹 ALT SIRA TEMİZLEME & İKİNCİ ŞANS KURTARMA MEKANİĞİ
+           ========================================== */
+        function clearBottomRow(countToClear = 4) {
+            if (!world) return 0;
+            const bodies = Matter.Composite.allBodies(world);
+            const catBodies = bodies.filter(b => b.customData && b.customData.tier);
+            if (catBodies.length === 0) return 0;
+
+            // En alttaki (en büyük Y) nesneleri en baştan sırala
+            catBodies.sort((a, b) => b.position.y - a.position.y);
+            const targetBodies = catBodies.slice(0, countToClear);
+
+            targetBodies.forEach(b => {
+                spawnMergeParticles(b.position.x, b.position.y, b.customData.tier);
+                Matter.World.remove(world, b);
+            });
+
+            // Ekran sarsıntısı ve temizleme sesi
+            const container = document.getElementById('game-container');
+            container.classList.add('shake-intense');
+            setTimeout(() => container.classList.remove('shake-intense'), 400);
+            playSound('hammer');
+
+            // Kalan nesnelerin serbestçe aşağı dökülmesi için hafif yerçekimi kuvveti
+            const remaining = Matter.Composite.allBodies(world);
+            remaining.forEach(b => {
+                if (!b.isStatic) {
+                    Matter.Body.applyForce(b, b.position, {
+                        x: (Math.random() - 0.5) * 0.01 * b.mass,
+                        y: 0.015 * b.mass
+                    });
+                }
+            });
+
+            // Buzları da çöz
+            unfreezeNearbyObstacles(containerWidth / 2, containerHeight - 120, 200);
+
+            return targetBodies.length;
+        }
+
+        function triggerSwapJoker() {
+            if (jokerCounts.swap <= 0 || isLevelCompleted) return;
+            jokerCounts.swap--;
+            updateJokerBadges();
+            saveUserProgress();
+
+            playSound('swap');
+            clearBottomRow(4); // En alttaki 4 nesneyi temizle
+            saveActiveBoardState();
+        }
+
+        function reviveWithJoker() {
+            if (jokerCounts.swap <= 0) return;
+            
+            jokerCounts.swap--;
+            updateJokerBadges();
+            saveUserProgress();
+
+            // Game Over durumunu iptal et
+            isGameOver = false;
+            dangerAccumulator = 0;
+            document.getElementById('danger-warning').style.display = 'none';
+            document.getElementById('modalGameOver').classList.remove('active');
+
+            // En alttaki 5-6 nesneyi patlatarak kavanozu kurtar
+            clearBottomRow(5);
+            playSound('win');
+
+            saveActiveBoardState();
+        }
+
+        /* ==========================================
+           🗺️ HARİTA & AYARLAR MODALLARI
+           ========================================== */
+        function openRoadmapModal() {
+            const grid = document.getElementById('map-levels-grid');
+            grid.innerHTML = '';
+
+            // Oyuncunun ilerlemesine göre dinamik toplam seviye sayısı (En az 50 seviye)
+            const totalLevelsToDisplay = Math.max(50, maxUnlockedLevel + 8);
+            let currentNode = null;
+
+            for (let i = 1; i <= totalLevelsToDisplay; i++) {
+                const isUnlocked = i <= maxUnlockedLevel;
+                const isCurrent = i === currentLevel;
+                const stars = levelStars[i] || 0;
+
+                const node = document.createElement('div');
+                node.className = `map-node-btn ${isUnlocked ? '' : 'locked'} ${isCurrent ? 'current' : ''}`;
+                
+                let starDisplay = '';
+                if (stars === 3) starDisplay = '★★★';
+                else if (stars === 2) starDisplay = '★★';
+                else if (stars === 1) starDisplay = '★';
+
+                node.innerHTML = `
+                    <span class="map-node-num">${i}</span>
+                    <span class="map-node-stars">${starDisplay}</span>
+                `;
+
+                if (isCurrent) {
+                    currentNode = node;
+                }
+
+                if (isUnlocked) {
+                    node.onclick = () => {
+                        closeModals();
+                        if (i !== currentLevel) {
+                            clearActiveBoardState();
+                            startLevel(i, true);
+                        } else {
+                            startLevel(i, false);
+                        }
+                    };
+                }
+
+                grid.appendChild(node);
+            }
+
+            document.getElementById('modalRoadmap').classList.add('active');
+
+            // En son kaçıncı seviyedeyse o sayının sırasına otomatik odaklan / scroll yap
+            setTimeout(() => {
+                if (currentNode) {
+                    currentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 80);
+        }
+
+        /* ==========================================
+           🔄 SEVİYEYİ YENİDEN BAŞLATMA (RESET)
+           ========================================== */
+        function requestRestartLevel() {
+            if (isLevelCompleted || isGameOver || isAnyModalOpen()) return;
+            document.getElementById('modalRestartConfirm').classList.add('active');
+        }
+
+        function closeRestartConfirm() {
+            document.getElementById('modalRestartConfirm').classList.remove('active');
+        }
+
+        function confirmRestartLevel() {
+            closeRestartConfirm();
+            clearActiveBoardState();
+            startLevel(currentLevel, true);
+        }
+
+        function openSettingsModal() {
+            document.getElementById('modalSettings').classList.add('active');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.game-modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function isAnyModalOpen() {
+            return !!document.querySelector('.game-modal.active');
+        }
+
+        /* ==========================================
+           🖱️ TOUCH & MOUSE ETKİLEŞİMİ
+           ========================================== */
+        function initControls() {
+            const container = document.getElementById('game-container');
+            const spawnerWrapper = document.getElementById('spawner-cat-wrapper');
+            const laserBeam = document.getElementById('drop-laser-beam');
+
+            // İlk kullanıcı etkileşiminde sesi ve BGM'yi otomatik başlat
+            window.addEventListener('pointerdown', () => {
+                initAudio();
+                if (soundSettings.bgm && !bgmTimer) {
+                    startBGM();
+                }
+            }, { once: false });
+
+            // Koordinat hesaplama: CSS scale/transform'a duyarsız, gerçek container piksel değeri
+            function getPointerPos(e) {
+                const rect = container.getBoundingClientRect();
+                const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+                // CSS scale orantısını hesapla (rect gerçek render boyutu, container* fizik boyutu)
+                const scaleX = containerWidth / rect.width;
+                const scaleY = containerHeight / rect.height;
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
+                };
+            }
+
+            // Scroll/zoom engelle
+            container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+            container.addEventListener('pointermove', e => {
+                if (isAnyModalOpen() || isHammerMode) return;
+                if (e.target.closest('#jokers-dock, #hanging-next-dock, #top-bar-dock, #bottom-panel-dock, .game-modal, #joker-target-hint')) {
+                    laserBeam.style.display = 'none';
+                    return;
+                }
+                const pos = getPointerPos(e);
+                const clampX = Math.max(35, Math.min(containerWidth - 35, pos.x));
+                spawnerWrapper.style.left = `${clampX}px`;
+                laserBeam.style.left = `${clampX}px`;
+                laserBeam.style.display = 'block';
+            });
+
+            container.addEventListener('pointerleave', () => {
+                laserBeam.style.display = 'none';
+            });
+
+            container.addEventListener('pointerup', e => {
+                // Herhangi bir modal açıksa, joker onayı bekleniyorsa, oyun bittiyse veya UI'a tıklandıysa obje düşürme
+                if (isAnyModalOpen() || isLevelCompleted || isGameOver || pendingJokerType !== null) {
+                    return;
+                }
+
+                // UI Elemanlarına (Joker Paneli, Alt Bar, Modal, İpuçları vb.) tıklanıyorsa obje ASLA atılmaz
+                if (e.target.closest('#jokers-dock, #hanging-next-dock, #top-bar-dock, #bottom-panel-dock, .game-modal, #joker-target-hint, .dock-action-btn, .btn-pause-round, .joker-hit-area, .joker-badge, #modalJokerConfirm')) {
+                    return;
+                }
+
+                const pos = getPointerPos(e);
+
+                // 🔨 ÇEKİÇ JOKERİ AKTİFSE: SADECE ÇEKİÇ ÇALIŞIR, KESİNLİKLE OBJE DÜŞMEZ!
+                if (isHammerMode) {
+                    handleHammerClick(pos.x, pos.y);
+                    return;
+                }
+
+                if (pos.y > 110 && pos.y < containerHeight - 70) {
+                    dropCurrentItem(pos.x);
+                }
+            });
+        }
+
+        /* ==========================================
+           💥 PARÇACIK SİSTEMİ (Canvas 2D)
+           ========================================== */
+        function initParticleCanvas() {
+            particleCanvas = document.getElementById('particle-canvas');
+            if (!particleCanvas) return;
+            const container = document.getElementById('game-container');
+            particleCanvas.width = container.clientWidth;
+            particleCanvas.height = container.clientHeight;
+            particleCtx = particleCanvas.getContext('2d');
+
+            (function animateParticles() {
+                if (!particleCtx) return;
+                if (particles.length === 0) {
+                    particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+                    requestAnimationFrame(animateParticles);
+                    return;
+                }
+
+                particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.08;
+                    p.life -= p.decay;
+                    p.size *= 0.97;
+
+                    if (p.life <= 0 || p.size < 0.5) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    particleCtx.globalAlpha = Math.max(0, p.life);
+                    particleCtx.fillStyle = p.color;
+                    particleCtx.beginPath();
+                    particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    particleCtx.fill();
+                }
+                particleCtx.globalAlpha = 1;
+                requestAnimationFrame(animateParticles);
+            })();
+        }
+
+        function spawnMergeParticles(x, y, tier) {
+            const colors = ['#FFB834', '#FF6B8B', '#2ECC71', '#5ECFFF', '#E74C3C', '#F39C12', '#9B59B6', '#1ABC9C', '#FF5733', '#C0392B', '#8E44AD', '#FFD700'];
+            const color = colors[Math.min(tier - 1, colors.length - 1)];
+            
+            // Maksimum 60 parçacık sınırı ile CPU/GPU koruması
+            if (particles.length > 60) {
+                particles.splice(0, particles.length - 40);
+            }
+
+            const count = Math.min(14, 6 + tier);
+
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.4;
+                const speed = 1.5 + Math.random() * 2.5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.5,
+                    size: 3 + Math.random() * 3,
+                    color: color,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.015
+                });
+            }
+
+            // Ek beyaz/altın yıldız parçacıkları
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: x + (Math.random() - 0.5) * 20,
+                    y: y + (Math.random() - 0.5) * 20,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -2 - Math.random() * 3,
+                    size: 2 + Math.random() * 2,
+                    color: tier >= 8 ? '#FFD700' : '#FFFFFF',
+                    life: 1,
+                    decay: 0.02
+                });
+            }
+        }
+
+        /* ==========================================
+           💀 GAME OVER (KAVANOZ TAŞTI) SİSTEMİ
+           ========================================== */
+        function startDangerCheck() {
+            // Her 500ms'de tehlike çizgisini kontrol et
+            setInterval(() => {
+                if (isLevelCompleted || isGameOver || isAnyModalOpen()) {
+                    dangerAccumulator = 0;
+                    document.getElementById('danger-warning').style.display = 'none';
+                    return;
+                }
+
+                const bodies = Matter.Composite.allBodies(world);
+                let anyAboveLine = false;
+
+                for (const b of bodies) {
+                    if (!b.isStatic && b.customData && !b.customData.isFrozen) {
+                        // Yeni bırakılan veya hızla düşen objeleri ATLA
+                        const speed = Math.hypot(b.velocity.x, b.velocity.y);
+                        const age = Date.now() - (b.customData.spawnTime || 0);
+                        if (age < 2000 || speed > 1.5) continue; // 2sn'den genç veya hâlâ hareket ediyor
+
+                        // Objenin üst kenarı tehlike çizgisinin üstünde mi?
+                        if (b.position.y - CAT_ITEMS[b.customData.tier - 1].radius < DANGER_Y) {
+                            anyAboveLine = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (anyAboveLine) {
+                    dangerAccumulator += 500;
+                    document.getElementById('danger-warning').style.display = 'block';
+
+                    if (dangerAccumulator >= DANGER_THRESHOLD_MS) {
+                        triggerGameOver();
+                    }
+                } else {
+                    dangerAccumulator = Math.max(0, dangerAccumulator - 250); // Yavaşça sıfırla
+                    if (dangerAccumulator === 0) {
+                        document.getElementById('danger-warning').style.display = 'none';
+                    }
+                }
+            }, 500);
+        }
+
+        function triggerGameOver() {
+            if (isGameOver || isLevelCompleted) return;
+            isGameOver = true;
+
+            playSound('hammer'); // Derin patlama sesi
+
+            // Ekran sarsıntısı
+            const container = document.getElementById('game-container');
+            container.classList.add('shake-intense');
+            setTimeout(() => container.classList.remove('shake-intense'), 500);
+
+            // Game Over modalini göster
+            document.getElementById('lblGameOverLevel').innerText = currentLevel;
+            
+            // Revive butonu ve adet kontrolü
+            const reviveCount = jokerCounts.swap || 0;
+            const reviveBtn = document.getElementById('btnReviveWithJoker');
+            const lblCount = document.getElementById('lblGameOverJokerCount');
+            if (lblCount) lblCount.innerText = reviveCount;
+
+            if (reviveBtn) {
+                if (reviveCount > 0) {
+                    reviveBtn.classList.remove('disabled');
+                    reviveBtn.disabled = false;
+                } else {
+                    reviveBtn.classList.add('disabled');
+                    reviveBtn.disabled = true;
+                }
+            }
+
+            setTimeout(() => {
+                document.getElementById('modalGameOver').classList.add('active');
+            }, 400);
+        }
+
+        function gameOverRetry() {
+            document.getElementById('modalGameOver').classList.remove('active');
+            clearActiveBoardState();
+            startLevel(currentLevel, true);
+        }
+
+        function gameOverToMap() {
+            document.getElementById('modalGameOver').classList.remove('active');
+            openRoadmapModal();
+        }
+
+        /* ==========================================
+           🚀 BAŞLATMA & OTOMATİK TAHTA SENKRONİZASYONU
+           ========================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            preloadAssets();
+            loadUserProgress();
+            initPhysicsEngine();
+            initParticleCanvas();
+            initControls();
+            startDangerCheck();
+            startLevel(currentLevel, false); // Varsa kayıtlı tahta ile devam eder
+
+            // Her 1.5 saniyede bir tahtanın canlı pozisyonlarını sessizce senkronize et
+            setInterval(() => {
+                if (!isLevelCompleted && !isGameOver && world) {
+                    saveActiveBoardState();
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
