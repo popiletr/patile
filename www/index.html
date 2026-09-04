@@ -4130,87 +4130,7 @@
             transform: scale(0.96);
         }
 
-        /*  REKLAM SİMÜLATÖRÜ & İZLEME MODALI */
-        #modalAdSimulator {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.88);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 9999999;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        #modalAdSimulator.active {
-            display: flex;
-        }
-        .ad-sim-card {
-            width: 90%;
-            max-width: 360px;
-            background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
-            border: 2px solid #818CF8;
-            border-radius: 24px;
-            padding: 24px 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(99, 102, 241, 0.3);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-        }
-        .ad-sim-topbar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .ad-badge {
-            background: #4F46E5;
-            color: #FFF;
-            font-size: 10.5px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 8px;
-            letter-spacing: 0.5px;
-        }
-        .ad-countdown {
-            background: rgba(255,255,255,0.15);
-            color: #FACC15;
-            font-weight: 900;
-            font-size: 13px;
-            padding: 3px 10px;
-            border-radius: 12px;
-            border: 1px solid rgba(250, 204, 21, 0.4);
-        }
-        .ad-close-btn {
-            display: none;
-            background: #10B981;
-            color: #FFF;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-        }
-        .ad-sim-progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 18px;
-        }
-        .ad-sim-progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #FACC15, #10B981);
-            transition: width 0.1s linear;
-        }
+
 
         /*  JOKER ONAY KARTI */
         .modal-card-confirm {
@@ -6130,28 +6050,6 @@
                 <div style="display:flex; gap:8px;">
                     <button onclick="skipOnboardingTour()" style="flex:1; padding:9px; background:#F3F4F6; border:2px solid #E5E7EB; border-bottom:3px solid #D1D5DB; border-radius:14px; color:#6B7280; font-weight:800; font-size:12px; cursor:pointer;">Atla</button>
                     <button onclick="nextOnboardingStep()" id="btnTourNext" style="flex:1.4; padding:9px; background:linear-gradient(180deg, #F59E0B 0%, #D97706 100%); border:2px solid #FFF; border-bottom:3px solid #92400E; border-radius:14px; color:#FFF; font-weight:900; font-size:12px; cursor:pointer;">İleri</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- REKLAM SİMÜLATÖRÜ & İZLEME EKRANI (EVRENSEL KÖK SEVİYE) -->
-        <div id="modalAdSimulator">
-            <div class="ad-sim-card">
-                <div class="ad-sim-topbar">
-                    <span class="ad-badge">SPONSOR REKLAM</span>
-                    <span class="ad-countdown" id="adCountdownText">5s</span>
-                    <button class="ad-close-btn" id="adCloseBtn" onclick="AdManager.onAdCompleted()">Kapat & Ödülü Al</button>
-                </div>
-                <div class="ad-sim-progress-bar">
-                    <div class="ad-sim-progress-fill" id="adProgressFill"></div>
-                </div>
-                <div id="adSimIconContainer" style="width: 48px; height: 48px; margin: 0 auto 10px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <img src="suika_game/ui_assets/btn_shop.png" style="width: 32px; height: 32px;" alt="Pati">
-                </div>
-                <h3 style="color: #FFF; font-size: 16px; font-weight: 800; margin-bottom: 6px;" id="adSimTitle">PatiLife Dünyası</h3>
-                <p style="color: #94A3B8; font-size: 12px; line-height: 1.4; margin-bottom: 16px;" id="adSimDesc">Ödülünü kazanmak için lütfen reklamın bitmesini bekle...</p>
-                <div style="font-size: 11px; color: #FACC15; font-weight: 700; background: rgba(250, 204, 21, 0.1); padding: 6px 12px; border-radius: 8px; border: 1px dashed rgba(250, 204, 21, 0.3);">
-                    Reklam bitiminde ödülün anında hesabına tanımlanacaktır.
                 </div>
             </div>
         </div>
@@ -14865,104 +14763,120 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
 
                 // 1. Native AdMob Rewarded Video Kontrolü
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                    const { AdMob } = window.Capacitor.Plugins;
                     try {
-                        const { AdMob, RewardAdEvents } = window.Capacitor.Plugins;
-                        let rewarded = false;
+                        if (!this.isNativeAdMobReady) {
+                            await this.initNativeAdMob();
+                        }
 
-                        // Ödül kazanma dinleyicisi
-                        const rewardListener = await AdMob.addListener(RewardAdEvents.Rewarded, (reward) => {
-                            rewarded = true;
-                        });
+                        let earnedReward = false;
+                        let rewardListener = null;
+                        let dismissListener = null;
 
-                        // Reklam kapanma dinleyicisi
-                        const dismissListener = await AdMob.addListener(RewardAdEvents.Dismissed, () => {
-                            rewardListener.remove();
-                            dismissListener.remove();
-                            if (rewarded) {
-                                this.onAdCompleted();
-                            } else {
-                                this.isAdShowing = false;
-                                if (typeof engine !== 'undefined' && engine) engine.enabled = true;
-                            }
-                        });
+                        // Doğrudan string tabanlı resmi AdMob listener'ları (TypeError oluşmasını engeller)
+                        try {
+                            rewardListener = await AdMob.addListener('onRewardedVideoAdReward', (reward) => {
+                                console.log('AdMob Odul Kazanildi:', reward);
+                                earnedReward = true;
+                            });
+                        } catch(lErr1) {
+                            console.warn('AdMob rewardListener error:', lErr1);
+                        }
 
-                        const adOptions = {
-                            adId: this.getAdId('rewarded'),
+                        try {
+                            dismissListener = await AdMob.addListener('onRewardedVideoAdDismissed', () => {
+                                console.log('AdMob Reklam Kapatildi, odul durumu:', earnedReward);
+                                if (rewardListener && typeof rewardListener.remove === 'function') rewardListener.remove();
+                                if (dismissListener && typeof dismissListener.remove === 'function') dismissListener.remove();
+
+                                if (earnedReward) {
+                                    this.onAdCompleted();
+                                } else {
+                                    this.isAdShowing = false;
+                                    if (typeof engine !== 'undefined' && engine) engine.enabled = true;
+                                    if (typeof showBubble === 'function') {
+                                        showBubble('Odul kazanmak icin reklami sonuna kadar izlemelisiniz.');
+                                    }
+                                }
+                            });
+                        } catch(lErr2) {
+                            console.warn('AdMob dismissListener error:', lErr2);
+                        }
+
+                        const adId = this.getAdId('rewarded');
+                        console.log('AdMob: prepareRewardVideoAd cagiriliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
+
+                        await AdMob.prepareRewardVideoAd({
+                            adId: adId,
                             isTesting: this.IS_TEST_MODE
-                        };
+                        });
 
-                        await AdMob.prepareRewardVideoAd(adOptions);
-                        await AdMob.showRewardVideoAd();
+                        console.log('AdMob: showRewardVideoAd cagiriliyor...');
+                        const showRes = await AdMob.showRewardVideoAd({
+                            adId: adId
+                        });
+
+                        if (showRes && (showRes.type || showRes.amount !== undefined)) {
+                            earnedReward = true;
+                        }
                         return;
                     } catch(nativeErr) {
-                        console.log('Native AdMob fallback to simulator:', nativeErr);
+                        console.error('AdMob Native Calisma Hatasi:', nativeErr);
+                        this.isAdShowing = false;
+                        if (typeof engine !== 'undefined' && engine) engine.enabled = true;
+                        const errMsg = nativeErr && (nativeErr.message || nativeErr.errorMessage || JSON.stringify(nativeErr));
+                        if (typeof showBubble === 'function') {
+                            showBubble('AdMob Baglanti Hatasi: ' + errMsg);
+                        }
+                        return;
                     }
                 }
 
-                // 2. Simülatör (Web / Test Fallback)
-                this.adCountdown = 5;
-
-                const lblTitle = document.getElementById('adSimTitle');
-                const lblDesc = document.getElementById('adSimDesc');
-                const lblCount = document.getElementById('adCountdownText');
-                const btnClose = document.getElementById('adCloseBtn');
-                const progressFill = document.getElementById('adProgressFill');
-
-                if (lblTitle) lblTitle.innerText = title || 'PatiLife Sponsor Reklamı';
-                if (lblDesc) lblDesc.innerText = 'Ödülünü kazanmak için lütfen reklamın bitmesini bekle...';
-                if (lblCount) {
-                    lblCount.innerText = `${this.adCountdown}s`;
-                    lblCount.style.display = 'inline-block';
+                // Capacitor yoksa (Sadece tarayici ortaminda)
+                console.warn('Capacitor AdMob native eklentisi bulunamadi.');
+                if (typeof showBubble === 'function') {
+                    showBubble('AdMob yalnizca iOS / Android uygulamasinda calisir.');
                 }
-                if (btnClose) btnClose.style.display = 'none';
-                if (progressFill) progressFill.style.width = '0%';
-                
-                const simModal = document.getElementById('modalAdSimulator');
-                if (simModal) simModal.classList.add('active');
-
-                if (this.adTimer) clearInterval(this.adTimer);
-
-                const totalSec = 5;
-                let elapsed = 0;
-                this.adTimer = setInterval(() => {
-                    elapsed += 0.25;
-                    const remaining = Math.max(0, Math.ceil(totalSec - elapsed));
-                    if (lblCount) lblCount.innerText = `${remaining}s`;
-                    const percent = Math.min(100, (elapsed / totalSec) * 100);
-                    if (progressFill) progressFill.style.width = `${percent}%`;
-
-                    if (elapsed >= totalSec) {
-                        clearInterval(this.adTimer);
-                        this.adTimer = null;
-                        if (lblCount) lblCount.style.display = 'none';
-                        if (btnClose) btnClose.style.display = 'inline-block';
-                        if (lblDesc) lblDesc.innerHTML = '<b style="color:#10B981;">Reklam Tamamlandı! Ödülünü almak için tıkla.</b>';
-                    }
-                }, 250);
+                this.isAdShowing = false;
+                if (typeof engine !== 'undefined' && engine) engine.enabled = true;
             },
 
             showInterstitialAd: async function(onDone) {
                 // Native Capacitor AdMob Interstitial
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                    const { AdMob } = window.Capacitor.Plugins;
                     try {
-                        const { AdMob, InterstitialAdEvents } = window.Capacitor.Plugins;
-                        const dismissListener = await AdMob.addListener(InterstitialAdEvents.Dismissed, () => {
-                            dismissListener.remove();
-                            if (typeof onDone === 'function') onDone();
-                        });
+                        if (!this.isNativeAdMobReady) {
+                            await this.initNativeAdMob();
+                        }
+
+                        let dismissListener = null;
+                        try {
+                            dismissListener = await AdMob.addListener('interstitialAdDismissed', () => {
+                                console.log('AdMob Interstitial kapatildi.');
+                                if (dismissListener && typeof dismissListener.remove === 'function') dismissListener.remove();
+                                if (typeof onDone === 'function') onDone();
+                            });
+                        } catch(lErr) {
+                            console.warn('Interstitial listener error:', lErr);
+                        }
+
+                        const adId = this.getAdId('interstitial');
+                        console.log('AdMob: prepareInterstitial cagiriliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
+
                         await AdMob.prepareInterstitial({
-                            adId: this.getAdId('interstitial'),
+                            adId: adId,
                             isTesting: this.IS_TEST_MODE
                         });
-                        await AdMob.showInterstitial();
+
+                        console.log('AdMob: showInterstitial cagiriliyor...');
+                        await AdMob.showInterstitial({
+                            adId: adId
+                        });
                         return;
                     } catch(err) {
-                        console.log('Interstitial fallback:', err);
+                        console.error('AdMob Interstitial Hatasi:', err);
                     }
-                }
-                // Fallback (Web / Test Bildirimi)
-                if (this.IS_TEST_MODE && typeof showBubble === 'function') {
-                    showBubble('Akıllı Geçiş Reklamı Tetiklendi (Test)');
                 }
                 if (typeof onDone === 'function') onDone();
             },
@@ -15082,11 +14996,11 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
             showBannerAd: async function() {
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
                     try {
-                        const { AdMob, BannerAdSize, BannerAdPosition } = window.Capacitor.Plugins;
+                        const { AdMob } = window.Capacitor.Plugins;
                         await AdMob.showBanner({
                             adId: this.getAdId('banner'),
-                            adSize: BannerAdSize.ADAPTIVE_BANNER,
-                            position: BannerAdPosition.BOTTOM_CENTER,
+                            adSize: 'ADAPTIVE_BANNER',
+                            position: 'BOTTOM_CENTER',
                             margin: 0,
                             isTesting: this.IS_TEST_MODE
                         });
@@ -15108,7 +15022,6 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
             onAdCompleted: function() {
                 if (this.adTimer) clearInterval(this.adTimer);
                 this.isAdShowing = false;
-                document.getElementById('modalAdSimulator').classList.remove('active');
 
                 // Fizik motorunu tekrar başlat
                 if (typeof engine !== 'undefined' && engine) {
