@@ -7595,6 +7595,9 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         GameState.bowlFrame = 0;
                         renderPropCanvases();
                         GameState.currentAnim = 'idle';
+                        if (typeof AdManager !== 'undefined' && typeof AdManager.trackPatiLifeActivity === 'function') {
+                            AdManager.trackPatiLifeActivity('Besleme');
+                        }
                         // Mama yedikten sonra tuvalet ihtiyacı artar
                         GameState.toiletNeed = Math.min(100, (GameState.toiletNeed || 0) + 45);
                         updateHUD();
@@ -7666,6 +7669,9 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                     showBubble('Ferahladım! Çok taze ');
                     GameState.currentAnim = 'idle';
                     GameState.isBusy = false;
+                    if (typeof AdManager !== 'undefined' && typeof AdManager.trackPatiLifeActivity === 'function') {
+                        AdManager.trackPatiLifeActivity('Su Verme');
+                    }
                 }, 2500);
             }, targetBottom);
         }
@@ -14020,8 +14026,19 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
         }
 
         function openRoadmapFromWin() {
-            document.getElementById('modalWin').classList.remove('active');
-            openRoadmapModal();
+            const winModal = document.getElementById('modalWin');
+            if (winModal) winModal.classList.remove('active');
+
+            const completedLvl = currentLevel;
+            const onReady = () => {
+                openRoadmapModal();
+            };
+
+            if (typeof AdManager !== 'undefined' && typeof AdManager.trackSuikaLevelComplete === 'function') {
+                AdManager.trackSuikaLevelComplete(completedLvl, onReady);
+            } else {
+                onReady();
+            }
         }
 
         function goToNextLevel() {
@@ -14034,6 +14051,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
             const winModal = document.getElementById('modalWin');
             if (winModal) winModal.classList.remove('active');
 
+            const completedLvl = currentLevel;
             currentLevel += 1;
             clearActiveBoardState();
             saveUserProgress();
@@ -14043,9 +14061,9 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 setTimeout(() => { isTransitioningLevel = false; }, 600);
             };
 
-            // DENGELİ ARA REKLAM: Cooldown (110s) ve seviye kontrolüyle akıllı geçiş reklamı
-            if (typeof AdManager !== 'undefined' && typeof AdManager.triggerSmartInterstitial === 'function') {
-                AdManager.triggerSmartInterstitial('Suika Seviye Bitisi', onLevelReady);
+            // Seviye geçiş reklamı: Her 2 seviyede bir veya boss sonrası akıllı kısa geçiş reklamı
+            if (typeof AdManager !== 'undefined' && typeof AdManager.trackSuikaLevelComplete === 'function') {
+                AdManager.trackSuikaLevelComplete(completedLvl, onLevelReady);
             } else {
                 onLevelReady();
             }
@@ -14949,6 +14967,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         });
                         this.isNativeAdMobReady = true;
                         console.log('AdMob SDK hazir. Test modu:', this.IS_TEST_MODE);
+                        this.preloadInterstitial();
                     } catch(err) {
                         console.warn('AdMob initialize bypass:', err);
                     }
@@ -15047,8 +15066,41 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 if (typeof engine !== 'undefined' && engine) engine.enabled = true;
             },
 
+            isInterstitialReady: false,
+            isInterstitialPreparing: false,
+
+            preloadInterstitial: async function() {
+                if (this.isInterstitialPreparing || this.isInterstitialReady) return;
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                    const { AdMob } = window.Capacitor.Plugins;
+                    try {
+                        this.isInterstitialPreparing = true;
+                        const adId = this.getAdId('interstitial');
+                        await AdMob.prepareInterstitial({
+                            adId: adId,
+                            isTesting: this.IS_TEST_MODE
+                        });
+                        this.isInterstitialReady = true;
+                        this.isInterstitialPreparing = false;
+                        console.log('AdMob: Interstitial onceden yuklendi (preloaded).');
+                    } catch(e) {
+                        this.isInterstitialPreparing = false;
+                        this.isInterstitialReady = false;
+                        console.warn('AdMob preloadInterstitial bypass:', e);
+                    }
+                }
+            },
+
             showInterstitialAd: async function(onDone) {
-                // Native Capacitor AdMob Interstitial
+                let hasResumed = false;
+                const safeResume = () => {
+                    if (hasResumed) return;
+                    hasResumed = true;
+                    this.isInterstitialReady = false;
+                    setTimeout(() => { this.preloadInterstitial(); }, 1200);
+                    if (typeof onDone === 'function') onDone();
+                };
+
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
                     const { AdMob } = window.Capacitor.Plugins;
                     try {
@@ -15057,23 +15109,45 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         }
 
                         let dismissListener = null;
+                        let failListener = null;
+
+                        const cleanup = () => {
+                            if (dismissListener && typeof dismissListener.remove === 'function') dismissListener.remove();
+                            if (failListener && typeof failListener.remove === 'function') failListener.remove();
+                        };
+
                         try {
                             dismissListener = await AdMob.addListener('interstitialAdDismissed', () => {
                                 console.log('AdMob Interstitial kapatildi.');
-                                if (dismissListener && typeof dismissListener.remove === 'function') dismissListener.remove();
-                                if (typeof onDone === 'function') onDone();
+                                cleanup();
+                                safeResume();
                             });
-                        } catch(lErr) {
-                            console.warn('Interstitial listener error:', lErr);
-                        }
+                        } catch(lErr1) {}
+
+                        try {
+                            failListener = await AdMob.addListener('interstitialAdFailedToShow', (err) => {
+                                console.warn('AdMob Interstitial gosterilemedi:', err);
+                                cleanup();
+                                safeResume();
+                            });
+                        } catch(lErr2) {}
+
+                        // Emniyet zaman asimi: 12 saniye icinde listener tetiklenmezse oyunu akmaya devam ettir
+                        setTimeout(() => {
+                            cleanup();
+                            safeResume();
+                        }, 12000);
 
                         const adId = this.getAdId('interstitial');
-                        console.log('AdMob: prepareInterstitial cagiriliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
 
-                        await AdMob.prepareInterstitial({
-                            adId: adId,
-                            isTesting: this.IS_TEST_MODE
-                        });
+                        if (!this.isInterstitialReady) {
+                            console.log('AdMob: prepareInterstitial cagiriliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
+                            await AdMob.prepareInterstitial({
+                                adId: adId,
+                                isTesting: this.IS_TEST_MODE
+                            });
+                            this.isInterstitialReady = true;
+                        }
 
                         console.log('AdMob: showInterstitial cagiriliyor...');
                         await AdMob.showInterstitial({
@@ -15082,14 +15156,18 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         return;
                     } catch(err) {
                         console.error('AdMob Interstitial Hatasi:', err);
+                        safeResume();
+                        return;
                     }
                 }
-                if (typeof onDone === 'function') onDone();
+                safeResume();
             },
 
             lastInterstitialTime: 0,
-            interstitialCooldownMs: 110000, // 110 saniye (~1.8 dk) akıllı cooldown (oyuncuyu sıkmaz, oyun akışını bozmaz)
+            interstitialCooldownMs: 40000, // 40 saniye akıllı güvenlik aralığı (arka arkaya çıkmaz, oyuncuyu sıkmaz)
+            suikaCompletedLevelsSinceAd: 0,
             roomChangeCount: 0,
+            patiLifeActionCount: 0,
 
             // Akıllı Geçiş Reklamı (Doğal dinlenme / duraklama anlarında cooldown denetimiyle çalışır)
             triggerSmartInterstitial: function(source, onDone) {
@@ -15103,12 +15181,42 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 this.showInterstitialAd(onDone);
             },
 
-            // Odalar arası gezinme sayacı (Homojen olarak her 5-6 oda gezintisinde ve 2 dk aralıkla)
+            // Cat Suika Seviye Geçiş Reklamı (Seviye 1 hariç, her 2 seviyede bir veya boss sonrası)
+            trackSuikaLevelComplete: function(completedLvl, onContinue) {
+                this.suikaCompletedLevelsSinceAd++;
+                const now = Date.now();
+                const isMilestone = (this.suikaCompletedLevelsSinceAd >= 2) || (completedLvl % 7 === 0);
+                const hasCooldownElapsed = (now - this.lastInterstitialTime >= this.interstitialCooldownMs);
+
+                if (completedLvl > 1 && isMilestone && hasCooldownElapsed) {
+                    this.suikaCompletedLevelsSinceAd = 0;
+                    this.triggerSmartInterstitial('Suika Seviye ' + completedLvl + ' Gecisi', onContinue);
+                } else {
+                    if (typeof onContinue === 'function') onContinue();
+                }
+            },
+
+            // PatiLife Odalar Arası Gezinme Sayacı (Her 3-4 oda gezintisinde ve 40s aralıkla)
             trackRoomChange: function() {
                 this.roomChangeCount++;
-                if (this.roomChangeCount >= 6) {
-                    this.roomChangeCount = 0;
-                    this.triggerSmartInterstitial('Oda Gezintisi');
+                if (this.roomChangeCount >= 3) {
+                    const now = Date.now();
+                    if (now - this.lastInterstitialTime >= this.interstitialCooldownMs) {
+                        this.roomChangeCount = 0;
+                        this.triggerSmartInterstitial('Oda Gezintisi');
+                    }
+                }
+            },
+
+            // PatiLife Kedi Bakım & Etkileşim Sayacı (Besleme, su, temizlik gibi her 3 bakım aksiyonunda)
+            trackPatiLifeActivity: function(activityName) {
+                this.patiLifeActionCount++;
+                if (this.patiLifeActionCount >= 3) {
+                    const now = Date.now();
+                    if (now - this.lastInterstitialTime >= this.interstitialCooldownMs) {
+                        this.patiLifeActionCount = 0;
+                        this.triggerSmartInterstitial('PatiLife: ' + activityName);
+                    }
                 }
             },
 
