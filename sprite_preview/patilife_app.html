@@ -4138,7 +4138,7 @@
             background: rgba(0, 0, 0, 0.88);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            z-index: 100000;
+            z-index: 9999999;
             align-items: center;
             justify-content: center;
             flex-direction: column;
@@ -5226,6 +5226,19 @@
                     <div class="pantry-card-list" id="waterTierList" style="display:flex; flex-direction:column; gap:8px;">
                         <!-- Dinamik olarak renderWaterSelectorUI tarafından doldurulur -->
                     </div>
+
+                    <!-- Sponsorlu Ücretsiz Kristal Su Pınarı -->
+                    <div class="daily-chest-card" onclick="AdManager.watchAdForFreeWater()" style="background:linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%); border-color:#0284C7; cursor:pointer; margin-top:4px;">
+                        <div class="chest-card-left">
+                            <svg class="game-svg-icon lg"><use href="#gicon-dewdrop"></use></svg>
+                            <div>
+                                <div class="chest-card-title" style="color:#0369A1;">Sponsorlu Kristal Su Pınarı</div>
+                                <div class="chest-card-subtitle" style="color:#0284C7;">+50 Su ve +25 Altın kazan!</div>
+                            </div>
+                        </div>
+                        <div style="background:#0284C7; color:#FFF; font-size:11px; font-weight:900; padding:6px 12px; border-radius:10px; letter-spacing:0.5px;">İZLE & AL</div>
+                    </div>
+
                     <div style="background:#F0F9FF; border:1.5px dashed #7DD3FC; border-radius:14px; padding:8px 12px; display:flex; align-items:center; gap:8px;">
                         <svg class="game-svg-icon sm"><use href="#gicon-water-fountain"></use></svg>
                         <span style="font-size:10.5px; color:#0369A1; font-weight:700;">Bahçedeki su pınarı kedinin susuzluğunu dengeler.</span>
@@ -6096,27 +6109,6 @@
             </div>
         </div>
 
-        <!-- REKLAM SİMÜLATÖRÜ & İZLEME EKRANI -->
-        <div id="modalAdSimulator">
-            <div class="ad-sim-card">
-                <div class="ad-sim-topbar">
-                    <span class="ad-badge">SPONSOR REKLAM</span>
-                    <span class="ad-countdown" id="adCountdownText">5s</span>
-                    <button class="ad-close-btn" id="adCloseBtn" onclick="AdManager.onAdCompleted()">Kapat & Ödülü Al</button>
-                </div>
-                <div class="ad-sim-progress-bar">
-                    <div class="ad-sim-progress-fill" id="adProgressFill"></div>
-                </div>
-                <div id="adSimIconContainer" style="width: 48px; height: 48px; margin: 0 auto 10px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <img src="suika_game/ui_assets/btn_shop.png" style="width: 32px; height: 32px;" alt="Pati">
-                </div>
-                <h3 style="color: #FFF; font-size: 16px; font-weight: 800; margin-bottom: 6px;" id="adSimTitle">PatiLife Dünyası</h3>
-                <p style="color: #94A3B8; font-size: 12px; line-height: 1.4; margin-bottom: 16px;" id="adSimDesc">Ödülünü kazanmak için lütfen reklamın bitmesini bekle...</p>
-                <div style="font-size: 11px; color: #FACC15; font-weight: 700; background: rgba(250, 204, 21, 0.1); padding: 6px 12px; border-radius: 8px; border: 1px dashed rgba(250, 204, 21, 0.3);">
-                    Reklam bitiminde ödülün anında hesabına tanımlanacaktır.
-                </div>
-            </div>
-        </div>
         </div> <!-- /#game-container -->
         </div> <!-- /#screen-suika -->
 
@@ -6138,6 +6130,28 @@
                 <div style="display:flex; gap:8px;">
                     <button onclick="skipOnboardingTour()" style="flex:1; padding:9px; background:#F3F4F6; border:2px solid #E5E7EB; border-bottom:3px solid #D1D5DB; border-radius:14px; color:#6B7280; font-weight:800; font-size:12px; cursor:pointer;">Atla</button>
                     <button onclick="nextOnboardingStep()" id="btnTourNext" style="flex:1.4; padding:9px; background:linear-gradient(180deg, #F59E0B 0%, #D97706 100%); border:2px solid #FFF; border-bottom:3px solid #92400E; border-radius:14px; color:#FFF; font-weight:900; font-size:12px; cursor:pointer;">İleri</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REKLAM SİMÜLATÖRÜ & İZLEME EKRANI (EVRENSEL KÖK SEVİYE) -->
+        <div id="modalAdSimulator">
+            <div class="ad-sim-card">
+                <div class="ad-sim-topbar">
+                    <span class="ad-badge">SPONSOR REKLAM</span>
+                    <span class="ad-countdown" id="adCountdownText">5s</span>
+                    <button class="ad-close-btn" id="adCloseBtn" onclick="AdManager.onAdCompleted()">Kapat & Ödülü Al</button>
+                </div>
+                <div class="ad-sim-progress-bar">
+                    <div class="ad-sim-progress-fill" id="adProgressFill"></div>
+                </div>
+                <div id="adSimIconContainer" style="width: 48px; height: 48px; margin: 0 auto 10px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <img src="suika_game/ui_assets/btn_shop.png" style="width: 32px; height: 32px;" alt="Pati">
+                </div>
+                <h3 style="color: #FFF; font-size: 16px; font-weight: 800; margin-bottom: 6px;" id="adSimTitle">PatiLife Dünyası</h3>
+                <p style="color: #94A3B8; font-size: 12px; line-height: 1.4; margin-bottom: 16px;" id="adSimDesc">Ödülünü kazanmak için lütfen reklamın bitmesini bekle...</p>
+                <div style="font-size: 11px; color: #FACC15; font-weight: 700; background: rgba(250, 204, 21, 0.1); padding: 6px 12px; border-radius: 8px; border: 1px dashed rgba(250, 204, 21, 0.3);">
+                    Reklam bitiminde ödülün anında hesabına tanımlanacaktır.
                 </div>
             </div>
         </div>
@@ -14790,11 +14804,35 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
             isAdShowing: false,
             isNativeAdMobReady: false,
 
-            ADMOB_IDS: {
+            // Test Modu: true iken Google resmi test reklamları gösterilir (Simulator ve test cihazlarında %100 çalışır).
+            // App Store yayınına çıkmadan önce false yapılır.
+            IS_TEST_MODE: true,
+
+            // Canlı (Production) AdMob Reklam ID'leri
+            PROD_ADMOB_IDS: {
                 rewarded: 'ca-app-pub-2856135323536987/9509235028',
                 interstitial: 'ca-app-pub-2856135323536987/5817402027',
                 banner: 'ca-app-pub-2856135323536987/8443565368',
                 native: 'ca-app-pub-2856135323536987/9237772288'
+            },
+
+            // Google Resmi iOS Test Reklam ID'leri (Test modunda anında açılır)
+            TEST_ADMOB_IDS: {
+                rewarded: 'ca-app-pub-3940256099942544/1712485313',
+                interstitial: 'ca-app-pub-3940256099942544/4411468910',
+                banner: 'ca-app-pub-3940256099942544/2934735716',
+                native: 'ca-app-pub-3940256099942544/3986624511'
+            },
+
+            getAdId: function(type) {
+                if (this.IS_TEST_MODE) {
+                    return this.TEST_ADMOB_IDS[type] || this.TEST_ADMOB_IDS.rewarded;
+                }
+                return this.PROD_ADMOB_IDS[type] || this.PROD_ADMOB_IDS.rewarded;
+            },
+
+            get ADMOB_IDS() {
+                return this.IS_TEST_MODE ? this.TEST_ADMOB_IDS : this.PROD_ADMOB_IDS;
             },
 
             initNativeAdMob: async function() {
@@ -14802,9 +14840,11 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                     try {
                         const { AdMob } = window.Capacitor.Plugins;
                         await AdMob.initialize({
-                            requestTrackingAuthorization: true
+                            requestTrackingAuthorization: true,
+                            initializeForTesting: this.IS_TEST_MODE
                         });
                         this.isNativeAdMobReady = true;
+                        console.log('AdMob SDK hazir. Test modu:', this.IS_TEST_MODE);
                     } catch(err) {
                         console.warn('AdMob initialize bypass:', err);
                     }
@@ -14813,6 +14853,9 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
 
             showRewardedAd: async function({ title, onReward }) {
                 this.isAdShowing = true;
+                if (typeof closeModals === 'function') closeModals();
+                if (typeof suikaCloseModals === 'function') suikaCloseModals();
+
                 // Reklam oynarken fizik motorunu ve arka plan oyununu tamamen duraklat (Pause)
                 if (typeof engine !== 'undefined' && engine) {
                     engine.enabled = false;
@@ -14844,8 +14887,8 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         });
 
                         const adOptions = {
-                            adId: this.ADMOB_IDS.rewarded,
-                            isTesting: false
+                            adId: this.getAdId('rewarded'),
+                            isTesting: this.IS_TEST_MODE
                         };
 
                         await AdMob.prepareRewardVideoAd(adOptions);
@@ -14874,7 +14917,8 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 if (btnClose) btnClose.style.display = 'none';
                 if (progressFill) progressFill.style.width = '0%';
                 
-                document.getElementById('modalAdSimulator').classList.add('active');
+                const simModal = document.getElementById('modalAdSimulator');
+                if (simModal) simModal.classList.add('active');
 
                 if (this.adTimer) clearInterval(this.adTimer);
 
@@ -14907,8 +14951,8 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                             if (typeof onDone === 'function') onDone();
                         });
                         await AdMob.prepareInterstitial({
-                            adId: this.ADMOB_IDS.interstitial,
-                            isTesting: false
+                            adId: this.getAdId('interstitial'),
+                            isTesting: this.IS_TEST_MODE
                         });
                         await AdMob.showInterstitial();
                         return;
@@ -14916,7 +14960,10 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         console.log('Interstitial fallback:', err);
                     }
                 }
-                // Fallback (Direkt devam et veya hızlı simülasyon)
+                // Fallback (Web / Test Bildirimi)
+                if (this.IS_TEST_MODE && typeof showBubble === 'function') {
+                    showBubble('Akıllı Geçiş Reklamı Tetiklendi (Test)');
+                }
                 if (typeof onDone === 'function') onDone();
             },
 
@@ -14982,7 +15029,27 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 });
             },
 
-            // 3. Ödüllü Reklam: Ücretsiz Pati Altını Sandığı
+            // 3. Ödüllü Reklam: Sponsorlu Kristal Su Pınarı
+            watchAdForFreeWater: function() {
+                this.showRewardedAd({
+                    title: 'Sponsorlu Kristal Su Pınarı',
+                    onReward: () => {
+                        GameState.thirst = Math.min(100, (GameState.thirst || 50) + 50);
+                        GameState.coins = (GameState.coins || 0) + 25;
+                        GameState.happy = Math.min(100, (GameState.happy || 50) + 20);
+                        addXP(25, 'Sponsorlu Kristal Su');
+                        if (typeof trackQuestProgress === 'function') trackQuestProgress('water', 1);
+                        updateHUD();
+                        saveGameState();
+                        sfxCoin();
+                        sfxEat();
+                        closeModals();
+                        showBubble('+25 Altın ve Taze Su Pınarı Dolduruldu!');
+                    }
+                });
+            },
+
+            // 4. Ödüllü Reklam: Ücretsiz Pati Altını Sandığı
             watchAdForFreeCoins: function() {
                 this.showRewardedAd({
                     title: 'Ücretsiz Pati Altını Ödülü',
@@ -14997,7 +15064,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 });
             },
 
-            // 4. Ödüllü Reklam: Anında Uyandır ve Tam Enerji Doldur
+            // 5. Ödüllü Reklam: Anında Uyandır ve Tam Enerji Doldur
             watchAdForEnergyWake: function() {
                 this.showRewardedAd({
                     title: 'Anında Uyandır & Tam Enerji',
@@ -15017,11 +15084,11 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                     try {
                         const { AdMob, BannerAdSize, BannerAdPosition } = window.Capacitor.Plugins;
                         await AdMob.showBanner({
-                            adId: this.ADMOB_IDS.banner,
+                            adId: this.getAdId('banner'),
                             adSize: BannerAdSize.ADAPTIVE_BANNER,
                             position: BannerAdPosition.BOTTOM_CENTER,
                             margin: 0,
-                            isTesting: false
+                            isTesting: this.IS_TEST_MODE
                         });
                     } catch(err) {
                         console.log('Banner error:', err);
