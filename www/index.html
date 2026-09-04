@@ -6025,7 +6025,8 @@
                     <span class="settings-label">Titreşim (Haptics)</span>
                     <button class="settings-toggle on" id="btnToggleVibration" onclick="toggleVibration()">AÇIK</button>
                 </div>
-                <div style="margin-top: 10px; width: 100%;">
+                <div style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 6px;">
+                    <button class="confirm-btn ok" style="width: 100%; padding: 8px; font-size: 11px; background: #E0E7FF; color: #3730A3; border-color: #A5B4FC;" onclick="AdManager.showInterstitialAd()">GEÇİŞ REKLAMINI TEST ET</button>
                     <button class="confirm-btn cancel" style="width: 100%; padding: 8px; font-size: 11px; background: #FEE2E2; color: #991B1B; border-color: #FCA5A5;" onclick="promptResetSuikaLevels()">SEVİYELERİ SIFIRLA</button>
                 </div>
                 <button class="btn-settings-close" onclick="suikaCloseModals()">TAMAM</button>
@@ -14955,7 +14956,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
             // Google Resmi iOS Test Reklam ID'leri (Test modunda anında açılır)
             TEST_ADMOB_IDS: {
                 rewarded: 'ca-app-pub-3940256099942544/1712485313',
-                interstitial: 'ca-app-pub-3940256099942544/4411468910',
+                interstitial: 'ca-app-pub-3940256099942544/1033173712',
                 banner: 'ca-app-pub-3940256099942544/2934735716',
                 native: 'ca-app-pub-3940256099942544/3986624511'
             },
@@ -15051,9 +15052,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                         });
 
                         console.log('AdMob: showRewardVideoAd cagiriliyor...');
-                        const showRes = await AdMob.showRewardVideoAd({
-                            adId: adId
-                        });
+                        const showRes = await AdMob.showRewardVideoAd();
 
                         if (showRes && (showRes.type || showRes.amount !== undefined)) {
                             earnedReward = true;
@@ -15090,17 +15089,31 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                     try {
                         this.isInterstitialPreparing = true;
                         const adId = this.getAdId('interstitial');
+                        console.log('AdMob: preloadInterstitial baslatiliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
                         await AdMob.prepareInterstitial({
                             adId: adId,
                             isTesting: this.IS_TEST_MODE
                         });
                         this.isInterstitialReady = true;
                         this.isInterstitialPreparing = false;
-                        console.log('AdMob: Interstitial onceden yuklendi (preloaded).');
+                        console.log('AdMob: Interstitial basariyla hazirlandi (preloaded).');
                     } catch(e) {
                         this.isInterstitialPreparing = false;
                         this.isInterstitialReady = false;
-                        console.warn('AdMob preloadInterstitial bypass:', e);
+                        console.warn('AdMob preloadInterstitial hatasi:', e);
+                        // Eger canli modda no-fill alindiysa test id ile yedekle
+                        if (!this.IS_TEST_MODE) {
+                            try {
+                                console.log('AdMob: Canli reklam no-fill, test id ile deneniyor...');
+                                await AdMob.prepareInterstitial({
+                                    adId: this.TEST_ADMOB_IDS.interstitial,
+                                    isTesting: true
+                                });
+                                this.isInterstitialReady = true;
+                            } catch(testErr) {
+                                console.warn('AdMob test fallback hatasi:', testErr);
+                            }
+                        }
                     }
                 }
             },
@@ -15111,7 +15124,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                     if (hasResumed) return;
                     hasResumed = true;
                     this.isInterstitialReady = false;
-                    setTimeout(() => { this.preloadInterstitial(); }, 1200);
+                    setTimeout(() => { this.preloadInterstitial(); }, 1000);
                     if (typeof onDone === 'function') onDone();
                 };
 
@@ -15152,41 +15165,55 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                             safeResume();
                         }, 12000);
 
-                        const adId = this.getAdId('interstitial');
-
+                        // Reklam henuz hazir degilse anlik olarak yukle
                         if (!this.isInterstitialReady) {
+                            const adId = this.getAdId('interstitial');
                             console.log('AdMob: prepareInterstitial cagiriliyor, id:', adId, 'isTesting:', this.IS_TEST_MODE);
-                            await AdMob.prepareInterstitial({
-                                adId: adId,
-                                isTesting: this.IS_TEST_MODE
-                            });
-                            this.isInterstitialReady = true;
+                            try {
+                                await AdMob.prepareInterstitial({
+                                    adId: adId,
+                                    isTesting: this.IS_TEST_MODE
+                                });
+                                this.isInterstitialReady = true;
+                            } catch(prepErr) {
+                                console.warn('AdMob prepareInterstitial canli hatasi, test ad deneniyor:', prepErr);
+                                await AdMob.prepareInterstitial({
+                                    adId: this.TEST_ADMOB_IDS.interstitial,
+                                    isTesting: true
+                                });
+                                this.isInterstitialReady = true;
+                            }
                         }
 
                         console.log('AdMob: showInterstitial cagiriliyor...');
-                        await AdMob.showInterstitial({
-                            adId: adId
-                        });
+                        // Parametresiz cagirilir: boylece son hazirlanan reklam (lastPreparedAdId) ID uyusmazligi olmadan sorunsuz sunulur
+                        await AdMob.showInterstitial();
                         return;
                     } catch(err) {
                         console.error('AdMob Interstitial Hatasi:', err);
                         safeResume();
                         return;
                     }
+                } else {
+                    console.warn('Capacitor AdMob native eklentisi bulunamadi (tarayici ortami).');
+                    if (typeof showBubble === 'function') {
+                        showBubble('Gecis Reklami (AdMob yalnizca iOS / Android uygulamasinda calisir)');
+                    }
+                    safeResume();
                 }
-                safeResume();
             },
 
             lastInterstitialTime: 0,
-            interstitialCooldownMs: 40000, // 40 saniye akıllı güvenlik aralığı (arka arkaya çıkmaz, oyuncuyu sıkmaz)
+            interstitialCooldownMs: 25000, // 25 saniye akilli guvenlik araligi
             suikaCompletedLevelsSinceAd: 0,
             roomChangeCount: 0,
             patiLifeActionCount: 0,
 
-            // Akıllı Geçiş Reklamı (Doğal dinlenme / duraklama anlarında cooldown denetimiyle çalışır)
+            // Akilli Gecis Reklami (Dogal dinlenme / duraklama anlarinda cooldown denetimiyle calisir)
             triggerSmartInterstitial: function(source, onDone) {
                 const now = Date.now();
                 if (now - this.lastInterstitialTime < this.interstitialCooldownMs) {
+                    console.log('Akilli Gecis Reklami bekleme suresinde: ' + Math.round((this.interstitialCooldownMs - (now - this.lastInterstitialTime))/1000) + 's kaldi.');
                     if (typeof onDone === 'function') onDone();
                     return;
                 }
@@ -15195,14 +15222,15 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 this.showInterstitialAd(onDone);
             },
 
-            // Cat Suika Seviye Geçiş Reklamı (Seviye 1 hariç, her 2 seviyede bir veya boss sonrası)
+            // Cat Suika Seviye Gecis Reklami (Ilk seviyede veya her 2 seviyede bir ya da boss sonrasi)
             trackSuikaLevelComplete: function(completedLvl, onContinue) {
                 this.suikaCompletedLevelsSinceAd++;
                 const now = Date.now();
-                const isMilestone = (this.suikaCompletedLevelsSinceAd >= 2) || (completedLvl % 7 === 0);
+                const isFirstEver = (completedLvl === 1 && this.lastInterstitialTime === 0);
+                const isMilestone = isFirstEver || (this.suikaCompletedLevelsSinceAd >= 2) || (completedLvl % 5 === 0);
                 const hasCooldownElapsed = (now - this.lastInterstitialTime >= this.interstitialCooldownMs);
 
-                if (completedLvl > 1 && isMilestone && hasCooldownElapsed) {
+                if (isMilestone && (hasCooldownElapsed || isFirstEver)) {
                     this.suikaCompletedLevelsSinceAd = 0;
                     this.triggerSmartInterstitial('Suika Seviye ' + completedLvl + ' Gecisi', onContinue);
                 } else {
@@ -15210,10 +15238,10 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 }
             },
 
-            // PatiLife Odalar Arası Gezinme Sayacı (Her 3-4 oda gezintisinde ve 40s aralıkla)
+            // PatiLife Odalar Arasi Gezinme Sayaci (Her 2 oda gezintisinde ve 25s aralikla)
             trackRoomChange: function() {
                 this.roomChangeCount++;
-                if (this.roomChangeCount >= 3) {
+                if (this.roomChangeCount >= 2) {
                     const now = Date.now();
                     if (now - this.lastInterstitialTime >= this.interstitialCooldownMs) {
                         this.roomChangeCount = 0;
@@ -15222,10 +15250,10 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 }
             },
 
-            // PatiLife Kedi Bakım & Etkileşim Sayacı (Besleme, su, temizlik gibi her 3 bakım aksiyonunda)
+            // PatiLife Kedi Bakim & Etkilesim Sayaci (Besleme, su, temizlik gibi her 2 bakim aksiyonunda)
             trackPatiLifeActivity: function(activityName) {
                 this.patiLifeActionCount++;
-                if (this.patiLifeActionCount >= 3) {
+                if (this.patiLifeActionCount >= 2) {
                     const now = Date.now();
                     if (now - this.lastInterstitialTime >= this.interstitialCooldownMs) {
                         this.patiLifeActionCount = 0;
@@ -16254,17 +16282,32 @@ const UnifiedBridge = {
     }
 };
 
-//  Native AdMob & Apple Game Center / iCloud Başlatma
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof AdManager !== 'undefined' && typeof AdManager.initNativeAdMob === 'function') {
-        AdManager.initNativeAdMob();
-    }
+// Native AdMob & Apple Game Center / iCloud Baslatma
+function startNativeServices() {
+    let adMobAttempts = 0;
+    const adMobCheck = setInterval(() => {
+        adMobAttempts++;
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+            clearInterval(adMobCheck);
+            if (typeof AdManager !== 'undefined' && typeof AdManager.initNativeAdMob === 'function') {
+                AdManager.initNativeAdMob();
+            }
+        } else if (adMobAttempts >= 20) {
+            clearInterval(adMobCheck);
+            if (typeof AdManager !== 'undefined' && typeof AdManager.initNativeAdMob === 'function') {
+                AdManager.initNativeAdMob();
+            }
+        }
+    }, 250);
+
     if (typeof CloudManager !== 'undefined' && typeof CloudManager.init === 'function') {
         setTimeout(() => {
             CloudManager.init();
         }, 800);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', startNativeServices);
     </script>
 </body>
 </html>
