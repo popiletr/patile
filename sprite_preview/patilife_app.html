@@ -3614,8 +3614,8 @@
 
         
         .dock-action-btn {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3639,19 +3639,21 @@
         #bottom-panel-dock {
             position: absolute;
             bottom: max(6px, env(safe-area-inset-bottom, 6px));
-            left: max(6px, env(safe-area-inset-left, 0px));
-            right: max(6px, env(safe-area-inset-right, 0px));
+            left: max(6px, env(safe-area-inset-left, 6px));
+            right: max(6px, env(safe-area-inset-right, 6px));
+            max-width: calc(100% - 12px);
+            box-sizing: border-box;
             height: 38px;
             z-index: 30;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             pointer-events: auto;
         }
 
         .btn-pause-round {
-            width: 38px;
-            height: 38px;
+            width: 34px;
+            height: 34px;
             cursor: pointer;
             flex-shrink: 0;
             transition: transform 0.1s;
@@ -3671,9 +3673,10 @@
             transform: scale(0.92);
         }
 
-        /* ALTTAR EVRİM RAYI (KAYDIRILABİLİR, 12 OBJE EKRANA TAM SIĞAR / KAYDIRILIR) */
+        /* ALT EVRİM RAYI (KAYDIRILABİLİR, 12 OBJE EKRANA TAM SIĞAR / KAYDIRILIR) */
         .evolution-rail-container {
-            flex: 1;
+            flex: 1 1 0;
+            min-width: 0;
             height: 38px;
             background: linear-gradient(180deg, #FFF9F0 0%, #F5E8D4 100%);
             border: 2px solid #E2CAAE;
@@ -3683,25 +3686,35 @@
             align-items: center;
             justify-content: flex-start;
             gap: 4px;
-            padding: 0 6px;
+            padding: 0 8px;
             box-shadow: 0 3px 8px rgba(80, 45, 20, 0.15), inset 0 1.5px 2px #FFFFFF;
             position: relative;
             overflow-x: auto;
             overflow-y: hidden;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            overscroll-behavior-x: contain;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .evolution-rail-container:active {
+            cursor: grabbing;
         }
 
         .evolution-rail-container::-webkit-scrollbar {
             display: none;
+            width: 0;
+            height: 0;
         }
 
         .evo-rail-line {
             position: absolute;
             top: 50%;
-            left: 12px;
-            min-width: calc(12 * 26px + 20px);
-            right: 12px;
+            left: 8px;
+            width: 292px;
             height: 3px;
             background: #E0C7AA;
             border-top: 1px solid #C4A786;
@@ -3715,8 +3728,8 @@
         .evo-item-slot {
             position: relative;
             z-index: 2;
-            width: 22px;
-            height: 22px;
+            width: 21px;
+            height: 21px;
             flex-shrink: 0;
             border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, #FFFDF8 0%, #F8EEDB 60%, #E6D2BA 100%);
@@ -3735,10 +3748,11 @@
         }
 
         .evo-item-img {
-            width: 17px;
-            height: 17px;
+            width: 16px;
+            height: 16px;
             object-fit: contain;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+            pointer-events: none;
         }
 
         /*  CANVAS */
@@ -15744,11 +15758,65 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
                 };
             }
 
-            // Scroll/zoom engelle
-            container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+            // Evrim rayı kaydırma etkileşimi (Touch, Mouse Drag ve Wheel)
+            const evoRail = document.querySelector('.evolution-rail-container');
+            let isRailDragging = false;
+            let railStartX = 0;
+            let railScrollLeft = 0;
+
+            if (evoRail) {
+                evoRail.addEventListener('pointerdown', (e) => {
+                    if (e.button !== undefined && e.button !== 0) return;
+                    isRailDragging = true;
+                    railStartX = e.clientX;
+                    railScrollLeft = evoRail.scrollLeft;
+                    evoRail.style.cursor = 'grabbing';
+                });
+
+                window.addEventListener('pointermove', (e) => {
+                    if (!isRailDragging) return;
+                    const deltaX = e.clientX - railStartX;
+                    evoRail.scrollLeft = railScrollLeft - (deltaX * 1.2);
+                });
+
+                const endRailDrag = () => {
+                    if (isRailDragging) {
+                        isRailDragging = false;
+                        if (evoRail) evoRail.style.cursor = 'grab';
+                    }
+                };
+
+                window.addEventListener('pointerup', endRailDrag);
+                window.addEventListener('pointercancel', endRailDrag);
+
+                // Dokunmatik kaydırmanın üst container tarafından engellenmesini önle
+                evoRail.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+
+                evoRail.addEventListener('touchmove', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+
+                // Fare tekerleğiyle yatay kaydırma
+                evoRail.addEventListener('wheel', (e) => {
+                    if (e.deltaY !== 0 || e.deltaX !== 0) {
+                        e.preventDefault();
+                        evoRail.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
+                    }
+                }, { passive: false });
+            }
+
+            // Scroll/zoom engelle (ray ve kaydırılabilir modal/ekran alanları hariç)
+            container.addEventListener('touchmove', e => {
+                if (e.target.closest('.evolution-rail-container, #map-levels-grid, .modal-card-map, .app-screen, .scrollable')) {
+                    return;
+                }
+                e.preventDefault();
+            }, { passive: false });
 
             container.addEventListener('pointermove', e => {
-                if (isAnyModalOpen() || isHammerMode) return;
+                if (isAnyModalOpen() || isHammerMode || isRailDragging) return;
                 if (e.target.closest('#jokers-dock, #hanging-next-dock, #top-bar-dock, #bottom-panel-dock, .game-modal, #joker-target-hint')) {
                     laserBeam.style.display = 'none';
                     return;
@@ -15766,7 +15834,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
 
             // Kullanıcı tıkladığı an fırlatıcı patiyi anında oraya çek
             container.addEventListener('pointerdown', e => {
-                if (isAnyModalOpen() || isHammerMode) return;
+                if (isAnyModalOpen() || isHammerMode || isRailDragging) return;
                 if (e.target.closest('#jokers-dock, #hanging-next-dock, #top-bar-dock, #bottom-panel-dock, .game-modal, #joker-target-hint')) return;
                 const pos = getPointerPos(e);
                 const clampX = Math.max(35, Math.min(suikaContainerWidth - 35, pos.x));
@@ -15777,7 +15845,7 @@ const ROOM_WIDTH = 2200; // Ultra geniş 3520x1216 panoramik oda genişliği
 
             container.addEventListener('pointerup', e => {
                 // Herhangi bir modal açıksa, joker onayı bekleniyorsa, oyun bittiyse veya UI'a tıklandıysa obje düşürme
-                if (isAnyModalOpen() || isLevelCompleted || isGameOver || pendingJokerType !== null) {
+                if (isAnyModalOpen() || isLevelCompleted || isGameOver || pendingJokerType !== null || isRailDragging) {
                     return;
                 }
 

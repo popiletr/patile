@@ -647,27 +647,48 @@
             transform: scale(0.92);
         }
 
-        /* 🌟 ALTTAR EVRİM RAYI (SAF CSS 3D TASARIM - 12 OBJE) */
+        /* ALT EVRİM RAYI (12 OBJE) */
         .evolution-rail-container {
-            flex: 1;
-            height: 44px;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 38px;
             background: linear-gradient(180deg, #FFF9F0 0%, #F5E8D4 100%);
-            border: 2.5px solid #E2CAAE;
-            border-bottom: 4px solid #C4A786;
-            border-radius: 24px;
+            border: 2px solid #E2CAAE;
+            border-bottom: 3.5px solid #C4A786;
+            border-radius: 20px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 6px;
-            box-shadow: 0 4px 12px rgba(80, 45, 20, 0.15), inset 0 2px 3px #FFFFFF;
+            justify-content: flex-start;
+            padding: 0 8px;
+            gap: 4px;
+            box-shadow: 0 3px 8px rgba(80, 45, 20, 0.15), inset 0 1.5px 2px #FFFFFF;
             position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            overscroll-behavior-x: contain;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .evolution-rail-container:active {
+            cursor: grabbing;
+        }
+
+        .evolution-rail-container::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
         }
 
         .evo-rail-line {
             position: absolute;
             top: 50%;
-            left: 12px;
-            right: 12px;
+            left: 8px;
+            width: 292px;
             height: 3px;
             background: #E0C7AA;
             border-top: 1px solid #C4A786;
@@ -675,13 +696,15 @@
             transform: translateY(-50%);
             z-index: 1;
             border-radius: 2px;
+            pointer-events: none;
         }
 
         .evo-item-slot {
             position: relative;
             z-index: 2;
-            width: 22px;
-            height: 22px;
+            width: 21px;
+            height: 21px;
+            flex-shrink: 0;
             border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, #FFFDF8 0%, #F8EEDB 60%, #E6D2BA 100%);
             border: 1.5px solid #C89C6A;
@@ -699,13 +722,14 @@
         }
 
         .evo-item-img {
-            width: 17px;
-            height: 17px;
+            width: 16px;
+            height: 16px;
             object-fit: contain;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+            pointer-events: none;
         }
 
-        /* 🎮 CANVAS */
+        /* CANVAS */
         #matter-canvas {
             position: absolute;
             top: 0;
