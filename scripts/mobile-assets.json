@@ -1,0 +1,7 @@
+{
+  "entry": "patilife_app.html",
+  "files": ["favicon.ico", "btn_game_decor.png", "btn_game_hunt.png", "btn_game_patile.png", "btn_game_yarn.png", "esyalar.png", "oyunlarsprite.png", "sarman.png", "orange.png", "tabby.png", "black.png", "british.png", "persian.png", "scottish_fold.png", "scottish.png", "siyam.png", "siyah.png", "iran.png", "tekir.png"],
+  "assetDirectories": ["assets", "sahneler", "sarman", "decor_assets", "suika_game"],
+  "assetExtensions": [".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp3", ".wav", ".ogg", ".m4a", ".woff", ".woff2", ".ttf", ".js", ".css"],
+  "featureDirectories": ["patilife_v2"]
+}

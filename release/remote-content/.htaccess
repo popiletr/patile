@@ -1,0 +1,8 @@
+<IfModule mod_headers.c>
+ Header set Access-Control-Allow-Origin "*"
+ Header set Cache-Control "no-store"
+ Header set X-Content-Type-Options "nosniff"
+</IfModule>
+<Files "live.json">
+ ForceType application/json
+</Files>

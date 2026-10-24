@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PatiLife</string>
+    <string name="title_activity_main">PatiLife</string>
+    <string name="package_name">com.patilife.app</string>
+    <string name="custom_url_scheme">com.patilife.app</string>
+    <string name="games_app_id" translatable="false">843057793938</string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-2856135323536987~3691639394</string>
+</resources>

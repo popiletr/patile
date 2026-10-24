@@ -1,0 +1,49 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const P=require('../sprite_preview/patilife_v2/notification-policy');
+const time=(h=21,m=0)=>new Date(2026,9,23,h,m).getTime();
+const game=()=>({catName:'Çakıl',hunger:10,thirst:10,foodDurationHours:6,waterDurationHours:4,lifeV2:{household:{food:{portions:0},water:{portions:0},litter:{remaining:8,dirty:4}}}});
+test('balanced policy respects local quiet hours, daily cap, spacing and a finite one-shot horizon',()=>{
+ const now=time(),plan=P.plan(game(),{},[],now);assert.ok(plan.length>0&&plan.length<=21);const perDay={};let last=now-3*3600000;for(const n of plan){const h=new Date(n.at).getHours();assert.ok(h>=9&&h<22);assert.ok(n.at-last>=3*3600000);assert.ok(n.at>now&&n.at<now+7*86400000);perDay[P.day(n.at)]=(perDay[P.day(n.at)]||0)+1;assert.ok(perDay[P.day(n.at)]<=3);assert.ok(P.OWNED_IDS.includes(n.id));last=n.at;}
+ assert.equal(new Date(plan[0].at).getHours(),9);assert.equal(new Set(plan.map(n=>n.key)).size,plan.length);
+});
+test('preferences can disable all, daily or care and reject malformed times without silently resetting',()=>{
+ assert.deepEqual(P.plan(game(),{enabled:false},[],time()),[]);assert.ok(P.plan(game(),{care:false},[],time()).every(n=>n.kind==='daily'));assert.ok(P.plan(game(),{daily:false},[],time()).every(n=>n.kind!=='daily'));assert.throws(()=>P.preferences({dailyTime:'25:01'}));assert.throws(()=>P.preferences({quietStart:9,quietEnd:9}));assert.throws(()=>P.preferences({maxDaily:10}));assert.throws(()=>P.preferences({gapHours:0}));
+});
+test('quiet hours wrap midnight or stay within one daytime interval in device local time',()=>{
+ const p=P.preferences();assert.equal(new Date(P.awake(time(23),p)).getDate(),24);assert.equal(new Date(P.awake(time(5),p)).getHours(),9);assert.equal(P.awake(time(12),p),time(12));const daytime=P.preferences({quietStart:12,quietEnd:16});assert.equal(P.awake(time(13),daytime),time(16));assert.equal(P.awake(time(20),daytime),time(20));assert.equal(P.awake(time(23),{...p,quietEnabled:false}),time(23));
+});
+test('already planned past deliveries count against the cap across reopening; canceled future plans do not',()=>{
+ const now=time(10),day=P.day(now),past=Array.from({length:3},(_,i)=>({at:time(9,i*10),key:'old:'+i,kind:'daily'}));const plan=P.plan(game(),{},[...past,{at:time(20),key:'future',kind:'food'}],now);assert.ok(plan.every(n=>P.day(n.at)!==day));const without=P.plan(game(),{},[],now);assert.ok(without.some(n=>P.day(n.at)===day));
+});
+test('automatic stock delays food or water reminders to its predicted depletion and social needs persisted events',()=>{
+ const g=game(),now=time(10);g.notificationRanks={food:3,water:3,litter:3};for(const type of ['food','water'])g.lifeV2.household[type]={portions:6,quality:type==='food'?'basic':'tap',nextAt:now};g.lifeV2.household.litter.dirty=0;
+ const plan=P.plan(g,{daily:false},[],now);assert.equal(plan.filter(n=>n.kind==='food').length,1);assert.ok(plan.find(n=>n.kind==='food').at>=now+15*3600000);assert.ok(plan.find(n=>n.kind==='food').title.includes('haznesi'));assert.ok(!plan.some(n=>n.kind==='parcel'));
+ g.lifeV2.petsgram={notifications:[{id:'box-1',kind:'parcel',at:now+3600000,title:'Kargon geldi',body:'Bir paket var.'}]};assert.ok(P.plan(g,{care:false,daily:false},[],now).some(n=>n.kind==='parcel'));assert.equal(P.plan(g,{care:false,daily:false,social:false},[],now).length,0);
+});
+function managerFixture({native=true,fail=false}={}){
+ const source=fs.readFileSync('sprite_preview/patilife_app.html','utf8'),a=source.indexOf('        const NotificationManager = {'),b=source.indexOf('        window.NotificationManager = NotificationManager;',a),calls=[],ledger=[];
+ const Native={cancelNotifications:async args=>calls.push(['cancel-native',args]),checkPermission:async()=>({granted:true,status:'authorized'}),scheduleNotification:async n=>{calls.push(['native',n]);if(fail)throw new Error('native unavailable');}};
+ const LN={cancel:async args=>calls.push(['cancel-ln',args]),checkPermissions:async()=>({display:'granted'}),schedule:async args=>calls.push(['ln',args])};
+ let prefs=P.preferences();const root={GameState:game(),PatiLifeNotificationPolicy:P,PatiLifeNotificationSettings:{read:()=>prefs,history:()=>ledger,remember:e=>{ledger.splice(0,ledger.length,...e);}},Capacitor:{Plugins:{...(native?{NativeNotification:Native}:{}),LocalNotifications:LN}},document:{hidden:true,getElementById:()=>null},AppLifecycleManager:{isPaused:true},console};root.window=root;vm.createContext(root);vm.runInContext(source.slice(a,b)+';globalThis.manager=NotificationManager;',root);return {root,manager:root.manager,calls,ledger,setPrefs:p=>{prefs=P.preferences(p);}};
+}
+test('native manager cancels both providers before installing one new plan; no permission request at replan',async()=>{
+ const f=managerFixture();await f.manager.scheduleCareNotifications(true);assert.deepEqual(f.calls.slice(0,2).map(c=>c[0]),['cancel-native','cancel-ln']);assert.ok(f.calls.some(c=>c[0]==='native'));assert.ok(!f.calls.some(c=>c[0]==='ln'));assert.ok(f.ledger.length);await f.manager.scheduleCareNotifications(true);const requests=f.calls.filter(c=>c[0]==='native');assert.ok(requests.every(c=>c[1].delaySeconds>0));
+});
+test('partial native failure is canceled before Capacitor fallback to prevent duplicate OS notifications',async()=>{
+ const f=managerFixture({fail:true});await f.manager.scheduleCareNotifications(true);const failAt=f.calls.findIndex(c=>c[0]==='native'),fallback=f.calls.findIndex(c=>c[0]==='ln');assert.ok(fallback>failAt);assert.deepEqual(f.calls.slice(failAt+1,fallback).map(c=>c[0]),['cancel-native','cancel-ln']);assert.ok(f.ledger.length);
+});
+test('foreground and disabled reminders cancel pending jobs without scheduling; a late permission result cannot re-add',async()=>{
+ const f=managerFixture();f.root.document.hidden=false;f.root.AppLifecycleManager.isPaused=false;await f.manager.scheduleCareNotifications(true);assert.ok(f.calls.every(c=>c[0].startsWith('cancel')));f.root.document.hidden=true;f.root.AppLifecycleManager.isPaused=true;f.setPrefs({enabled:false});await f.manager.scheduleCareNotifications(true);assert.ok(f.calls.every(c=>c[0].startsWith('cancel')));
+ const late=managerFixture();late.manager.checkPermission=async()=>{late.root.document.hidden=false;late.root.AppLifecycleManager.isPaused=false;return true;};await late.manager.scheduleCareNotifications(true);assert.ok(late.calls.every(c=>c[0].startsWith('cancel')));
+});
+test('rapid preference changes serialize and leave no stale reminders after disabling',async()=>{
+ const f=managerFixture(),plugin=f.root.Capacitor.Plugins.NativeNotification;let next,first=true;const original=plugin.scheduleNotification;plugin.scheduleNotification=async n=>{await original(n);if(first){first=false;f.setPrefs({enabled:false});next=f.manager.scheduleCareNotifications(true);}};await f.manager.scheduleCareNotifications(true);await next;assert.deepEqual(f.calls.slice(-2).map(c=>c[0]),['cancel-native','cancel-ln']);assert.equal(f.ledger.length,0);
+});
+test('in-game preferences save chosen hours and switches then replan without requesting permission',async()=>{
+ class El{constructor(tag,text){this.tagName=tag;this.textContent=text;this.children=[];this.style={};this.dataset={};}append(...nodes){this.children.push(...nodes);}setAttribute(){}remove(){this.removed=true;}}
+ const storage=new Map(),box=new El('section'),layer=new El('div');let replans=0,notices=[];const root={PatiLifeNotificationPolicy:P,localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},document:{createElement:t=>new El(t)},PatiLifeHome:{dialog:()=>({box,layer}),button:(text,fn)=>{const b=new El('button',text);b.onclick=fn;return b;}},NotificationManager:{scheduleCareNotifications:async()=>replans++},showBubble:t=>notices.push(t),closeModals(){}};root.window=root;vm.createContext(root);vm.runInContext(fs.readFileSync('sprite_preview/patilife_v2/notification-settings.js','utf8'),root);root.PatiLifeNotificationSettings.open();const all=n=>[n,...n.children.flatMap(all)],nodes=all(box),form=nodes.find(n=>n.tagName==='form');for(const [name,value]of [['dailyTime','10:15'],['quietStart','21'],['quietEnd','8'],['maxDaily','2']])nodes.find(n=>n.name===name).value=value;nodes.find(n=>n.name==='enabled').checked=false;await form.onsubmit({preventDefault(){}});const saved=root.PatiLifeNotificationSettings.read();assert.equal(saved.dailyTime,'10:15');assert.equal(saved.quietStart,21);assert.equal(saved.quietEnd,8);assert.equal(saved.maxDaily,2);assert.equal(saved.enabled,false);assert.equal(replans,1);assert.equal(layer.removed,true);assert.equal(notices.length,1);
+ storage.set(root.PatiLifeNotificationSettings.LEDGER,'broken');assert.throws(()=>root.PatiLifeNotificationSettings.history());assert.equal(storage.get(root.PatiLifeNotificationSettings.LEDGER),'broken');
+});
+test('toilet reminders name the actual required operation instead of confusing dirt with the cats need',()=>{
+ const g=game(),now=time(10);g.hunger=100;g.thirst=100;g.toiletNeed=90;let entries=P.plan(g,{daily:false},[],now),event=entries.find(e=>e.kind==='litter');assert.ok(event.body.includes('Kürekle temizle'));g.lifeV2.household.litter.remaining=0;entries=P.plan(g,{daily:false},[],now);event=entries.find(e=>e.kind==='litter');assert.ok(event.body.includes('20 altın'));assert.ok(!entries.some(e=>e.kind==='toilet-need'));g.lifeV2.household.litter.remaining=8;g.lifeV2.household.litter.dirty=0;entries=P.plan(g,{daily:false},[],now);assert.ok(entries.find(e=>e.kind==='toilet-need').body.includes('Tuvalete götür'));assert.ok(!entries.some(e=>e.kind==='litter'));g.notificationToiletPlaced=false;entries=P.plan(g,{daily:false},[],now);assert.ok(entries.find(e=>e.kind==='litter').body.includes('yerleştir'));
+});

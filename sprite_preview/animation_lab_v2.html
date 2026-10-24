@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="patilife_v2/"><title>PatiLife — Animasyon Kontrolü</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f9f1e4;color:#493c30;font:16px/1.5 system-ui,sans-serif}main{max-width:960px;padding:24px;margin:auto}h1{font:32px Georgia,serif}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}button,a{font:inherit;color:inherit}button{padding:10px 16px;border:1px solid #bdc6ac;border-radius:12px;background:#fffdf7;cursor:pointer}button[aria-pressed=true]{background:#53664d;color:white}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{border:1px solid #ddd2be;border-radius:20px;background:#fffcf5;padding:16px}.stage{background:#f0e5ce url('../sahneler/salon.jpg') center/cover;border-radius:14px}canvas{display:block;width:100%;height:auto;aspect-ratio:1}.props{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.props span{font-size:12px}.note{color:#756b5b;font-size:14px}@media(max-width:450px){main{padding:16px}.props{grid-template-columns:repeat(2,1fr)}}button:focus-visible{outline:3px solid #946c42}
+</style></head><body><main><a href="index.html">Yeni oyuna dön</a><h1>Yavru animasyon kontrolü</h1><p>Bir hareket seçerek aynı eylemi dört desende karşılaştırabilirsin. Bu sayfa geliştirici kontrolü içindir; mobil pakete dahil edilmez.</p><div class="controls" id="controls"></div><div class="cards" id="cards"></div><h2>48 işlevsel eşya</h2><div class="props" id="props"></div><p class="note">Azaltılmış hareket tercihi açıksa eylemlerin ilk karesi gösterilir. Bu ekranın hazırlanması, cihazda görsel kontrolün tamamlandığı anlamına gelmez.</p></main><script src="catalog-data.js"></script><script src="sprite-atlases.js"></script><script src="prop-atlas.js"></script><script src="sprite-player.js"></script><script>
+ 'use strict';
+const player=window.PatiLifeSpritePlayer,actors=[];
+let stage='kitten',motion='idle';
+function renderActors(){
+ player.stopAll();actors.length=0;document.getElementById('cards').replaceChildren();
+ for(const [id,label] of [['sarman','Sarman'],['tekir','Tekir'],['smokin','Smokin'],['calico','Calico']]){
+  const card=document.createElement('section');card.className='card';const title=document.createElement('h2');title.textContent=label;
+  const scene=document.createElement('div');scene.className='stage';const actor=document.createElement('canvas');actor.setAttribute('role','img');actor.setAttribute('aria-label',label+' animasyonu');actor.setAttribute('data-motion',motion);scene.append(actor);card.append(title,scene);document.getElementById('cards').append(card);actors.push(actor);player.mount(actor,id,true,stage);
+ }
+}
+const age=document.createElement('select');age.setAttribute('aria-label','Büyüme aşaması');
+for(const [id,label] of [['kitten','Yavru'],['young','Genç'],['adult','Yetişkin']]){const option=document.createElement('option');option.value=id;option.textContent=label;age.append(option);}
+age.onchange=()=>{stage=age.value;renderActors();};document.getElementById('controls').append(age);
+for(const [id,label] of [['idle','Bekleme'],['walk','Yürüme'],['eat','Yeme'],['drink','İçme'],['sleep','Uyku'],['happy','Sevme'],['jump','Zıplama'],['scratch','Tırmalama'],['bath','Temizlenme'],['yarn','Yumak']]){
+ const button=document.createElement('button');button.type='button';button.textContent=label;button.setAttribute('aria-pressed',String(id==='idle'));
+ button.onclick=()=>{motion=id;for(const actor of actors)actor.setAttribute('data-motion',id);for(const b of document.querySelectorAll('.controls button'))b.setAttribute('aria-pressed',String(b===button));};document.getElementById('controls').append(button);
+}
+for(const definition of window.PatiLifeCatalogData){const item=document.createElement('div'),canvas=document.createElement('canvas'),text=document.createElement('span');text.textContent=definition.name;canvas.setAttribute('aria-hidden','true');item.append(canvas,text);document.getElementById('props').append(item);player.mountProp(canvas,definition.id);}
+renderActors();window.addEventListener('pagehide',()=>player.stopAll());
+</script></body></html>

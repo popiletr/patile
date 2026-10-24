@@ -1,0 +1,67 @@
+/* Paint-only Patile skin. Original layout, dimensions and input targets stay in classic-shell.css. */
+#screen-suika{--patile-ink:#654530;--patile-muted:#977b5d;--patile-line:#dec6a3;--patile-paper:#fff7e9;--patile-sage:#7f9e70}
+#screen-suika #game-container{background-image:url('assets/patile-room-watercolor.png');background-color:#f5ecd9;color:var(--patile-ink);font-family:inherit;box-shadow:0 18px 50px #70563c28}
+#screen-suika :is(.hud-badge-level,.hud-quest-panel,.hud-drops-pill,.hud-coin-pill){background:#fff8e9;border-color:#e4cfad;border-bottom-color:#c8ad86;box-shadow:0 3px 0 #d5bd9733}
+#screen-suika :is(.level-number-huge,.coin-val-text,.drops-val,.quest-item-text){color:#67472f;text-shadow:none}
+#screen-suika :is(.level-title-tiny,.win-box-title){color:#967653}
+#screen-suika .quest-roof-badge{background:#a47e56;border-color:#fff7e9;color:#fff9ed;box-shadow:0 2px 0 #785b3b33;text-shadow:none}
+#screen-suika .hud-diff-pill{box-shadow:none;text-shadow:none;border-color:#fff7e9}
+#screen-suika .diff-easy{background:#839d70;color:#fffaf0}#screen-suika .diff-medium{background:#c4a267;color:#fffaf0}#screen-suika .diff-hard{background:#c48f69;color:#fffaf0}#screen-suika .diff-boss{background:#ba8179;color:#fffaf0;box-shadow:0 0 0 2px #e6c7ae}
+#screen-suika #hanging-next-dock{background:linear-gradient(transparent 33%,#fff7e9 33%);border-radius:24px;filter:drop-shadow(0 3px 1px #bba07b55);box-shadow:inset 0 -2px #d9bf99}
+#screen-suika #hanging-next-dock::before{content:'';position:absolute;top:0;left:22%;right:22%;height:36%;border-left:2px solid #b79a75;border-right:2px solid #b79a75;pointer-events:none}
+#screen-suika :is(#spawner-cat-sprite,#spawner-current-item,.next-inner-preview,.dock-action-btn img,.evo-item-img){filter:drop-shadow(0 2px 1px #8b6c4e30)}
+#screen-suika #playfield-glass-jar{background:linear-gradient(110deg,#fff9e850,transparent 35%,#fffaf02b);border-color:#e4d2b5;border-top-color:#ceaf89;box-shadow:inset 0 0 20px #fffaf088,0 8px 12px #98775020;backdrop-filter:none;-webkit-backdrop-filter:none}
+#screen-suika #jar-wooden-rim{background:#e7cfaa;border-color:#fff8e8;box-shadow:0 2px 0 #bba07c50}
+#screen-suika #drop-laser-beam{background-image:radial-gradient(#9c8766 45%,transparent 45%);filter:none}
+#screen-suika #danger-line{border-top-color:#b8796877}
+#screen-suika #danger-warning{background:#b97968;color:#fff8e9;box-shadow:0 2px 0 #8a594944}
+#screen-suika #joker-target-hint{background:#fff5df;color:#715039;border-color:#caaa7c;box-shadow:0 3px 0 #c4a78066}
+#screen-suika #jokers-dock{background:#fbefd9;outline:1px solid #d7bd95;border-radius:19px;filter:drop-shadow(0 3px 1px #a3845c44)}
+#screen-suika .joker-hit-area{background-repeat:no-repeat;background-position:center;background-size:72% 72%}
+#screen-suika #btnJokerHammer{background-image:var(--patile-hammer)}#screen-suika #btnJokerShake{background-image:var(--patile-shake)}#screen-suika #btnJokerSwap{background-image:var(--patile-swap)}
+#screen-suika .joker-badge{background:#819b6f;color:#fffaf0;border-radius:50%;text-shadow:none;box-shadow:0 1px 0 #5e7651}
+#screen-suika .evo-rail-line{background:#d9c3a1;border-color:#bca17b}
+#screen-suika .evo-item-slot{background:#fff7e6;border-color:#d0b791;box-shadow:0 1px 0 #b8a08044}
+#screen-suika .evo-item-slot.king{background:#f3e4ba;border-color:#c9a86b;box-shadow:0 0 0 2px #e8d9b255}
+#screen-suika .game-modal{background:#604a3590;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#screen-suika :is(.modal-card-win,.modal-card-map){background:#fff7e9!important;border-radius:28px;box-shadow:inset 0 0 0 3px #e0c9a4,inset 0 -7px #dbc39d;filter:drop-shadow(0 12px 18px #44322444)}
+#screen-suika .modal-card-map::before{content:'';position:absolute;top:4%;left:35%;width:30%;height:20%;background:var(--patile-king) center/contain no-repeat;pointer-events:none}
+#screen-suika :is(.map-ribbon-text,.win-ribbon-text){color:#6b4b31;text-shadow:none;background:#eee2c9;border-radius:12px;box-shadow:0 2px 0 #d6bc94}
+#screen-suika .win-close-btn{background:var(--patile-close) center/85% 85% no-repeat}
+#screen-suika .win-completed-goals{background:#f6eddc;border-color:#e4cfad;box-shadow:none}
+#screen-suika :is(.win-box-left,.win-box-right){background:#f5ead4;border-radius:18px;box-shadow:inset 0 0 0 1px #e2cba7}
+#screen-suika :is(.win-box-val,.win-goal-text){color:#694a31;text-shadow:none}
+#screen-suika .win-goal-check{background:#8da377;box-shadow:none}
+#screen-suika .win-btn-action{background:#819f70;border-radius:20px;color:#fffaf0;text-shadow:none;box-shadow:0 4px 0 #607a51}
+#screen-suika .patile-win-stars{position:absolute;top:4%;left:22%;width:56%;height:20%;display:flex;align-items:center;justify-content:center;gap:4px;pointer-events:none}
+#screen-suika .patile-win-stars img{width:31%;height:100%;object-fit:contain}
+#screen-suika .patile-win-stars img.is-empty{filter:grayscale(1);opacity:.22}
+#screen-suika .map-node-btn{background:#f0dfbb;border-color:#c6a16d;box-shadow:0 3px 0 #b6966c55}
+#screen-suika .map-node-num{color:#735132;text-shadow:none}
+#screen-suika .map-node-btn.current{background:#e8edd4;border-color:#91a776;box-shadow:0 0 0 3px #cedab099,0 3px 0 #91a77655}
+#screen-suika .map-node-btn.locked{background:#eae3d5;border-color:#c7bdad;box-shadow:0 2px 0 #c7bdad55;opacity:.65}
+#screen-suika .map-node-btn.locked .map-node-num{color:#a59986}
+#screen-suika .map-node-btn.skipped{background:#e4e9da;border-color:#bac9a2}
+#screen-suika .map-node-btn.skipped .map-node-stars{background:#b4c3a0;color:#526644;border-color:#d9e0ca;box-shadow:none}
+#screen-suika .map-node-stars{color:#a48248;text-shadow:none;pointer-events:none}
+#screen-suika :is(.modal-card-confirm,.modal-card-settings,.modal-card-gameover){background:#fff7e9!important;border-color:#dfc6a1!important;border-radius:26px;box-shadow:0 5px 0 #c7ab83,0 16px 28px #58422d33!important}
+#screen-suika .confirm-icon-box{background:#f3ead5!important;border-color:#dac39c!important;box-shadow:0 2px 0 #c8b18d33}
+#screen-suika :is(.confirm-title,.settings-title,.gameover-title){color:#6b4a32!important;text-shadow:none}
+#screen-suika :is(.confirm-desc,.settings-label,.gameover-subtitle){color:#957655}
+#screen-suika .settings-row{background:#f4ead6}
+#screen-suika :is(.confirm-btn.ok,.gameover-btn.retry,.btn-settings-close,.gameover-revive-btn,.gameover-skip-btn,.settings-toggle.on){background:#849f72!important;color:#fffaf0!important;border-color:#afc198!important;border-bottom-color:#607b50!important;text-shadow:none;box-shadow:0 3px 0 #607b5055!important}
+#screen-suika :is(.confirm-btn.cancel,.gameover-btn.map,.settings-toggle.off){background:#eee1c9!important;color:#826244!important;border-color:#dbc39e!important;box-shadow:0 2px 0 #cab08a44}
+#screen-suika .gameover-revive-btn.disabled{background:#e4ddce!important;color:#a69a86!important;border-color:#d5cbb8!important;box-shadow:none!important}
+#screen-suika :is(.revive-title,.revive-sub){text-shadow:none;color:inherit!important}
+#screen-suika .revive-sub{opacity:.85}
+#screen-suika #combo-display{background:#e3c38c;color:#735131;border-color:#f9edd4;text-shadow:none;box-shadow:0 3px 0 #b9976255}
+#screen-suika #particle-canvas{filter:saturate(.55) sepia(.12)}
+#screen-suika #modalResetAllConfirm .confirm-btn.ok{background:#b78070!important;border-color:#d8ac99!important;border-bottom-color:#936050!important}
+#screen-suika .joker-hit-area.active-mode{filter:drop-shadow(0 0 7px #a8bb81aa)!important}
+
+/* Home return occupies the free upper-left area below the HUD. */
+#screen-suika #patile-back-button{position:absolute;top:calc(max(14px,env(safe-area-inset-top,24px)) + 54px);left:10px;z-index:45;display:flex;align-items:center;justify-content:center;gap:6px;width:94px;min-height:44px;padding:5px 9px;border:1px solid #ddc49e;border-bottom:3px solid #c8ad86;border-radius:15px;background:#fff7e9;color:#715135;box-shadow:0 2px 0 #c6a98233;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;touch-action:manipulation}
+#screen-suika #patile-back-button img{width:25px;height:25px;object-fit:contain;pointer-events:none}
+#screen-suika #patile-back-button:hover{background:#f4ead4}
+#screen-suika #patile-back-button:active{background:#e9dfc7}
+#screen-suika #patile-back-button:focus-visible{outline:3px solid #91a776;outline-offset:2px}

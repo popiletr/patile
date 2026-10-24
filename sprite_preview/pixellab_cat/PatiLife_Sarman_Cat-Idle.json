@@ -1,0 +1,45 @@
+{
+  "character": {
+    "id": "1274557b-6135-4a8e-af8d-05ea749046a2",
+    "name": "Idle",
+    "prompt": "Cute chubby chibi orange tabby cat standing on hind legs, cream ivory body, ginger orange patch on left ear and head, orange striped curled tail, kawaii pixel art",
+    "size": {
+      "width": 96,
+      "height": 96
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "PatiLife_Sarman_Cat-Idle.png",
+    "cell_size": {
+      "width": 96,
+      "height": 96
+    },
+    "sheet_size": {
+      "width": 768,
+      "height": 96
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-09-10T23:40:33.115940+00:00"
+}

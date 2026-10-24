@@ -1,0 +1,90 @@
+/* Household UI and completed-action integration; all transactions use the shared save. */
+(function(root){
+ 'use strict';const R=root.PatiLifeHouseholdRules,H=root.PatiLifeHome;let game,manager,api,scooping=false;const cache=new Map(),el=(tag,text,cls)=>{const n=root.document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+ const litterIds=['litter','wide_litter','private_litter'];
+ function save(){root.document.body.classList.toggle('health-sensitive',game.lifeV2.household?.condition==='sensitive');game.lifeV2.economy.coins=game.coins;api.save();api.hud();}
+ function snapshot(){return root.PatiLifeClassicLife.snapshot(game);}
+ function apply(result){game.lifeV2.household=result.household||result;if(result.coins!==undefined)game.coins=result.coins;save();}
+ function sheet(title){api.close();const dialog=H.dialog(title);dialog.layer.dataset.view='household';return dialog;}
+ function row(box,title,detail,action,fn,disabled=false){const card=el('article',undefined,'workshop-item household-action'),words=el('div');const icon=root.PatiLifeGameIcons?.make(root.PatiLifeGameIcons.forText(title+' '+action));if(icon)card.append(icon);words.append(el('strong',title),el('small',detail));const b=H.button(action,fn);b.disabled=disabled;card.append(words,b);box.append(card);}
+ function supplies(type){const {box,layer}=sheet(type==='food'?'Mama ve hazne':'Su ve hazne'),automatic=H.rank(game.lifeV2,type)>=3,stock=game.lifeV2.household[type],defs=type==='food'?R.FOOD:R.WATER;box.append(el('p',automatic?'Haznede '+stock.portions+' porsiyon var. Boşalınca yeniden doldurmalısın.':'Bir öğün seç. Mama/su tamamlandığında etkisi uygulanır.'));for(const [id,d] of Object.entries(defs)){row(box,d.name,d.detail+' · '+d.hours+' saat',d.cost?d.cost+' altın · Ver':'Ücretsiz · Ver',()=>{layer.remove();api[type](id,false);},game.isBusy||game.coins<d.cost);if(automatic){const capacity=H.rank(game.lifeV2,type)>=4?10:6;row(box,d.name+' · Hazne dolumu',capacity+' porsiyon · Toplam '+(d.cost*capacity)+' altın','Doldur',()=>{apply(R.refill(snapshot(),type,id,capacity));supplies(type);},game.isBusy||game.coins<d.cost*capacity);}}root.PatiLifeRuntime?.sponsorOffers?.(box,[type]);row(box,'Sağlık ve bakım','Sağlık: '+Math.round(game.lifeV2.household.health)+' / 100','Bak',health);}
+ function health(){const {box}=sheet('Sağlık ve bakım'),h=game.lifeV2.household;box.append(el('p','Sağlık: '+Math.round(h.health)+' / 100 · '+({well:'İyi',sensitive:'Midesi hassas',recovering:'Toparlanıyor'})[h.condition]));box.append(el('p','Bunlar oyun içi beslenme etkileridir. Dengeli öğünler, taze su ve temiz bir yaşam alanı birlikte önem taşır.'));row(box,'Veteriner desteği','Muayene ve toparlanma planı · 35 altın','Destek al',()=>{apply(R.vet(snapshot()));health();},h.condition==='well'||game.coins<35||game.isBusy);}
+ function litterStation(current=game,decor=manager){const preferred=current?.toiletStation,placed=decor?.placedDecor||[],valid=d=>typeof d.itemId==='string'&&litterIds.includes(d.itemId.slice(5));return placed.find(d=>d.id===preferred?.id&&valid(d))||placed.find(d=>d.room===current?.currentRoom&&valid(d))||placed.find(valid);}
+ // HUD refreshes during save loading, before household.init. Read that explicit game without module side effects.
+ function status(current=game,decor=manager){return R.toiletStatus(current?.lifeV2||{},current?.toiletNeed,{placed:!!litterStation(current,decor),busy:!!current?.isBusy||!!api?.playing?.()});}
+
+ function toiletMenu(){
+  const {box,layer}=sheet('Kum kabı ve temizlik'),s=status(),level=R.litterLevel(game.lifeV2),hero=el('section',undefined,'household-station-hero'),art=el('canvas'),label=el('div');
+  draw(art,root.PatiLifeHouseholdAtlases['toilet-upgrades'],level,s.dirty?1:0);
+  label.append(el('small','KEDİNİN BAKIM KÖŞESİ'),el('h2',['Açık tuvalet','Kapalı tuvalet','Büyük kapalı tuvalet','Kendini temizleyen tuvalet'][level]),el('p',s.placed?'Odada yerleştirilmiş':'Envanterde · Henüz yerleştirilmedi'));hero.append(art,label);box.append(hero);
+  const indicators=el('div',undefined,'toilet-indicators');
+  for(const [title,value,detail]of [['Kedinin ihtiyacı','%'+Math.round(s.need),s.need>=40?'Tuvaletini yapabilir':'Henüz ihtiyacı yok'],['Kapta kalan kum',s.remaining+' kullanım',s.automatic?'Hazne bitince yenile':'Kürekle temizlik kumu tüketmez'],['Kabın temizliği',s.automatic?'Otomatik':s.dirty+' / 4',s.automatic?'Kendi temizler':s.dirty>=4?'Önce topakları temizle':'Kirli kullanım sayısı']]){const card=el('div');card.append(el('small',title),el('strong',value),el('span',detail));indicators.append(card);}box.append(indicators);
+  const next=el('section',undefined,'toilet-next');next.dataset.action=s.action;next.setAttribute('aria-live','polite');next.append(el('small','ŞİMDİ YAPILACAK'),el('h3',s.heading),el('p',s.message));
+  const scoop=()=>{layer.remove();root.openLitterCleaningGame();},refill=()=>{apply(R.buyLitter(snapshot(),level));manager.renderRoomDecor(game.currentRoom);toiletMenu();};
+  const actions={use:()=>{layer.remove();useToilet();},clean:scoop,refill,place:()=>{layer.remove();const owned=manager.ownedDecor.find(id=>litterIds.includes(id.slice(5)));if(owned)H.picker(owned);else H.shop('bathroom');}};
+  if(s.button){const b=H.button(s.button,actions[s.action]);b.className+=' toilet-primary';b.disabled=s.busy||(s.action==='refill'&&game.coins<20);next.append(b);if(s.action==='refill'&&game.coins<20)next.append(el('p','20 altın gerekiyor; şu an '+game.coins+' altının var. Bir mini oyunla altın kazanabilirsin.','toilet-cost-note'));}box.append(next);
+  const flow=el('ol',undefined,'toilet-flow');flow.setAttribute('aria-label','Tuvalet bakımının sırası');
+  for(const [i,step]of s.steps.entries()){const item=el('li');item.dataset.state=step.state;const icon=root.PatiLifeGameIcons?.make(step.icon);if(icon)item.append(icon);const text=el('div');text.append(el('small',(i+1)+'. ADIM · '+({done:'HAZIR',current:'SIRADAKİ',locked:'ÖNCE HAZIRLA',waiting:'BEKLİYOR',automatic:'KENDİ TEMİZLER',available:'YAPABİLİRSİN'})[step.state]),el('strong',step.title),el('p',step.text));item.append(text);flow.append(item);}box.append(el('h3','Bakımın sırası'),flow);
+  const more=el('details',undefined,'toilet-more');more.append(el('summary','Diğer bakım seçenekleri'));
+  if(!s.automatic&&s.action!=='clean')row(more,'Topakları temizle',s.canClean?'Kürekle temizle; kalan kumu koru.':'Henüz temizlenecek topak yok.','Kürekle temizle',scoop,s.busy||!s.canClean);
+  if(s.action!=='refill')row(more,'Kumu tamamen yenile','20 altın · '+s.capacity+' kullanım. Sadece topak temizlemek için satın alman gerekmez.','Yeni kum · 20 altın',refill,s.busy||!s.canRefill||game.coins<20);box.append(more);if(s.canRefill&&!s.busy)root.PatiLifeRuntime?.sponsorOffers?.(box,['litter']);
+  const upgrades=el('details',undefined,'toilet-more');upgrades.append(el('summary','Tuvaleti geliştir'));
+  for(const [i,id,description]of [[1,'litter-3','3 kullanım ve 3 farklı aktif gün'],[2,'litter-12','12 kullanım ve 7 farklı aktif gün'],[3,'litter-30','30 kullanım ve 14 farklı aktif gün']])row(upgrades,['','Kapalı tuvalet','Büyük kapalı tuvalet','Elektrikli tuvalet'][i],description,i<=level?'Açıldı':'Başarıma git',()=>{layer.remove();root.PatiLifeClassicLife.open('achievements');},i<=level);box.append(upgrades);
+ }
+
+ function beginScoop(){if(scooping||game.isBusy||api.playing())return false;if(R.litterLevel(game.lifeV2)>=3){api.notice('Bu tuvalet kendini temizliyor.');return false;}if(game.lifeV2.household.litter.remaining<=0){api.notice('Kum tükendi. Önce yeni kum ekle; kirli kum da yenilenir.');return false;}if(!game.lifeV2.household.litter.dirty){api.notice('Kum kabı zaten temiz.');return false;}scooping=true;game.isBusy=true;return true;}
+ function cancelScoop(){if(scooping){scooping=false;game.isBusy=false;}}
+ function finishScoop(){if(!scooping)return false;const result=R.clean(snapshot());scooping=false;game.isBusy=false;game.lifeV2.household=result;game.toiletFullness=0;game.coins+=5;save();manager.renderRoomDecor(game.currentRoom);return true;}
+ function image(src){let im=cache.get(src);if(!im){im=new root.Image();im.decoding='async';im.src='patilife_v2/'+src;cache.set(src,im);}return im;}
+ function draw(canvas,atlas,group,index){const meta=atlas.groups[group],f=meta.frames[index%meta.frames.length],im=image(atlas.src);const paint=()=>{const ctx=canvas.getContext('2d');canvas.width=160;canvas.height=160;const scale=140/meta.unit;ctx.clearRect(0,0,160,160);ctx.drawImage(im,f.x,f.y,f.width,f.height,(160-f.width*scale)/2,150-f.height*scale,f.width*scale,f.height*scale);canvas.patigramFrame={src:'patilife_v2/'+atlas.src,frame:{...f},dst:{x:(160-f.width*scale)/320,y:(150-f.height*scale)/160,w:f.width*scale/160,h:f.height*scale/160}};};if(im.complete&&im.naturalWidth)paint();else im.addEventListener('load',paint,{once:true});}
+ function decorate(container,id){const def=manager.CATALOG[id]?.cozy;if(!def)return false;let atlas,group,index=0;if(litterIds.includes(def.id)){atlas=root.PatiLifeHouseholdAtlases['toilet-upgrades'];group=R.litterLevel(game.lifeV2);index=game.lifeV2.household.litter.dirty>0?1:0;}else if(Number.isInteger(def.motionColumn)){atlas=root.PatiLifeHouseholdAtlases['room-toys'];group=def.motionColumn;}else return false;const canvas=el('canvas');canvas.style.cssText='width:100%;height:100%;object-fit:contain';container.replaceChildren(canvas);draw(canvas,atlas,group,index);return true;}
+ function animate(id){const item=manager.placedDecor.find(d=>d.itemId===id),def=manager.CATALOG[id]?.cozy,node=item&&root.document.getElementById(item.id);if(!node)return;node.classList.add('household-item-active');if(Number.isInteger(def?.motionColumn)&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches){let frame=0;const canvas=node.querySelector('canvas'),timer=root.setInterval(()=>{if(!canvas?.isConnected){root.clearInterval(timer);return;}draw(canvas,root.PatiLifeHouseholdAtlases['room-toys'],def.motionColumn,frame++);},180);root.setTimeout(()=>{root.clearInterval(timer);if(canvas?.isConnected)draw(canvas,root.PatiLifeHouseholdAtlases['room-toys'],def.motionColumn,0);},2600);}root.setTimeout(()=>node.classList.remove('household-item-active'),2600);}
+ function cleaningAnimation(id){const node=root.document.getElementById(id),canvas=node?.querySelector('canvas');if(!canvas)return;node.classList.add('toilet-cleaning');let frame=0;const timer=root.setInterval(()=>{if(!canvas.isConnected){root.clearInterval(timer);return;}draw(canvas,root.PatiLifeHouseholdAtlases['toilet-cleaning'],frame++%4,0);},250);root.setTimeout(()=>{root.clearInterval(timer);node.classList.remove('toilet-cleaning');manager.renderRoomDecor(game.currentRoom);},2000);}
+ function clearToiletContact(){root.document.getElementById('active-litter-front')?.remove();game.toiletContact=null;const actor=root.document.getElementById('catActor');if(actor)actor.style.opacity='1';}
+ function toiletFront(station,level,contact){
+  if(level!==0)return;
+  const container=root.document.getElementById('decorContainer');if(!container)return;
+  const def=manager.CATALOG[station.itemId],front=el('div',undefined,'litter-front'),canvas=el('canvas');front.id='active-litter-front';front.setAttribute('aria-hidden','true');
+  front.style.cssText='position:absolute;left:'+station.x+'px;bottom:'+(station.bottom*api.scaleY())+'px;width:'+def.width+'px;height:'+def.height+'px;transform:scale('+(station.scale||1)+');clip-path:inset('+contact.frontCut+'% 0 0 0)';
+  canvas.style.cssText='width:100%;height:100%;object-fit:contain;display:block';front.append(canvas);container.append(front);draw(canvas,root.PatiLifeHouseholdAtlases['toilet-upgrades'],level,game.lifeV2.household.litter.dirty?1:0);
+ }
+ function useToilet(automatic=false){
+  if(game.isBusy||api.playing())return;const station=litterStation();game.toiletStation=null;
+  if(!station){if(!automatic){api.notice(status().message);toiletMenu();}return;}
+  if((game.toiletNeed||0)<40){api.notice('Henüz tuvalet ihtiyacı yok.');return;}
+  const level=R.litterLevel(game.lifeV2);try{R.toilet(snapshot(),level);}catch(e){if(!automatic){api.notice(status().message);toiletMenu();}return;}
+  game.isBusy=true;api.close();root.document.getElementById('home-workshop')?.remove();
+  if(game.currentRoom!==station.room)api.room(station.room);
+  const def=manager.CATALOG[station.itemId],cat=game.lifeV2.cat.id,age=game.lifeV2.growth.stage,atlas=root.PatiLifeHouseholdAtlases['toilet-upgrades'];
+  const group=root.PatiLifeHouseholdAtlases['toilet-'+age].groups[['sarman','tekir','smokin','calico'].indexOf(cat)];
+  const contact=R.toiletTarget(station,def,atlas.groups[level],group.frames[1],group.unit,api.scaleY());
+  const x=contact.x,b=contact.bottom;api.focus(contact.footX);
+  api.walk(x,b,()=>{
+   game.catX=x;game.catBottom=b;game.catDir=contact.dir;game.currentAnim='toilet';game.toiletContact={...contact,stationId:station.id};toiletFront(station,level,contact);
+   const actor=root.document.getElementById('catActor');
+   root.setTimeout(()=>{if(level>0&&game.isBusy&&game.currentRoom===station.room)actor.style.opacity='0';},700);
+   root.setTimeout(()=>{
+    clearToiletContact();if(game.currentRoom!==station.room){game.isBusy=false;game.currentAnim='idle';return;}
+    try{game.lifeV2.household=R.toilet(snapshot(),level);}catch(e){game.isBusy=false;game.currentAnim='idle';api.notice(e.message);return;}
+    game.toiletNeed=0;game.toiletFullness=game.lifeV2.household.litter.dirty*25;game.lastToiletVisit=Date.now();game.currentAnim='idle';game.isBusy=false;
+    root.PatiLifeClassicLife.record(game,'clean');save();manager.renderRoomDecor(game.currentRoom);
+    if(!automatic)api.notice(level>=3?'İhtiyacını giderdi. Tuvaleti kendini temizleyecek.':'İhtiyacını giderdi. Topakları Tuvalet menüsündeki kürekle temizleyebilirsin.',4500);
+    api.retreat(Math.max(20,x-90),station.bottom);if(level>=3)root.setTimeout(()=>cleaningAnimation(station.id),1100);warnings();
+   },5500);
+  });
+ }
+
+ function meal(type,quality){const next=R.meal(snapshot(),type,quality);game.lifeV2.household=next.household;game.happy=Math.max(0,Math.min(100,game.happy+next.mood));save();warnings();}
+ function warnings(){
+  const s=game.lifeV2,h=s.household,t=status(),list=R.notices(s,{food:H.rank(s,'food'),water:H.rank(s,'water')});
+  if(['place','clean'].includes(t.action)||t.action==='use'&&t.need>=80)list.push({id:'toilet-'+t.action,text:t.heading+'. Bakım → Tuvalet: '+t.button+'.'});
+  const active=new Set(list.map(w=>w.id));let changed=false;
+  for(const id of ['food','water','litter','health','toilet-place','toilet-clean','toilet-use'])if(h.warnings[id]&&!active.has(id)){delete h.warnings[id];changed=true;}
+  for(const warning of list)if(!h.warnings[warning.id]){h.warnings[warning.id]=true;api.notice(warning.text,4500);changed=true;break;}if(changed)api.save();
+ }
+
+ function tick(){if(root.PatiLifeAdPaused||root.document.hidden||game.isBusy||game.isSleeping||api.playing()||root.document.getElementById('home-workshop')||root.document.getElementById('classic-life-panel'))return;const now=Date.now();for(const type of ['food','water']){const stock=game.lifeV2.household[type],need=type==='food'?game.hunger:game.thirst;if((H.rank(game.lifeV2,type)>=3||stock.legacy)&&stock.portions&&stock.nextAt<=now&&need<50&&H.station(game,manager,type)){const quality=stock.quality;game.lifeV2.household=R.consume(snapshot(),type,now);save();api[type](quality,true);break;}}warnings();}
+ function init(current,decor,callbacks){game=current;manager=decor;api=callbacks;game.lifeV2.household=R.ensure(game.lifeV2);if(game.autoFeederDaysLeft>0&&!game.lifeV2.care.autoStockMigrated){game.lifeV2.household.food={portions:Math.ceil(game.autoFeederDaysLeft*4),quality:'basic',nextAt:Date.now()+21600000,legacy:true};game.lifeV2.care.autoStockMigrated=true;}game.autoFeederDaysLeft=0;const offline=R.offline({...snapshot(),needs:{...game.lifeV2.needs,hunger:game.hunger,thirst:game.thirst}},{food:H.rank(game.lifeV2,'food'),water:H.rank(game.lifeV2,'water')});game.lifeV2.household=offline.household;game.hunger=offline.needs.hunger;game.thirst=offline.needs.thirst;for(const [i,id] of ['sarman','tekir','smokin','calico'].entries())for(const age of ['kitten','young','adult']){const meta=root.PatiLifeHouseholdAtlases['toilet-'+age],cat=age==='kitten'?root.PatiLifeSpriteAtlases[id]:root.PatiLifeSpriteAtlases[id].ages[age];cat.special=cat.special||{};cat.special.toilet={src:meta.src,unit:meta.groups[i].unit,frames:meta.groups[i].frames};}const previous=root.PatiLifeClassicLife.decorate;root.PatiLifeClassicLife.decorate=(container,id)=>{if(!decorate(container,id))previous(container,id);};for(const id of litterIds)Object.assign(manager.CATALOG['cozy_'+id],{width:230,height:170});if(!game.lifeV2.care.litterMigration){if(!manager.ownedDecor.includes('cozy_litter'))manager.ownedDecor.push('cozy_litter');if(!manager.placedDecor.some(d=>d.itemId==='cozy_litter'))manager.placedDecor.push({id:'starter_litter',itemId:'cozy_litter',room:'bathroom',x:840,bottom:38,scale:1});game.lifeV2.care.litterMigration=true;}for(const id of ['propToilet','propToiletBar']){const node=root.document.getElementById(id);if(node)node.style.display='none';}root.PatiLifeClassicLife.syncInventory(manager);manager.saveOwnedDecor();manager.saveDecorState();manager.renderRoomDecor(game.currentRoom);save();root.setInterval(tick,60000);root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden)tick();});}
+ function sponsorLitter(){const result=R.buyLitter({...snapshot(),economy:{...snapshot().economy,coins:20}},R.litterLevel(game.lifeV2));game.lifeV2.household=result.household;game.litterCleanCount=0;game.toiletFullness=0;save();manager.renderRoomDecor(game.currentRoom);root.closeModals?.();api.notice('Taze kum hazır. Tuvalet menüsünden kullanabilirsin.');}
+ root.PatiLifeHousehold={sponsorLitter,init,supplies,health,toiletMenu,useToilet,meal,animate,tick,decorate,status,beginScoop,cancelScoop,finishScoop};
+})(window);

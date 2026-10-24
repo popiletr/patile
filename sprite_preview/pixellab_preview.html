@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatiLife - Orijinal Kedi Animasyon Galerisi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #0f1117;
+            color: #e2e8f0;
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f8fafc;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+        }
+
+        .btn-secondary:hover {
+            background-color: #334155;
+        }
+
+        .controls-bar {
+            max-width: 1200px;
+            margin: 0 auto 28px;
+            background: #161e2e;
+            border: 1px solid #232f46;
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .controls-group label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .controls-group input[type="range"] {
+            accent-color: #38bdf8;
+        }
+
+        .grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: #151c2c;
+            border: 1px solid #232f46;
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+        }
+
+        .canvas-wrapper {
+            background: #0b0f19;
+            background-image: 
+                linear-gradient(45deg, #111726 25%, transparent 25%), 
+                linear-gradient(-45deg, #111726 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #111726 75%), 
+                linear-gradient(-45deg, transparent 75%, #111726 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            height: 210px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #232f46;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            width: 160px;
+            height: 160px;
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #0369a1;
+            color: #bae6fd;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 14px;
+            flex-grow: 1;
+        }
+
+        .strip-preview-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .strip-preview {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 6px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .strip-preview img {
+            height: 42px;
+            image-rendering: pixelated;
+            display: inline-block;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-replace {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+            background-color: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn-replace:hover {
+            background-color: #0369a1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>PatiLife - Orijinal Sarman Animasyonlari</h1>
+            <p>Orijinal kedi referansi (v3) ile uretilen yuksek kaliteli animasyonlar</p>
+        </div>
+        <div class="header-actions">
+            <a href="game.html" class="btn btn-secondary" target="_blank">Oyunu Ac (game.html)</a>
+            <a href="patilife_app.html" class="btn" target="_blank">Ana Uygulamayi Ac (patilife_app.html)</a>
+        </div>
+    </header>
+
+    <div class="controls-bar">
+        <div class="controls-group">
+            <label for="speedSlider">Animasyon Hizi: <span id="speedVal">140</span> ms</label>
+            <input type="range" id="speedSlider" min="50" max="350" value="140" step="10">
+        </div>
+        <div class="controls-group">
+            <label for="scaleSlider">Gorunum Boyutu:</label>
+            <input type="range" id="scaleSlider" min="100" max="240" value="160" step="10">
+        </div>
+        <div class="controls-group">
+            <button class="btn btn-secondary" id="togglePlayBtn">Durdur / Baslat</button>
+        </div>
+    </div>
+
+    <div class="grid" id="animGrid">
+        <!-- Javascript ile doldurulacak -->
+    </div>
+
+    <script>
+        const ANIMATIONS = [
+            {
+                id: 'walk',
+                name: '1. Yurume (4 Ayak)',
+                desc: 'Orijinal kedi modelinizin 4 ayak ustunde dogal yurume dongusu.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_walk_strip.png',
+                targetSlot: 'walk'
+            },
+            {
+                id: 'idle_strip',
+                name: '2. Durus / Bekleme (Ayakta)',
+                desc: 'Ilk modelinizin ayakta duran sevimli durus ve nefes alma dongusu.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_standing_idle_strip.png',
+                targetSlot: 'idle'
+            },
+            {
+                id: 'pounce',
+                name: '3. Ziplama & Avlanma (Pounce)',
+                desc: '4 ayakla yere pusup ileri atilma ve 4 ayak ustune inis.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_pounce_strip.png',
+                targetSlot: 'pounce'
+            },
+            {
+                id: 'laser_north',
+                name: '4. Lazer Yakalama (Arkasi Donuk - Kuzey)',
+                desc: 'Oyuna uygun arkasi donuk acidan duvara/yukari ziplayip patileriyle hamle yapma.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_laser_north_strip.png',
+                targetSlot: 'laser'
+            },
+            {
+                id: 'scratch',
+                name: '5. Tirmalama',
+                desc: 'Arka ayaklar ustunde kalkip on patilerle dikey tirmalama (obje yok).',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_scratch_strip.png',
+                targetSlot: 'scratch'
+            },
+            {
+                id: 'yarn',
+                name: '6. Yumakla Oynama',
+                desc: 'On patisiyle yere tokatlama ve oynama hareketi (obje yok).',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_yarn_strip.png',
+                targetSlot: 'yarn'
+            },
+            {
+                id: 'eat',
+                name: '7. Mama Yeme',
+                desc: '4 ayak ustunde basini yere egip cene ve yalanma hareketi (obje yok).',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_eat_strip.png',
+                targetSlot: 'eat'
+            },
+            {
+                id: 'drink',
+                name: '8. Su Icme',
+                desc: 'Basini yere egip diliyle su icme hareketi (obje yok).',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_drink_strip.png',
+                targetSlot: 'drink'
+            },
+            {
+                id: 'sleep_curled',
+                name: '9. Kivrilip Uyuma (Surekli Uyku)',
+                desc: 'Orijinal referanstaki gibi hilal seklinde kivrilmis, gozleri kapali nefes alan kesintisiz uyku dongusu.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_sleep_curled_strip.png',
+                targetSlot: 'sleep'
+            },
+            {
+                id: 'bath',
+                name: '10. Banyo / Yikanma (Legen)',
+                desc: 'Orijinal referanstaki gibi mavi legende basinda kopuklerle su sicratarak yikanma animasyonu.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_bath_strip.png',
+                targetSlot: 'bath'
+            },
+            {
+                id: 'catch_mouse_north',
+                name: '11. Fare / Bocek Avlama (Arkasi Donuk - Kuzey)',
+                desc: 'Oyuna uygun arkasi donuk acidan pusuya yatip on patileriyle yere basarak av yakalama.',
+                badge: '6 Kare',
+                frames: 6,
+                src: 'pixellab_v2/sarman_catch_mouse_north_strip.png',
+                targetSlot: 'catch_mouse'
+            }
+        ];
+
+        let tickRate = 140;
+        let isPlaying = true;
+        let currentFrame = 0;
+        const loadedImages = {};
+        const canvases = {};
+
+        const gridEl = document.getElementById('animGrid');
+
+        ANIMATIONS.forEach(anim => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="canvas-wrapper">
+                    <canvas id="cv_${anim.id}" width="96" height="96"></canvas>
+                </div>
+                <div class="card-body">
+                    <div class="card-header">
+                        <div class="card-title">${anim.name}</div>
+                        <span class="badge">${anim.badge}</span>
+                    </div>
+                    <div class="card-desc">${anim.desc}</div>
+                    
+                    <div class="strip-preview-title">Sprite Seridi (6 Kare)</div>
+                    <div class="strip-preview">
+                        <img src="${anim.src}?v=${Date.now()}" alt="${anim.name}">
+                    </div>
+                </div>
+            `;
+            gridEl.appendChild(card);
+
+            const img = new Image();
+            img.src = `${anim.src}?v=${Date.now()}`;
+            img.onload = () => {
+                loadedImages[anim.id] = img;
+            };
+
+            canvases[anim.id] = document.getElementById(`cv_${anim.id}`);
+        });
+
+        function renderFrame() {
+            if (!isPlaying) return;
+
+            ANIMATIONS.forEach(anim => {
+                const img = loadedImages[anim.id];
+                const cv = canvases[anim.id];
+                if (img && cv) {
+                    const ctx = cv.getContext('2d');
+                    ctx.clearRect(0, 0, cv.width, cv.height);
+                    ctx.imageSmoothingEnabled = false;
+
+                    const frameIndex = currentFrame % anim.frames;
+                    const fw = img.width / anim.frames;
+                    const fh = img.height;
+
+                    ctx.drawImage(img, frameIndex * fw, 0, fw, fh, 0, 0, cv.width, cv.height);
+                }
+            });
+
+            currentFrame++;
+        }
+
+        let animInterval = setInterval(renderFrame, tickRate);
+
+        const speedSlider = document.getElementById('speedSlider');
+        const speedVal = document.getElementById('speedVal');
+        speedSlider.addEventListener('input', (e) => {
+            tickRate = parseInt(e.target.value);
+            speedVal.textContent = tickRate;
+            clearInterval(animInterval);
+            animInterval = setInterval(renderFrame, tickRate);
+        });
+
+        const scaleSlider = document.getElementById('scaleSlider');
+        scaleSlider.addEventListener('input', (e) => {
+            const size = e.target.value + 'px';
+            document.querySelectorAll('canvas').forEach(c => {
+                c.style.width = size;
+                c.style.height = size;
+            });
+        });
+
+        const togglePlayBtn = document.getElementById('togglePlayBtn');
+        togglePlayBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            togglePlayBtn.textContent = isPlaying ? 'Durdur' : 'Baslat';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1339 @@
+[
+  {
+    "id": "food",
+    "name": "Seramik mama kabı",
+    "category": "Beslenme",
+    "action": "food",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 2,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "hunger": 5
+    }
+  },
+  {
+    "id": "water",
+    "name": "Geniş su kabı",
+    "category": "Beslenme",
+    "action": "water",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 1,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "thirst": 5
+    }
+  },
+  {
+    "id": "bed",
+    "name": "Yavru minderi",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 3,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 5
+    }
+  },
+  {
+    "id": "scratch",
+    "name": "Dikey tırmalama direği",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 20,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 6,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 8
+    }
+  },
+  {
+    "id": "yarn",
+    "name": "Yumak",
+    "category": "Oyun",
+    "action": "play",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 5,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    }
+  },
+  {
+    "id": "hideout",
+    "name": "Karton sığınak",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 15,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 7,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 5
+    }
+  },
+  {
+    "id": "litter",
+    "name": "Açık kum kabı",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 4,
+    "rooms": [
+      "bathroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 8
+    }
+  },
+  {
+    "id": "carrier",
+    "name": "Taşıma çantası",
+    "category": "Ortak yaşam",
+    "action": "hide",
+    "price": 0,
+    "stage": "kitten",
+    "sheet": "starter",
+    "index": 0,
+    "rooms": [
+      "living",
+      "bedroom",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 5
+    }
+  },
+  {
+    "id": "fountain",
+    "name": "Su pınarı",
+    "category": "Beslenme",
+    "action": "water",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 0,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "thirst": 8
+    },
+    "passive": {
+      "thirstDecay": 0.8
+    },
+    "detail": "Yerleştirilmişken susuzluğun artışını yavaşlatır; su içmeyi destekler."
+  },
+  {
+    "id": "slow_bowl",
+    "name": "Yavaş yeme kabı",
+    "category": "Beslenme",
+    "action": "food",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 1,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "hunger": 6
+    },
+    "detail": "Öğün sonrasında daha yüksek doygunluk sağlar."
+  },
+  {
+    "id": "puzzle_feeder",
+    "name": "Mama bulmacası",
+    "category": "Beslenme",
+    "action": "food",
+    "price": 65,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 2,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "hunger": 8,
+      "happy": 3
+    },
+    "detail": "Mama bulmacası hem doygunluğu hem keyfi destekler."
+  },
+  {
+    "id": "timed_feeder",
+    "name": "Zamanlı mama kabı",
+    "category": "Beslenme",
+    "action": "food",
+    "price": 90,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 3,
+    "rooms": [
+      "kitchen",
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "hunger": 4
+    },
+    "passive": {
+      "autoFeed": 55
+    },
+    "detail": "Yerleştirildiğinde günde bir kez düşük tokluğu 55 seviyesine tamamlar."
+  },
+  {
+    "id": "nest_bed",
+    "name": "Yuva yatak",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 4,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 5
+    }
+  },
+  {
+    "id": "felt_cave",
+    "name": "Keçe mağara",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 50,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 5,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 5
+    }
+  },
+  {
+    "id": "window_cushion",
+    "name": "Pencere minderi",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 55,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 6,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 7
+    }
+  },
+  {
+    "id": "hammock",
+    "name": "Kedi hamağı",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 75,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 7,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 7
+    }
+  },
+  {
+    "id": "cooling_mat",
+    "name": "Serinleme minderi",
+    "category": "Dinlenme",
+    "action": "rest",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 8,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "energy": 7
+    },
+    "passive": {
+      "restRate": 8
+    },
+    "detail": "Dinlenme hızını destekleyen serin bir alan sağlar."
+  },
+  {
+    "id": "cardboard_scratch",
+    "name": "Karton tırmalama tablası",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 25,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 9,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 8
+    }
+  },
+  {
+    "id": "inclined_scratch",
+    "name": "Eğimli tırmalama tablası",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 40,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 10,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 8
+    }
+  },
+  {
+    "id": "wall_scratch",
+    "name": "Duvar tırmalama paneli",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 55,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 11,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "wall",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 10
+    }
+  },
+  {
+    "id": "small_tree",
+    "name": "Küçük kedi ağacı",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 80,
+    "stage": "young",
+    "sheet": "furniture-1",
+    "index": 12,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 10
+    }
+  },
+  {
+    "id": "large_tree",
+    "name": "Çok katlı kedi ağacı",
+    "category": "Tırmalama",
+    "action": "scratch",
+    "price": 150,
+    "stage": "adult",
+    "sheet": "furniture-1",
+    "index": 13,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 11
+    }
+  },
+  {
+    "id": "mouse_toy",
+    "name": "Kumaş fare",
+    "category": "Oyun",
+    "action": "play",
+    "price": 20,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 14,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    }
+  },
+  {
+    "id": "soft_ball",
+    "name": "Yumuşak top",
+    "category": "Oyun",
+    "action": "play",
+    "price": 20,
+    "stage": "kitten",
+    "sheet": "furniture-1",
+    "index": 15,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    }
+  },
+  {
+    "id": "wand",
+    "name": "Olta oyuncak",
+    "category": "Oyun",
+    "action": "play",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 0,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    }
+  },
+  {
+    "id": "ball_track",
+    "name": "Top kanalı",
+    "category": "Oyun",
+    "action": "play",
+    "price": 50,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 1,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    }
+  },
+  {
+    "id": "treat_maze",
+    "name": "Ödül labirenti",
+    "category": "Oyun",
+    "action": "play",
+    "price": 65,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 2,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    }
+  },
+  {
+    "id": "soft_tunnel",
+    "name": "Kumaş tünel",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 40,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 3,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 5
+    }
+  },
+  {
+    "id": "double_tunnel",
+    "name": "İki girişli tünel",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 60,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 4,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 7
+    }
+  },
+  {
+    "id": "low_shelf",
+    "name": "Alçak raf",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 55,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 5,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 7
+    }
+  },
+  {
+    "id": "steps",
+    "name": "Kedi basamakları",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 70,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 6,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 7
+    }
+  },
+  {
+    "id": "hide_cube",
+    "name": "Saklanma küpü",
+    "category": "Keşif",
+    "action": "hide",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 7,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 5
+    }
+  },
+  {
+    "id": "wide_litter",
+    "name": "Geniş kum kabı",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 40,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 8,
+    "rooms": [
+      "bathroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 8
+    }
+  },
+  {
+    "id": "private_litter",
+    "name": "Mahremiyet panelli kumluk",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 65,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 9,
+    "rooms": [
+      "bathroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 10
+    },
+    "passive": {
+      "cleanDecay": 0.8
+    },
+    "detail": "Sakin bakım alanı sağlar; temizlik daha yavaş düşer."
+  },
+  {
+    "id": "litter_mat",
+    "name": "Kum paspası",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 25,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 10,
+    "rooms": [
+      "bathroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 8
+    },
+    "passive": {
+      "cleanDecay": 0.9
+    },
+    "detail": "Kumun çevreye dağılmasını azaltır; temizlik daha yavaş düşer."
+  },
+  {
+    "id": "brush",
+    "name": "Bakım fırçası",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 30,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 11,
+    "rooms": [
+      "bathroom",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 8
+    }
+  },
+  {
+    "id": "towel",
+    "name": "Havlu köşesi",
+    "category": "Temizlik",
+    "action": "clean",
+    "price": 25,
+    "stage": "kitten",
+    "sheet": "furniture-2",
+    "index": 12,
+    "rooms": [
+      "bathroom",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "cleanliness": 8
+    }
+  },
+  {
+    "id": "window_platform",
+    "name": "Pencere platformu",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 70,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 13,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    }
+  },
+  {
+    "id": "bird_table",
+    "name": "Kuş gözlem sehpası",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 55,
+    "stage": "young",
+    "sheet": "furniture-2",
+    "index": 14,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    }
+  },
+  {
+    "id": "safe_screen",
+    "name": "Güvenli pencere köşesi",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 80,
+    "stage": "adult",
+    "sheet": "furniture-2",
+    "index": 15,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "wall",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 7
+    }
+  },
+  {
+    "id": "curtain",
+    "name": "Gölge perdesi",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "furniture-3",
+    "index": 0,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "wall",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    },
+    "passive": {
+      "happyDecay": 0.9
+    },
+    "detail": "Gölge ve sakin gözlem köşesi, keyfi korumaya yardımcı olur."
+  },
+  {
+    "id": "garden_bench",
+    "name": "Bahçe gözlem bankı",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 70,
+    "stage": "young",
+    "sheet": "furniture-3",
+    "index": 1,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    }
+  },
+  {
+    "id": "night_light",
+    "name": "Akşam ışığı",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 30,
+    "stage": "kitten",
+    "sheet": "furniture-3",
+    "index": 2,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    },
+    "passive": {
+      "happyDecay": 0.85
+    },
+    "detail": "Sakin ortam, mutluluğun azalma hızını yavaşlatır."
+  },
+  {
+    "id": "memory_box",
+    "name": "Hatıra kutusu",
+    "category": "Ortak yaşam",
+    "action": "memory",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "furniture-3",
+    "index": 3,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 0
+    }
+  },
+  {
+    "id": "photo_board",
+    "name": "Fotoğraf panosu",
+    "category": "Ortak yaşam",
+    "action": "memory",
+    "price": 45,
+    "stage": "young",
+    "sheet": "furniture-3",
+    "index": 4,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "wall",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 2
+    }
+  },
+  {
+    "id": "toy_basket",
+    "name": "Oyuncak sepeti",
+    "category": "Ortak yaşam",
+    "action": "play",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "furniture-3",
+    "index": 5,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 4
+    },
+    "passive": {
+      "playRefund": 2
+    },
+    "detail": "Yerleştirildiğinde oyunlar iki enerji daha az tüketir."
+  },
+  {
+    "id": "cat_grass",
+    "name": "Güvenli kedi çimi",
+    "category": "Ortak yaşam",
+    "action": "hide",
+    "price": 30,
+    "stage": "kitten",
+    "sheet": "furniture-3",
+    "index": 6,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 28,
+    "depth": 16,
+    "bonus": {
+      "happy": 9
+    },
+    "detail": "Güvenli bir koklama ve keşif etkinliği sunar."
+  },
+  {
+    "id": "reading_mat",
+    "name": "Okuma minderi",
+    "category": "Ortak yaşam",
+    "action": "pet",
+    "price": 45,
+    "stage": "young",
+    "sheet": "furniture-3",
+    "index": 7,
+    "rooms": [
+      "living",
+      "bedroom",
+      "garden",
+      "sunroom",
+      "attic",
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 7
+    }
+  },
+  {
+    "id": "pantry_track",
+    "name": "Mutfak mama bulmacası",
+    "category": "Oyun",
+    "action": "play",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 2,
+    "rooms": [
+      "kitchen"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 2,
+    "detail": "Mutfak mama bulmacası; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  },
+  {
+    "id": "sofa_mouse",
+    "name": "Salon yaylı faresi",
+    "category": "Oyun",
+    "action": "play",
+    "price": 40,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 1,
+    "rooms": [
+      "living"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 1,
+    "detail": "Salon yaylı faresi; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  },
+  {
+    "id": "sleep_mobile",
+    "name": "Yatak odası kelebek oyuncağı",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 45,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 0,
+    "rooms": [
+      "bedroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 0,
+    "detail": "Yatak odası kelebek oyuncağı; kedinin dokunuşuyla hareket eder. Birlikte sakin gözlem sağlar."
+  },
+  {
+    "id": "bath_feather",
+    "name": "Banyo bekleme oyuncağı",
+    "category": "Oyun",
+    "action": "play",
+    "price": 35,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 3,
+    "rooms": [
+      "bathroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 3,
+    "detail": "Banyo bekleme oyuncağı; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  },
+  {
+    "id": "garden_wings",
+    "name": "Bahçe kelebek durağı",
+    "category": "Gözlem",
+    "action": "watch",
+    "price": 55,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 0,
+    "rooms": [
+      "garden"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 0,
+    "detail": "Bahçe kelebek durağı; kedinin dokunuşuyla hareket eder. Birlikte sakin gözlem sağlar."
+  },
+  {
+    "id": "sunroom_feather",
+    "name": "Kış bahçesi döner tüyü",
+    "category": "Oyun",
+    "action": "play",
+    "price": 65,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 3,
+    "rooms": [
+      "sunroom"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 3,
+    "detail": "Kış bahçesi döner tüyü; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  },
+  {
+    "id": "attic_track",
+    "name": "Tavan arası top parkuru",
+    "category": "Oyun",
+    "action": "play",
+    "price": 70,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 2,
+    "rooms": [
+      "attic"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 2,
+    "detail": "Tavan arası top parkuru; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  },
+  {
+    "id": "library_mouse",
+    "name": "Kütüphane sessiz faresi",
+    "category": "Oyun",
+    "action": "play",
+    "price": 60,
+    "stage": "kitten",
+    "sheet": "household",
+    "index": 1,
+    "rooms": [
+      "reading"
+    ],
+    "mount": "floor",
+    "width": 22,
+    "depth": 16,
+    "bonus": {
+      "happy": 6
+    },
+    "motionColumn": 1,
+    "detail": "Kütüphane sessiz faresi; kedinin dokunuşuyla hareket eder. Birlikte oyun ve keyif sağlar."
+  }
+]

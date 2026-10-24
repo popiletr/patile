@@ -47,3 +47,14 @@ fastlane/test_output
 *.db
 *.log
 *-debug.log
+
+# Local recoverable game archives
+/backups/
+__pycache__/
+
+# Private live-content signing key (never ship)
+/.content-signing/
+
+# Local diagnostics and reference backups
+/scratch/
+/sprite_preview/backup_original/

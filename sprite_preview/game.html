@@ -592,20 +592,20 @@
             transform: scale(0.95);
         }
 
-        /* Mutfak Mama Kabı (Mapping: x: 718px, bottom: 103px, w: 124px, h: 112px) */
+        /* Mutfak Mama Kabı (Mapping: x: 742px, bottom: 103px, w: 82px, h: 74px) */
         #propFoodBowl {
-            left: 718px;
+            left: 742px;
             bottom: 103px;
-            width: 124px;
-            height: 112px;
+            width: 82px;
+            height: 74px;
         }
 
-        /* Bahçe Su Sebili (Mapping: x: 1277px, bottom: 103px, w: 222px, h: 175px) */
+        /* Bahçe Su Sebili (Mapping: x: 1320px, bottom: 88px, w: 140px, h: 136px) */
         #propWaterFountain {
-            left: 1277px;
-            bottom: 103px;
-            width: 222px;
-            height: 175px;
+            left: 1320px;
+            bottom: 88px;
+            width: 140px;
+            height: 136px;
             display: none;
         }
 
@@ -3062,7 +3062,7 @@
                     <button class="cozy-modal-close-btn" onclick="closeModals()">✕</button>
                 </div>
                 <div class="modal-body" style="align-items:center; gap:14px; padding:20px 14px;">
-                    <div style="font-size:13.5px; color:#451A03; font-weight:900;" id="giftCatMessage">Milo senin için özel bir hediye buldu!</div>
+                    <div style="font-size:13.5px; color:#451A03; font-weight:900;" id="giftCatMessage">Kediniz sizin için özel bir hediye buldu!</div>
                     <div style="width:84px; height:84px; background:linear-gradient(135deg, #F59E0B, #EC4899); border-radius:22px; display:flex; align-items:center; justify-content:center; border:3px solid #FFFFFF; box-shadow:0 8px 20px rgba(236,72,153,0.35); cursor:pointer; transition:transform 0.15s;" onclick="openGiftBox()" id="giftBoxElement" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'">
                         <svg class="game-svg-icon xl"><use href="#gicon-gift-ribbon"></use></svg>
                     </div>
@@ -3818,8 +3818,8 @@
             }
           ],
           "props": {
-            "food_bowl": { "room": "kitchen", "x": 718, "bottom": 103, "w": 124, "h": 112, "visible": true },
-            "water_fountain": { "room": "garden", "x": 1277, "bottom": 103, "w": 222, "h": 175, "visible": true },
+            "food_bowl": { "room": "kitchen", "x": 742, "bottom": 103, "w": 82, "h": 74, "visible": true },
+            "water_fountain": { "room": "garden", "x": 1320, "bottom": 88, "w": 140, "h": 136, "visible": true },
             "cat_bed": { "room": "bedroom", "x": 664, "bottom": 17, "w": 242, "h": 150, "visible": true }
           }
         };
@@ -3904,21 +3904,25 @@
 
         window.addEventListener('resize', syncPropsPositions);
 
-        // SPRITE RESİMLERİ
+        // SPRITE RESİMLERİ (ORİJİNAL GÖRSELLER)
         const SPRITES = {
-            walk:    { src: 'sarman/sarman_transparan_1.png', frames: 6 },
-            idle:    { src: 'sarman/sarman_transparan_2.png', frames: 6 },
-            sick:    { src: 'sarman/sarman_hasta.png', frames: 6 }, // Titreyen, büzüşen ve gözyaşı döken hasta/aç animasyonu
-            sleep:   { src: 'sahneler/sarman_duzeltilmis_kıvrılma.png', frames: 6 },
-            eat:     { src: 'sahneler/sarman_duzeltilmis_mamayerken.png', frames: 6 },
-            drink:   { src: 'sahneler/sarman_duzeltilmis_suiçme.png', frames: 6 },
-            scratch: { src: 'sahneler/sarman_duzeltilmis_tırmalama.png', frames: 6 },
-            happy:   { src: 'sarman/sarman_transparan_5.png', frames: 6 },
-            jump:    { src: 'sarman/sarman_lazer_pounce.png', frames: 6 }, // Zıplama animasyonu (Tezgah/Yatak/Kanepe)
-            pounce:  { src: 'sarman/sarman_lazer_pounce.png', frames: 6 }, // Zıplama takma adı
-            laser:   { src: 'sahneler/sarman_duzeltilmis_lazer.png', frames: 6 }, // Lazerle oynama & kovalama animasyonu (Arkadan havaya zıplayan kedi)
-            yarn:    { src: 'sahneler/sarman_duzeltilmis_yumak.png', frames: 6 }, // Yumakla oynama & tokatlama animasyonu
-            bath:    { src: 'sahneler/sarman_banyo.png', frames: 6 }
+            walk:        { src: 'sarman/sarman_transparan_1.png', frames: 6 },
+            idle:        { src: 'sarman/sarman_transparan_2.png', frames: 6 },
+            sick:        { src: 'sarman/sarman_hasta.png', frames: 6 }, // Titreyen, büzüşen ve gözyaşı döken hasta/aç animasyonu
+            sleep:       { src: 'sahneler/sarman_duzeltilmis_kıvrılma.png', frames: 6 },
+            eat:         { src: 'sahneler/sarman_duzeltilmis_mamayerken.png', frames: 6 },
+            drink:       { src: 'sahneler/sarman_duzeltilmis_suiçme.png', frames: 6 },
+            scratch:     { src: 'sahneler/sarman_duzeltilmis_tırmalama.png', frames: 6 },
+            happy:       { src: 'sarman/sarman_transparan_5.png', frames: 6 },
+            jump:        { src: 'sarman/sarman_lazer_pounce.png', frames: 6 }, // Zıplama animasyonu (Tezgah/Yatak/Kanepe)
+            jump_joy:    { src: 'sarman/sarman_jump_joy.png', frames: 6 }, // Sevinç zıplaması
+            dance:       { src: 'sarman/sarman_dance.png', frames: 6 }, // Sevimli dans animasyonu
+            swim:        { src: 'sarman/sarman_swim.png', frames: 6 }, // Yüzme animasyonu
+            pounce:      { src: 'sarman/sarman_lazer_pounce.png', frames: 6 }, // Zıplama takma adı
+            laser:       { src: 'sahneler/sarman_duzeltilmis_lazer.png', frames: 6 }, // Lazerle oynama & kovalama animasyonu (Arkadan havaya zıplayan kedi)
+            yarn:        { src: 'sahneler/sarman_duzeltilmis_yumak.png', frames: 6 }, // Yumakla oynama & tokatlama animasyonu
+            bath:        { src: 'sahneler/sarman_banyo.png', frames: 6 },
+            catch_mouse: { src: 'sarman/sarman_catch_mouse.png', frames: 6 }
         };
 
         const loadedImages = {};
@@ -4433,22 +4437,24 @@
                 name: 'Çıtır Kuru Mama', 
                 subtitle: 'Standart tahılsız çıtır mama', 
                 cost: 85, 
-                fill: 45, 
+                fill: 100, 
                 reqLevel: 1, 
+                durationHours: 6,
                 decayRate: 1.0, 
                 iconSvg: 'gicon-food-bowl',
-                benefit: '+45 Tokluk • 6 Saat Tok Tutar',
+                benefit: '+100 Tokluk • 6 Saat Tok Tutar',
                 msg: 'Çıtır kuru mama kaseye döküldü!' 
             },
             premium: { 
                 name: 'Somonlu Yaş Mama', 
                 subtitle: 'Taze somon & sebze parçacıklı', 
                 cost: 160, 
-                fill: 75, 
+                fill: 100, 
                 reqLevel: 3, 
+                durationHours: 12,
                 decayRate: 0.5, 
                 iconSvg: 'gicon-salmon',
-                benefit: '+75 Tokluk • 12 Saat Yavaş Acıkma',
+                benefit: '+100 Tokluk • 12 Saat Tok Tutar',
                 msg: 'Lezzetli somonlu yaş mama şöleni!' 
             },
             gourmet: { 
@@ -4457,6 +4463,7 @@
                 cost: 290, 
                 fill: 100, 
                 reqLevel: 5, 
+                durationHours: 24,
                 decayRate: 0.25, 
                 iconSvg: 'gicon-salmon',
                 benefit: '+100 Tokluk • 24 Saat Tam Tokluk',
@@ -4468,7 +4475,8 @@
                 cost: 550, 
                 fill: 100, 
                 reqLevel: 7, 
-                decayRate: 0.1, 
+                durationHours: 120,
+                decayRate: 0.05, 
                 isAuto: true, 
                 iconSvg: 'gicon-spark',
                 benefit: '5 Günlük Kesintisiz Otomatik Besleme',
@@ -4481,22 +4489,24 @@
                 name: 'Taze Musluk Suyu', 
                 subtitle: 'Temiz ve filtrelenmiş günlük su', 
                 cost: 30, 
-                fill: 40, 
+                fill: 100, 
                 reqLevel: 1, 
+                durationHours: 4,
                 decayRate: 1.0, 
                 iconSvg: 'gicon-dewdrop',
-                benefit: '+40 Su • 4 Saat Taze Kalır',
+                benefit: '+100 Su • 4 Saat Taze Kalır',
                 msg: 'Musluk suyu kaseye tazelendi!' 
             },
             spring: { 
                 name: 'Mineralli Kaynak Suyu', 
                 subtitle: 'Doğal mineraller ve elektrolitler', 
                 cost: 65, 
-                fill: 75, 
+                fill: 100, 
                 reqLevel: 2, 
+                durationHours: 8,
                 decayRate: 0.5, 
                 iconSvg: 'gicon-dewdrop',
-                benefit: '+75 Su • 8 Saat Ferah Tutar',
+                benefit: '+100 Su • 8 Saat Ferah Tutar',
                 msg: 'Mineralli kaynak suyu dolduruldu!' 
             },
             fountain: { 
@@ -4505,7 +4515,8 @@
                 cost: 130, 
                 fill: 100, 
                 reqLevel: 4, 
-                decayRate: 0.3, 
+                durationHours: 16,
+                decayRate: 0.25, 
                 iconSvg: 'gicon-water-fountain',
                 benefit: '+100 Su • 16 Saat Kristal Berrak',
                 msg: 'Ozonlu şelale pınarı akmaya başladı!' 
@@ -4648,6 +4659,7 @@
             sfxCoin();
 
             GameState.foodTier = tierKey;
+            GameState.foodDurationHours = tier.durationHours || 6;
             GameState.foodDecayRate = tier.decayRate;
             if (tier.isAuto) {
                 GameState.autoFeederDaysLeft = 5;
@@ -4659,17 +4671,17 @@
             GameState.isBusy = true;
 
             if (GameState.currentRoom !== 'kitchen') switchRoom('kitchen');
-            focusCameraOn(718);
+            focusCameraOn(742);
 
             showBubble(tier.msg);
             sfxEat();
-            createParticle(718 - cameraX + 40, 460, '-' + tier.cost + ' Altın');
+            createParticle(742 - cameraX + 30, 460, '-' + tier.cost + ' Altın');
 
             animateBowlFill(() => {
-                showBubble('Mama hazır! Koş Milo');
+                showBubble('Mama hazır! Koş ' + (GameState.catName || 'Sarman'));
                 sfxMeow();
 
-                const targetX = 586;
+                const targetX = 600;
                 const targetBottom = 103;
                 focusCameraOn(690);
                 navigateTo(targetX, targetBottom, () => {
@@ -4683,10 +4695,17 @@
                     catEl.style.bottom = (targetBottom * scaleY) + 'px';
                     catEl.style.transform = `scaleX(1) scale(${scale})`;
                     GameState.currentAnim = 'eat';
+                    GameState.isBusy = true;
                     sfxEat();
-                    createParticle(718 - cameraX + 40, 480, '+' + tier.fill + ' Tokluk');
+                    createParticle(742 - cameraX + 30, 480, '+' + tier.fill + ' Tokluk');
 
-                    animateBowlEmpty(2200, () => {
+                    const eatSoundInterval = setInterval(() => {
+                        if (GameState.currentAnim === 'eat') sfxEat();
+                        else clearInterval(eatSoundInterval);
+                    }, 1000);
+
+                    animateBowlEmpty(5200, () => {
+                        clearInterval(eatSoundInterval);
                         GameState.hunger = Math.min(100, GameState.hunger + tier.fill);
                         addXP(15, 'Besleme');
                         trackQuestProgress('feed', 1);
@@ -4696,6 +4715,7 @@
                         renderPropCanvases();
                         GameState.currentAnim = 'idle';
                         GameState.isBusy = false;
+                        saveGameState();
                     });
                 }, targetBottom);
             });
@@ -4715,6 +4735,7 @@
             sfxCoin();
 
             GameState.waterTier = tierKey;
+            GameState.waterDurationHours = tier.durationHours || 4;
             GameState.waterDecayRate = tier.decayRate;
 
             if (GameState.isSleeping) wakeUp();
@@ -4722,14 +4743,14 @@
             GameState.isBusy = true;
 
             if (GameState.currentRoom !== 'garden') switchRoom('garden');
-            const fountainX = 1277;
-            focusCameraOn(1240);
+            const fountainX = 1320;
+            focusCameraOn(1260);
 
             showBubble(tier.msg);
-            createParticle(fountainX - cameraX + 40, 460, '-' + tier.cost + ' Altin');
+            createParticle(fountainX - cameraX + 35, 460, '-' + tier.cost + ' Altin');
 
-            const targetX = 1120;
-            const targetBottom = 103;
+            const targetX = 1175;
+            const targetBottom = 92;
             navigateTo(targetX, targetBottom, () => {
                 const catEl = document.getElementById('catActor');
                 const scaleY = getStageScaleY();
@@ -4741,18 +4762,26 @@
                 catEl.style.bottom = (targetBottom * scaleY) + 'px';
                 catEl.style.transform = `scaleX(1) scale(${scale})`;
                 GameState.currentAnim = 'drink';
+                GameState.isBusy = true;
                 sfxEat();
                 createParticle(targetX - cameraX + 80, 480, '+' + tier.fill + ' Su');
 
+                const drinkSoundInterval = setInterval(() => {
+                    if (GameState.currentAnim === 'drink') sfxEat();
+                    else clearInterval(drinkSoundInterval);
+                }, 1000);
+
                 setTimeout(() => {
+                    clearInterval(drinkSoundInterval);
                     GameState.thirst = Math.min(100, GameState.thirst + tier.fill);
                     addXP(10, 'Su');
                     trackQuestProgress('water', 1);
                     updateHUD();
-                    showBubble('Ferahladım! Çok taze 💧');
+                    showBubble('Ferahladim! Cok taze ve lezzetli.');
                     GameState.currentAnim = 'idle';
                     GameState.isBusy = false;
-                }, 2500);
+                    saveGameState();
+                }, 5200);
             }, targetBottom);
         }
 
@@ -4776,15 +4805,18 @@
 
             let comboMsg = '';
             if (GameState.petComboCount >= 10) {
-                // 10x COMBO! Sevgi patlaması
+                // 10x COMBO! Sevgi patlaması ve dans
                 GameState.happy = Math.min(100, GameState.happy + 25);
                 GameState.affection = Math.min(100, GameState.affection + 15);
                 addXP(10, '10x Sevme Combo');
                 GameState.petComboCount = 0;
-                comboMsg = '10x COMBO! +25 Mutluluk, +15 Sevgi! ❤️';
-                createParticle(200, 200, '❤️❤️❤️');
+                comboMsg = '10x COMBO! Dans zamani! +25 Mutluluk, +15 Sevgi!';
+                GameState.currentAnim = 'dance';
+                createParticle(200, 200, '+Dans');
             } else if (GameState.petComboCount >= 5) {
-                comboMsg = GameState.petComboCount + 'x Combo! Devam et!';
+                comboMsg = GameState.petComboCount + 'x Combo! Sevinc ziplamasi!';
+                GameState.currentAnim = 'jump_joy';
+                createParticle(200, 200, '+Sevinc');
             }
 
             if (comboMsg) {
@@ -4963,7 +4995,7 @@
                 GameState.catX = laserLockedCameraX + rect.width * 0.25;
             }
             GameState.currentAnim = 'laser';
-            GameState.catDir = (laserWorldX >= GameState.catX) ? 1 : -1;
+            GameState.catDir = (laserWorldX >= GameState.catX) ? -1 : 1;
 
             // 3. Tek ekranlık alanda avları spawn et
             if (typeof PreyManager !== 'undefined') {
@@ -5337,11 +5369,12 @@
                 const arcY = Math.sin(progress * Math.PI) * 80;
                 GameState.catBottom = pounceStartB + (pounceTargetB - pounceStartB) * progress + arcY;
 
-                GameState.currentAnim = 'jump';
-                GameState.catDir = (pounceTargetX >= pounceStartX) ? 1 : -1;
+                GameState.currentAnim = 'laser';
+                currentFrameIndex = Math.min(5, Math.floor(progress * 6));
+                GameState.catDir = (pounceTargetX >= pounceStartX) ? -1 : 1;
 
                 if (progress >= 1) {
-                    // HEDEFE ULAŞILDI & YAKALANDI!
+                    // HEDEFE ULASILDI & YAKALANDI!
                     isCatPouncing = false;
                     if (pounceTargetPrey && pounceTargetIndex >= 0) {
                         PreyManager.onCatchSuccess(pounceTargetPrey, pounceTargetIndex);
@@ -5354,11 +5387,11 @@
                     GameState.currentAnim = 'laser';
                 }
             } else {
-                // Kedi zemin üzerinde dikkatle hedefleri izler (sabit, gergin avcı duruşu)
+                // Kedi zemin uzerinde dikkatle hedefleri izler
                 const floorB = (typeof getLowestFloorBottom === 'function') ? getLowestFloorBottom(GameState.currentRoom) : 40;
                 GameState.catBottom = floorB;
                 GameState.currentAnim = 'laser';
-                GameState.catDir = (laserWorldX >= GameState.catX) ? 1 : -1;
+                GameState.catDir = (laserWorldX >= GameState.catX) ? -1 : 1;
             }
 
             const scale = getDepthScale(GameState.catBottom);
@@ -6141,7 +6174,7 @@
             const bathBottom = 45;
             focusCameraOn(bathX);
 
-            showBubble('Köpüklü banyo zamanı');
+            showBubble('Ilık köpüklü banyo zamanı');
             walkTo(bathX, () => {
                 const catEl = document.getElementById('catActor');
                 GameState.catX = bathX;
@@ -6158,22 +6191,42 @@
 
                 const bubbleInterval = setInterval(() => {
                     const rect = catEl.getBoundingClientRect();
-                    createParticle(rect.left + 40 + Math.random() * 70, rect.top + 30 + Math.random() * 60, '+');
-                }, 280);
+                    createParticle(rect.left + 35 + Math.random() * 80, rect.top + 25 + Math.random() * 65, '+');
+                }, 200);
 
+                // 2. Asama: 3 saniyede sungerle ovma ve mis gibi koku
+                setTimeout(() => {
+                    if (GameState.isBusy && GameState.currentAnim === 'bath') {
+                        showBubble('Kopukler mis gibi kokuyor...');
+                        playBeep(330, 'sine', 0.18, 0.08);
+                        setTimeout(() => playBeep(494, 'sine', 0.22, 0.09), 180);
+                    }
+                }, 3000);
+
+                // 3. Asama: 6.5 saniyede ilik suyla durulanma
+                setTimeout(() => {
+                    if (GameState.isBusy && GameState.currentAnim === 'bath') {
+                        showBubble('Tertemiz durulaniyorum...');
+                        playBeep(523, 'triangle', 0.2, 0.07);
+                        setTimeout(() => playBeep(659, 'sine', 0.25, 0.09), 220);
+                    }
+                }, 6500);
+
+                // Banyo Tamamlanisi: 10 saniye
                 setTimeout(() => {
                     clearInterval(bubbleInterval);
                     GameState.cleanliness = 100;
-                    GameState.happy = Math.min(100, GameState.happy + 20);
-                    GameState.coins += 4;
-                    addXP(15, 'Kopuklu Banyo');
+                    GameState.happy = Math.min(100, GameState.happy + 25);
+                    GameState.coins += 5;
+                    addXP(25, 'Kopuklu Banyo');
                     trackQuestProgress('bath', 1);
                     updateHUD();
                     sfxCoin();
                     showBubble('Mis gibi tertemiz oldum!');
                     GameState.currentAnim = 'idle';
                     GameState.isBusy = false;
-                }, 3200);
+                    saveGameState();
+                }, 10000);
             }, bathBottom);
         }
 
@@ -7031,12 +7084,13 @@
             } else if (opt.rewardType === 'scrapbook') {
                 if (!GameState.scrapbook.includes(opt.rewardVal)) {
                     GameState.scrapbook.push(opt.rewardVal);
-                    showBubble(`Yeni Polaroid Hatıra Açıldı! 📸`, 4000);
+                    showBubble('Yeni Polaroid Hatira Acildi!', 4000);
                 }
             }
 
             sfxPurr();
-            showBubble(`Milo ile güzel bir an paylaşıldı: "${opt.label}"! ✨`, 3500);
+            const catName = GameState.catName || 'Sarman';
+            showBubble(`${catName} ile guzel bir an paylasildi: "${opt.label}"!`, 3500);
 
             renderDailyStoryUI();
             updateHUD();
@@ -7172,7 +7226,7 @@
             if (modal) {
                 const textEl = document.getElementById('nightReportText');
                 if (textEl) {
-                    textEl.textContent = `Pati dün gece yaklaşık ${Math.round(hours)} saat mışıl mışıl uyudu, enerji depoladı ve rüyasında dev bir altın balık kovaladı! ✨`;
+                    textEl.textContent = `Pati dün gece yaklaşık ${Math.round(hours)} saat mışıl mışıl uyudu, enerji depoladı ve rüyasında dev bir altın balık kovaladı!`;
                 }
                 openNightReportModal();
             }
@@ -7436,26 +7490,9 @@
         }
 
         function checkCatGiftGeneration(offlineSec) {
-            // 2 saatten fazla (7200sn) cevrimdisi kalindiysa hediye uretilir
-            if (offlineSec >= 7200 && !GameState.pendingGift) {
-                const uncollected = SCRAPBOOK_ITEMS.filter(it => !GameState.scrapbook.includes(it.id));
-                if (uncollected.length > 0) {
-                    const item = uncollected[Math.floor(Math.random() * uncollected.length)];
-                    GameState.pendingGift = item;
-                }
-            }
-
-            if (GameState.pendingGift) {
-                setTimeout(() => {
-                    const msgEl = document.getElementById('giftCatMessage');
-                    if (msgEl) {
-                        msgEl.innerText = `Milo yoklugunda dolasirken "${GameState.pendingGift.title}" buldu!`;
-                    }
-                    const modal = document.getElementById('giftModal');
-                    if (modal) modal.classList.add('active');
-                    sfxMeow();
-                }, 3500);
-            }
+            GameState.pendingGift = null;
+            const modal = document.getElementById('giftModal');
+            if (modal) modal.classList.remove('active');
         }
 
         function openGiftBox() {
@@ -7528,12 +7565,19 @@
                     const offX = 5;
                     const offY = 15;
                     ctx.drawImage(img, currentFrameIndex * fw, 0, fw, fh, offX, offY, drawW, drawH);
-                } else if (animKey === 'jump' || animKey === 'pounce') {
+                } else if (animKey === 'jump' || animKey === 'pounce' || animKey === 'jump_joy') {
                     // Zıplama animasyonu (Tezgah/Yatak/Kanepeye zıplarken dolgun ve büyük)
                     const drawW = 395;
                     const drawH = 395;
                     const offX = 5;
                     const offY = 10;
+                    ctx.drawImage(img, currentFrameIndex * fw, 0, fw, fh, offX, offY, drawW, drawH);
+                } else if (animKey === 'dance' || animKey === 'swim') {
+                    // PixelLab sevimli dans ve yüzme animasyonu
+                    const drawW = 390;
+                    const drawH = 390;
+                    const offX = 5;
+                    const offY = 15;
                     ctx.drawImage(img, currentFrameIndex * fw, 0, fw, fh, offX, offY, drawW, drawH);
                 } else if (animKey === 'laser') {
                     // Lazerle oynama & arkadan havaya zıplama animasyonu (sarman_duzeltilmis_lazer.png)
@@ -7612,12 +7656,7 @@
         function startPetAI() {
             // Her 2.8 - 3.2 saniyede bir kedi canlı gibi odasında gezinir
             setInterval(() => {
-                if (GameState.isSleeping || isLaserActive || isYarnActive) return;
-
-                // Eğer isBusy takılı kalmışsa ve animasyon bitmişse sıfırla
-                if (GameState.isBusy && !isWalking && !isJumping) {
-                    GameState.isBusy = false;
-                }
+                if (GameState.isSleeping || isLaserActive || isYarnActive || GameState.isBusy) return;
 
                 if (isWalking || isJumping) return;
 
@@ -7719,12 +7758,12 @@
             const elapsedSec = Math.min(3600 * 24, Math.max(0, (now - lastStatTick) / 1000));
             lastStatTick = now;
 
-            // 1. Aclik, Susuzluk, Sevgi ve Temizlik Dususu
-            const foodDecay = GameState.foodDecayRate || 1.0;
-            const waterDecay = GameState.waterDecayRate || 1.0;
+            // 1. Aclik, Susuzluk, Sevgi ve Temizlik Dususu (Verilen Mama/Su Saatlerine Birebir Bagli)
+            const foodHours = GameState.foodDurationHours || (FOOD_DATA[GameState.foodTier]?.durationHours) || 6;
+            const waterHours = GameState.waterDurationHours || (WATER_DATA[GameState.waterTier]?.durationHours) || 4;
 
-            GameState.hunger = Math.max(0, GameState.hunger - elapsedSec * (100 / (12 * 3600)) * foodDecay);
-            GameState.thirst = Math.max(0, GameState.thirst - elapsedSec * (100 / (8 * 3600)) * waterDecay);
+            GameState.hunger = Math.max(0, GameState.hunger - elapsedSec * (100 / (foodHours * 3600)));
+            GameState.thirst = Math.max(0, GameState.thirst - elapsedSec * (100 / (waterHours * 3600)));
             GameState.happy = Math.max(0, GameState.happy - elapsedSec * (100 / (16 * 3600)));
             GameState.cleanliness = Math.max(0, GameState.cleanliness - elapsedSec * (100 / (18 * 3600)));
 
@@ -8167,6 +8206,13 @@
                     pendingGift: GameState.pendingGift,
                     totalCaughtPrey: GameState.totalCaughtPrey,
                     totalPetCount: GameState.totalPetCount,
+                    foodTier: GameState.foodTier || 'basic',
+                    foodDurationHours: GameState.foodDurationHours || 6,
+                    foodDecayRate: GameState.foodDecayRate || 1.0,
+                    waterTier: GameState.waterTier || 'tap',
+                    waterDurationHours: GameState.waterDurationHours || 4,
+                    waterDecayRate: GameState.waterDecayRate || 1.0,
+                    autoFeederDaysLeft: GameState.autoFeederDaysLeft || 0,
                     lastTick: Date.now()
                 };
                 localStorage.setItem('pet_state', JSON.stringify(data));
@@ -8216,6 +8262,18 @@
                 if (data.totalCaughtPrey !== undefined) GameState.totalCaughtPrey = data.totalCaughtPrey;
                 if (data.totalPetCount !== undefined) GameState.totalPetCount = data.totalPetCount;
 
+                if (data.foodTier !== undefined) GameState.foodTier = data.foodTier;
+                if (data.foodDurationHours !== undefined) GameState.foodDurationHours = data.foodDurationHours;
+                else if (data.foodTier && FOOD_DATA[data.foodTier]) GameState.foodDurationHours = FOOD_DATA[data.foodTier].durationHours;
+                if (data.foodDecayRate !== undefined) GameState.foodDecayRate = data.foodDecayRate;
+
+                if (data.waterTier !== undefined) GameState.waterTier = data.waterTier;
+                if (data.waterDurationHours !== undefined) GameState.waterDurationHours = data.waterDurationHours;
+                else if (data.waterTier && WATER_DATA[data.waterTier]) GameState.waterDurationHours = WATER_DATA[data.waterTier].durationHours;
+                if (data.waterDecayRate !== undefined) GameState.waterDecayRate = data.waterDecayRate;
+
+                if (data.autoFeederDaysLeft !== undefined) GameState.autoFeederDaysLeft = data.autoFeederDaysLeft;
+
                 // OFFLINE UYKU & YASAM HESAPLAMASI
                 if (data.lastTick) {
                     const offlineSec = Math.max(0, (Date.now() - data.lastTick) / 1000);
@@ -8224,11 +8282,26 @@
                     const energyGained = offlineSec * 1.25;
                     GameState.energy = Math.min(100, GameState.energy + energyGained);
 
-                    // Açlık, susuzluk, sevgi ve temizlik düşüyor
-                    const foodDecay = GameState.foodDecayRate || 1.0;
-                    const waterDecay = GameState.waterDecayRate || 1.0;
-                    GameState.hunger = Math.max(0, GameState.hunger - offlineSec * (100 / (12 * 3600)) * foodDecay);
-                    GameState.thirst = Math.max(0, GameState.thirst - offlineSec * (100 / (8 * 3600)) * waterDecay);
+                    // Açlık, susuzluk, sevgi ve temizlik düşüyor (Verilen Mama/Su Saatlerine Birebir Bagli)
+                    const foodHours = GameState.foodDurationHours || (FOOD_DATA[GameState.foodTier]?.durationHours) || 6;
+                    const waterHours = GameState.waterDurationHours || (WATER_DATA[GameState.waterTier]?.durationHours) || 4;
+
+                    if (GameState.autoFeederDaysLeft > 0) {
+                        const daysPassed = offlineSec / 86400;
+                        if (daysPassed < GameState.autoFeederDaysLeft) {
+                            GameState.autoFeederDaysLeft -= daysPassed;
+                            GameState.hunger = 100;
+                        } else {
+                            const remainingSec = (daysPassed - GameState.autoFeederDaysLeft) * 86400;
+                            GameState.autoFeederDaysLeft = 0;
+                            const hungerDecayAmount = remainingSec * (100 / (6 * 3600));
+                            GameState.hunger = Math.max(0, 100 - hungerDecayAmount);
+                        }
+                    } else {
+                        GameState.hunger = Math.max(0, GameState.hunger - offlineSec * (100 / (foodHours * 3600)));
+                    }
+
+                    GameState.thirst = Math.max(0, GameState.thirst - offlineSec * (100 / (waterHours * 3600)));
                     GameState.happy = Math.max(0, GameState.happy - offlineSec * (100 / (16 * 3600)));
                     GameState.cleanliness = Math.max(0, GameState.cleanliness - offlineSec * (100 / (18 * 3600)));
 
@@ -8247,7 +8320,7 @@
                         } else if (offlineMin >= 5) {
                             showBubble('Uyanıyorum! ' + offlineMin + ' dakika uyudum, enerjim %' + Math.round(GameState.energy));
                         } else if (offlineMin >= 1) {
-                            showBubble('Tekrar hoşgeldin! 🐾');
+                            showBubble('Tekrar hoşgeldin!');
                         }
                     }, 1500);
 

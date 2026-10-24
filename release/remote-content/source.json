@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "channel": "store-data-v1",
+  "version": 1,
+  "issuedAt": 1792802754128,
+  "expiresAt": 1800492354128,
+  "food": {},
+  "water": {}
+}
